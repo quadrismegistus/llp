@@ -1,3 +1,5 @@
 backups/
 corpus/
 .DS_Store
+model/_models_word2vec/
+*.pyc
