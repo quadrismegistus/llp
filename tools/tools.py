@@ -798,3 +798,47 @@ def toks2str(tlist,uni=False):
 			toks[-1]+=tk
 	if uni: return u' '.join(toks)
 	return ' '.join(toks)
+
+
+
+
+
+
+####
+def print_config(corpus):
+	print
+	print
+	print '[%s]' % corpus.__name__
+	print "name = %s" % corpus.__name__
+	#print "link = "
+	ppath=''
+	if hasattr(corpus,'PATH_TXT'):
+		ppath=corpus.PATH_TXT
+		print "path_txt = %s" % corpus.PATH_TXT
+	if hasattr(corpus,'PATH_XML'):
+		if not ppath: ppath=corpus.PATH_XML
+		print "path_xml = %s" % corpus.PATH_XML
+	if hasattr(corpus,'PATH_METADATA'): print "path_metadata = %s" % corpus.PATH_METADATA
+	print "path_python = %s" % ppath.split('/')[0] + '/' + ppath.split('/')[0] + '.py'
+	print "class_corpus = %s" % corpus.__name__
+	print "class_text = %s" % 'Text'+corpus.__name__
+
+
+def do_configs(rootdir):
+	import imp,os
+	done=set()
+	for fldr in sorted(os.listdir(rootdir)):
+		path=os.path.join(rootdir,fldr)
+		if not os.path.isdir(path): continue
+		for fn in sorted(os.listdir(path)):
+			if fn.endswith('.py') and not fn.startswith('_'):
+
+				mod = imp.load_source(fn.replace('.py',''),os.path.join(path,fn))
+
+				for obj in dir(mod):
+					if obj[0]==obj[0].upper() and not obj in ['Text','Corpus'] and not obj.startswith('Text'):
+						if obj in done: continue
+						done|={obj}
+						x=getattr(mod,obj)
+						if not hasattr(x,'__name__'): continue
+						print_config(x)

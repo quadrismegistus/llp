@@ -1,8 +1,75 @@
 import os,codecs,gzip,random,time
 from lit import tools
+
+PATH_CORPUS = os.path.dirname(__file__)
+PATH_MANIFEST=os.path.join(PATH_CORPUS,'manifest.txt')
+PATH_MANIFEST_LOCAL=os.path.join(PATH_CORPUS,'manifest_local.txt')
+PATH_MANIFEST_HOME='~/.lit/manifest.txt'
+
+PATH_MANIFESTS = [PATH_MANIFEST, PATH_MANIFEST_LOCAL, PATH_MANIFEST_HOME]
+
 nlp=None
 ENGLISH=None
 stopwords=set()
+MANIFEST={}
+
+
+#### LOAD CORPUS FROM MANIFEST
+def load_manifest(force=False):
+	if MANIFEST and not force: return MANIFEST
+
+	# read config
+	print '>> reading config files...'
+	import configparser
+	config = configparser.ConfigParser()
+	for path in PATH_MANIFESTS:
+		config.read(path)
+
+	# convert config
+	for corpus in config.keys():
+		if corpus=='DEFAULT': continue
+		MANIFEST[corpus]=cd={}
+		for k,v in config[corpus].items():
+			cd[k]=v
+
+	return MANIFEST
+
+def load_corpus(name=None,required_data = ['path_python','class_name']):
+	manifest=load_manifest()
+
+	if not name:
+		print ">> Printing available corpora"
+		for cname in sorted(manifest):
+			print cname
+		return
+
+	if not name in manifest:
+		print '!! Corpus not found in manifests:'
+		for path in PATH_MANIFESTS: print '\t'+path
+		return
+
+	corpus_manifest=manifest[name]
+
+	for rd in required_data:
+		if not corpus_manifest.get(rd):
+			print '!! No "%s = " set for corpus "%s" in manifests' % name
+			return
+
+	# load and configure corpus
+	import imp
+	path_python = corpus_manifest['path_python']
+	class_name = corpus_manifest['class_name']
+	path_python = os.path.join(PATH_CORPUS,path_python) if not path_python[0] in {'\\','/'} else path_python
+	module_name = os.path.basename(path_python).replace('.py','')
+	module = imp.load_source(module_name, path_python)
+	class_class = getattr(module,class_name)
+	class_obj = class_class()
+
+	# re-do init?
+	super(class_class,class_obj).__init__(**corpus_manifest)
+	return class_obj
+
+####
 
 def string_import(name):
 	m = __import__(name)
@@ -26,7 +93,7 @@ def name2text(name):
 
 class Corpus(object):
 
-	def __init__(self, name, path_xml='', path_index='', ext_xml='.xml.gz', ext_txt='.txt.gz', path_txt='', path_header=None, path_metadata='', paths_text_data=[], paths_rel_data=[], path_freq_table={}):
+	def __init__(self, name, path_xml='', path_index='', ext_xml='.xml', ext_txt='.txt', path_txt='', path_header=None, path_metadata='', paths_text_data=[], paths_rel_data=[], path_freq_table={}, **kwargs):
 		import lit
 		self.path = os.path.dirname(__file__)
 		self.path_matches = os.path.join(lit.ROOT,'corpus','_matches')
@@ -70,6 +137,10 @@ class Corpus(object):
 
 		self.graph_text_rel={}
 		self.matched_corpora={}
+
+		# leftover kwargs?
+		for k,v in kwargs.items():
+			setattr(self,k,v)
 
 		#self.models = self.word2vec_by_period
 
@@ -125,6 +196,7 @@ class Corpus(object):
 		else:
 			## Otherwise get the filenames from the main file directory
 			path,ext=self.path_ext_texts
+			#print '>> looking for text IDs using files...'
 			if not path or not ext:
 				self._text_ids=[]
 			else:

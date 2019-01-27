@@ -11,6 +11,9 @@ SPELLING_VARIANT_PATH=os.path.join(ROOT,'data/spelling_variants_from_morphadorne
 
 ### FUNCTIONS
 
+from corpus import load_corpus
+
+
 ## Spelling
 V2S = None
 def variant2standard():
