@@ -1,6 +1,7 @@
 backups/
-corpus/
-!corpus/*/*.py
+corpus/*
+!corpus/*.py
+!corpus/default/
 .DS_Store
 model/_models_word2vec/
 *.pyc
