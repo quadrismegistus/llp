@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import os,codecs,pytxt
+import os,codecs
+from lit import tools
 from lit.text import Text,TextSection
 from lit.text import clean_text
 
@@ -88,14 +89,14 @@ class TextTCP(Text):
 
 			md['id_'+idno_type.replace(' ','_')]=idno_id
 
-		biblio = pytxt.yank(mtxt,'BIBLFULL')
+		biblio = tools.yank(mtxt,'BIBLFULL')
 		md['title'] = biblio.split('</TITLE>')[0].split('">')[-1]
-		md['author'] = pytxt.yank(biblio,'AUTHOR')
-		md['extent'] = pytxt.yank(biblio,'EXTENT')
-		md['pubplace'] = pytxt.yank(biblio,'PUBPLACE')
-		md['publisher'] = pytxt.yank(biblio,'PUBLISHER')
-		md['date'] = pytxt.yank(biblio,'DATE')
-		md['notes']=pytxt.yank(biblio,'NOTESSTMT')
+		md['author'] = tools.yank(biblio,'AUTHOR')
+		md['extent'] = tools.yank(biblio,'EXTENT')
+		md['pubplace'] = tools.yank(biblio,'PUBPLACE')
+		md['publisher'] = tools.yank(biblio,'PUBLISHER')
+		md['date'] = tools.yank(biblio,'DATE')
+		md['notes']=tools.yank(biblio,'NOTESSTMT')
 
 		try:
 			md['year']=int(''.join([x for x in md['date'] if x.isdigit()][:4]))

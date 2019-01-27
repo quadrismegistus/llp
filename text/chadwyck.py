@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import codecs
+from lit import tools
 
 from lit.text import Text,text_plain_from_xml,clean_text
 BAD={'figdesc','head','edit','note','l'}
@@ -47,7 +48,7 @@ class TextChadwyck(Text):
 		return text_plain_from_xml(txt,body_tag='doc',BAD=BAD,OK=OK)
 
 	def chapters(self,chapter_tags=['div5','div4','div3','div2','div1','div0'],para_tag='p',verse_tag='l',keep_verse=True, metadata=False):
-		import bs4,pytxt
+		import bs4,tools
 		from collections import defaultdict
 		txt=self.text_xml
 		done=0

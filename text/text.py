@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import os,pytxt,codecs,gzip
+import os,codecs,gzip
+from lit import tools
 nlp=None
 
 
@@ -302,7 +303,7 @@ class Text(object):
 		if not self.exists: return ''
 		if not force_xml and os.path.exists(self.fnfn_txt):
 			#print '>> text_plain from stored text file:',self.fnfn_txt
-			txt=pytxt.read(self.fnfn_txt).replace('\r\n','\n').replace('\r','\n')
+			txt=tools.read(self.fnfn_txt).replace('\r\n','\n').replace('\r','\n')
 			return txt
 		return self.text_plain_from_xml(OK=OK,BAD=BAD,body_tag=body_tag,text_only_within_medium=text_only_within_medium)
 
@@ -315,9 +316,9 @@ class Text(object):
 		## No spacy for now
 		#if not os.path.exists(self.fnfn_spacy):
 		if not pos_tag:
-			tuples = [(pytxt.noPunc(unicode(tok).strip().lower()),'') for tok in self.tokens_plain]
+			tuples = [(tools.noPunc(unicode(tok).strip().lower()),'') for tok in self.tokens_plain]
 		else:
-			tuples = [ (pytxt.noPunc(unicode(tok).strip().lower()), tok.tag_) for tok in self.spacy ]
+			tuples = [ (tools.noPunc(unicode(tok).strip().lower()), tok.tag_) for tok in self.spacy ]
 			tuples = [(a,b) for a,b in tuples if a]
 		tuples = [(a,b) for a,b in tuples if a]
 		return tuples
@@ -362,7 +363,7 @@ class Text(object):
 
 	@property
 	def freqs_tokens(self):
-		return pytxt.toks2freq([x.lower() for x in self.tokens])
+		return tools.toks2freq([x.lower() for x in self.tokens])
 
 	@property
 	def is_tokenized(self):
@@ -379,7 +380,7 @@ class Text(object):
 			dx={}
 			try:
 				for k,v in json.load(f).items():
-					k2=pytxt.noPunc(k)
+					k2=tools.noPunc(k)
 					if not k2 in dx: dx[k2]=0
 					dx[k2]+=v
 			except ValueError:
@@ -416,7 +417,7 @@ class Text(object):
 		return dx
 
 	def freqs_ngram(self,n=2):
-		return pytxt.toks2freq(pytxt.ngram([x for x in self.tokens], n))
+		return tools.toks2freq(tools.ngram([x for x in self.tokens], n))
 
 	def get_freqs(self, ngrams, as_str=False, fpm=False,str_key_prefix=None):
 		ngram2freqs={}
@@ -430,7 +431,7 @@ class Text(object):
 			#print i,gram,'...'
 			gramlen=len(gram)
 			if not gramlen in ngram2freqs:
-				ngram2freqs[gramlen]=pytxt.toks2freq(pytxt.ngram(tokens,gramlen))
+				ngram2freqs[gramlen]=tools.toks2freq(tools.ngram(tokens,gramlen))
 				#print ngram2freqs[gramlen]
 
 			key=gram if not as_str else ' '.join(gram)
@@ -446,7 +447,7 @@ class Text(object):
 		tic=time.clock()
 		#print '>> loading passages (I/O)..'
 		txt=self.text
-		passages=list(pytxt.passages(txt,phrases=phrases,window=window))
+		passages=list(tools.passages(txt,phrases=phrases,window=window))
 		for dx in passages:
 			dx['tcp_id']=self.id
 			dx['corpus']=self.corpus.name
@@ -487,7 +488,7 @@ class Text(object):
 		if not os.path.exists(path_fnfn): os.makedirs(path_fnfn)
 
 		if not compress:
-			pytxt.write2(fnfn_txt, txt)
+			tools.write2(fnfn_txt, txt)
 		else:
 			import gzip
 			with gzip.open(fnfn_txt,'wb') as f:
@@ -555,7 +556,7 @@ class Text(object):
 			words=line.strip().split()
 			line_html=[]
 			for word in words:
-				wordl=pytxt.noPunc(word.lower())
+				wordl=tools.noPunc(word.lower())
 				if wordl in word2vals:
 					span=u'<span style="color:rgb({0})">{1}</span>'.format(','.join(word2vals[wordl]), word)
 				else:
@@ -564,7 +565,7 @@ class Text(object):
 			html+=[u' '.join(line_html)]
 		htmlstr=u'<br/>\n'.join(html)
 
-		pytxt.write2(fn,htmlstr)
+		tools.write2(fn,htmlstr)
 
 
 	"""
@@ -668,7 +669,7 @@ class Passages(object):
 						pass # do nothing; leave both"""
 
 		for d in self.passage_ld: d['is_duplicate']=None
-		for textid,textld in pytxt.ld2dld(self.passage_ld, 'tcp_id').items():
+		for textid,textld in tools.ld2dld(self.passage_ld, 'tcp_id').items():
 			for dx1 in textld:
 				range1=set(range(dx1['index'],dx1['index_end']))
 
@@ -715,16 +716,16 @@ class Passages(object):
 		sfolder = 'passages_'+phrase
 		if not os.path.exists(sfolder): os.mkdir(sfolder)
 		os.chdir(sfolder)
-		pytxt.write2('passages_'+phrase+'.xls', self.passage_ld)
+		tools.write2('passages_'+phrase+'.xls', self.passage_ld)
 
-		for text_id,tld in pytxt.ld2dld(self.passage_ld,'tcp_id').items():
+		for text_id,tld in tools.ld2dld(self.passage_ld,'tcp_id').items():
 			td=tld[0]
 			year=td['year']
 			author=td['author']
 			author='Unknown' if not author else author
 			title=td['title']
-			title_alpha = pytxt.alphas(title)
-			title_window = pytxt.get_word_window(title_alpha,10)
+			title_alpha = tools.alphas(title)
+			title_window = tools.get_word_window(title_alpha,10)
 			title_window=title_window[:100]
 			key=str(int(year))+'.'+author.split(',')[0]+'.'+title_window+' -- '+text_id
 
@@ -735,11 +736,11 @@ class Passages(object):
 				if k.startswith('id_') and not k.endswith('_TCP'): continue
 				txt_meta+='['+k+']\n'+unicode(v)+'\n\n'
 
-			pytxt.write2(os.path.join(key,'_Metadata.txt'), txt_meta)
+			tools.write2(os.path.join(key,'_Metadata.txt'), txt_meta)
 
 			for i,match in enumerate(tld):
 				txt_match='[index]\n'+str(match['index'])+', '+str(match['index_end'])+'\n\n[passage]\n'+match['passage']+'\n'
-				pytxt.write2(os.path.join(key,'Match '+str(i+1)+'.txt'), txt_match)
+				tools.write2(os.path.join(key,'Match '+str(i+1)+'.txt'), txt_match)
 
 			ifnfn=td['fnfn_xml']
 
@@ -750,7 +751,7 @@ class Passages(object):
 			css_txt = codecs.open('../'+css_fnfn,encoding='utf-8').read()
 
 			html = '<html><head><style type="text/css">'+css_txt+'</style></head><body>'+xml_txt+'</body></head></html>'
-			pytxt.write2(os.path.join(key,'_Text-HTML.htm'), html)"""
+			tools.write2(os.path.join(key,'_Text-HTML.htm'), html)"""
 
 
 

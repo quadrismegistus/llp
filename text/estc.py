@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import codecs,json,pytxt,re
+import codecs,json,re
+from lit import tools
 
 from lit.text import Text
 from collections import defaultdict
@@ -41,7 +42,7 @@ class TextESTC(Text):
 	def coded(self):
 		coded=defaultdict(list)
 		for code,val in self.codes:
-			val=pytxt.noPunc(val).strip()
+			val=tools.noPunc(val).strip()
 			if not val in coded[code]:
 				coded[code]+=[val]
 		return coded
@@ -72,7 +73,7 @@ class TextESTC(Text):
 		md['title_sub']=coded['245_b']
 
 		# pubinfo
-		#md['pubplace']=pytxt.noPunc(coded.get('260_a','')).strip()
+		#md['pubplace']=tools.noPunc(coded.get('260_a','')).strip()
 		md['pub_statement']=coded['260_b']
 		md['pub_nation']=coded['752_a']
 		md['pub_region']=coded['752_b']

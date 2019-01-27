@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import os,codecs,pytxt
+import os,codecs
+from lit import tools
 
 from lit.text import Text
 from lit.text.tcp import TextTCP
