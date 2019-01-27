@@ -1,5 +1,6 @@
 backups/
 corpus/*
+!corpus/manifest*
 !corpus/*.py
 !corpus/default/
 !corpus/*/*.py

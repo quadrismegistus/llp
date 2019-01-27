@@ -1,0 +1,195 @@
+####
+# A list of all of the corpora available by using
+# from lit.corpus import load_corpus
+# bpo = load_corpus(bpo)
+# etc
+####
+
+
+[BPO]
+name = British Periodicals Online
+link = https://proquest.libguides.com/britishperiodicals
+path_txt = bpo/_txt_bpo
+path_xml = bpo/_xml_bpo
+path_metadata = bpo/corpus-metadata.BPO.txt
+path_python = bpo/bpo.py
+class_name = BPO
+
+
+[Chadwyck]
+name = Chadwyck-Healey Fiction Collections
+link = http://collections.chadwyck.co.uk/marketing/list_of_all.jsp
+path_txt = chadwyck/_txt_chadwyck
+path_xml = chadwyck/_xml_chadwyck
+path_metadata = chadwyck/corpus-metadata.Chadwyck.xlsx
+path_python = chadwyck/chadwyck.py
+class_name = Chadwyck
+ext_xml = .new
+
+
+[ChadwyckDrama]
+name = Chadwyck-Healey Drama Collections
+link = http://collections.chadwyck.co.uk/marketing/list_of_all.jsp
+path_txt = chadwyck_drama/_txt_chadwyck_drama
+path_xml = chadwyck_drama/_xml_chadwyck_drama
+path_metadata = chadwyck_drama/corpus-metadata.ChadwyckDrama.txt
+path_python = chadwyck_drama/chadwyck_drama.py
+class_name = ChadwyckDrama
+
+
+[ChadwyckPoetry]
+name = Chadwyck-Healey Poetry Collections
+link = http://collections.chadwyck.co.uk/marketing/list_of_all.jsp
+path_txt = chadwyck_poetry/_txt_chadwyck_poetry
+path_xml = /Volumes/Present/DH/corpora/chadwyck_poetry/xml
+path_metadata = chadwyck_poetry/corpus-metadata.ChadwyckPoetry.txt
+path_python = chadwyck_poetry/chadwyck_poetry.py
+class_name = ChadwyckPoetry
+
+
+[Chicago]
+name = Chicago
+path_txt = /oak/stanford/groups/malgeehe/stacks/raw/chicago/Texts
+path_xml = chicago/_xml_chicago
+path_metadata = chicago/corpus-metadata.Chicago.txt
+path_python = chicago/chicago.py
+class_name = Chicago
+
+
+[CLMET]
+name = CLMET
+path_txt = clmet/_txt_clmet
+path_xml = /Volumes/Present/DH/corpora/clmet/xml
+path_metadata = clmet/corpus-metadata.CLMET.txt
+path_python = clmet/clmet.py
+class_name = CLMET
+
+
+[COHA]
+name = COHA
+path_txt = /Volumes/Present/DH/corpora/coha/txt
+path_metadata = coha/corpus-metadata.COHA.txt
+path_python = coha/coha.py
+class_name = COHA
+
+
+[DialNarr]
+name = DialNarr
+path_txt = dialnarr/_txt_dialnarr
+path_metadata = dialnarr/corpus-metadata.DialNarr.txt
+path_python = dialnarr/dialnarr.py
+class_name = DialNarr
+
+
+[EnglishDialogues]
+name = EnglishDialogues
+path_xml = dialogues/_xml_corpus_english_dialogues
+path_metadata = dialogues/corpus-metadata.EnglishDialogues.txt
+path_python = dialogues/dialogues.py
+class_name = EnglishDialogues
+
+
+[ECCO]
+name = ECCO
+path_txt = ecco/_txt_ecco
+path_metadata = ecco/corpus-metadata.ECCO.txt
+path_python = ecco/ecco.py
+class_name = ECCO
+
+
+[ECCO_LitLang]
+name = ECCO_LitLang
+path_txt = ecco/_txt_ecco_litlang
+path_xml = ecco/_xml_ecco_litlang
+path_metadata = ecco/corpus-metadata.ECCO_LitLang.xlsx
+path_python = ecco/ecco.py
+class_name = ECCO_LitLang
+
+
+[ECCO_TCP]
+name = ECCO_TCP
+path_txt = ecco/_txt_ecco_tcp
+path_xml = ecco/_xml_ecco_tcp
+path_metadata = ecco/corpus-metadata.ECCO-TCP.xlsx
+path_python = ecco/ecco.py
+class_name = ECCO_TCP
+
+
+[EEBO_TCP]
+name = EEBO_TCP
+path_xml = /Volumes/Present/DH/corpora/eebo/_xml_eebo_tcp
+path_metadata = eebo/corpus-metadata.EEBO-TCP.txt
+path_python = eebo/eebo.py
+class_name = EEBO_TCP
+
+
+[ESTC]
+name = ESTC
+path_txt = estc/_json_estc
+path_metadata = estc/corpus-metadata.ESTC.txt
+path_python = estc/estc.py
+class_name = ESTC
+
+
+[GildedAge]
+name = GildedAge
+path_txt = gildedage/_txt_gildedage
+path_metadata = gildedage/corpus-metadata.GildedAge.xlsx
+path_python = gildedage/gildedage.py
+class_name = GildedAge
+
+
+[LitLab]
+name = LitLab
+path_xml = litlab/_txt_litlab
+path_metadata = litlab/corpus-metadata.LitLab.xlsx
+path_python = litlab/litlab.py
+class_name = LitLab
+
+
+[MarkMark]
+name = MarkMark
+path_txt = markmark/_txt_markmark
+path_metadata = markmark/corpus-metadata.MarkMark.txt
+path_python = markmark/markmark.py
+class_name = MarkMark
+
+
+[OldBailey]
+name = OldBailey
+path_xml = oldbailey/_xml_parsed_old_bailey
+path_metadata = oldbailey/corpus-metadata.OldBailey.xlsx
+path_python = oldbailey/oldbailey.py
+class_name = OldBailey
+
+
+[RavenGarside]
+name = RavenGarside
+path_metadata = ravengarside/corpus-metadata.RavenGarside.xlsx
+path_python = ravengarside/ravengarside.py
+class_name = RavenGarside
+
+
+[Sellars]
+name = Sellars
+path_txt = sellars/_txt_sellars
+path_xml = None
+path_metadata = sellars/corpus-metadata.Sellars.xls
+path_python = sellars/sellars.py
+class_name = Sellars
+
+
+[Spectator]
+name = Spectator
+path_txt = spectator/_txt_spectator
+path_metadata = spectator/corpus-metadata.Spectator.txt
+path_python = spectator/spectator.py
+class_name = Spectator
+
+
+[TedJDH]
+name = TedJDH
+path_txt = tedjdh/_txt_tedjdh
+path_metadata = tedjdh/corpus-metadata.TedJDH.xls
+path_python = tedjdh/tedjdh.py
+class_name = TedJDH
