@@ -6,10 +6,10 @@ import os
 class PlainTextCorpus(Corpus):
 	TEXT_CLASS=TextPlainTextCorpus
 
-	def __init__(self, PATH_TXT, PATH_METADATA, PATH_ROOT=None, name=None):
+	def __init__(self, PATH_TXT, PATH_METADATA=None, PATH_ROOT=None, name=None):
 		self.PATH_TXT=os.path.abspath(PATH_TXT)
-		self.PATH_METADATA=os.path.abspath(PATH_METADATA)
-		self.PATH_ROOT=os.path.split(PATH_METADATA)[0]
+		self.PATH_METADATA=os.path.abspath(PATH_METADATA) if PATH_METADATA Else None
+		self.PATH_ROOT=os.path.split(PATH_TXT)[0]
 		super(PlainTextCorpus,self).__init__(
 						'PlainTextCorpus' if not name else name,
 						path_txt=self.PATH_TXT,
