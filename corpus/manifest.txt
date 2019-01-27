@@ -7,7 +7,8 @@
 
 
 [BPO]
-name = British Periodicals Online
+name = BPO
+desc = British Periodicals Online
 link = https://proquest.libguides.com/britishperiodicals
 path_txt = bpo/_txt_bpo
 path_xml = bpo/_xml_bpo
@@ -17,7 +18,8 @@ class_name = BPO
 
 
 [Chadwyck]
-name = Chadwyck-Healey Fiction Collections
+name = Chadwyck
+desc = Chadwyck-Healey Fiction Collections
 link = http://collections.chadwyck.co.uk/marketing/list_of_all.jsp
 path_txt = chadwyck/_txt_chadwyck
 path_xml = chadwyck/_xml_chadwyck
@@ -28,7 +30,8 @@ ext_xml = .new
 
 
 [ChadwyckDrama]
-name = Chadwyck-Healey Drama Collections
+name = ChadwyckDrama
+desc = Chadwyck-Healey Drama Collections
 link = http://collections.chadwyck.co.uk/marketing/list_of_all.jsp
 path_txt = chadwyck_drama/_txt_chadwyck_drama
 path_xml = chadwyck_drama/_xml_chadwyck_drama
@@ -38,7 +41,8 @@ class_name = ChadwyckDrama
 
 
 [ChadwyckPoetry]
-name = Chadwyck-Healey Poetry Collections
+name = ChadwyckPoetry
+desc = Chadwyck-Healey Poetry Collections
 link = http://collections.chadwyck.co.uk/marketing/list_of_all.jsp
 path_txt = chadwyck_poetry/_txt_chadwyck_poetry
 path_xml = /Volumes/Present/DH/corpora/chadwyck_poetry/xml
