@@ -1,4 +1,5 @@
-import os,pytxt,codecs,gzip,random,time
+import os,tools,codecs,gzip,random,time
+from lit import tools
 nlp=None
 ENGLISH=None
 stopwords=set()
@@ -198,9 +199,9 @@ class Corpus(object):
 			txt2save = text.text_plain(force_xml=True) if not use_gen else text.lines_txt()
 			if not compress:
 				if not use_gen:
-					pytxt.write2(fnfn_txt, txt2save)
+					tools.write2(fnfn_txt, txt2save)
 				else:
-					pytxt.writegen(fnfn_txt, txt2save)
+					tools.writegen(fnfn_txt, txt2save)
 			else:
 				import gzip
 				with gzip.open(fnfn_txt,'wb') as f:
@@ -230,7 +231,7 @@ class Corpus(object):
 		print "DONE:",num_texts-num_todo
 		print "TODO:",num_todo
 		text_is=zip(texts,range(len(texts)))
-		pytxt.crunch(text_is, do_text, nprocs=16)
+		tools.crunch(text_is, do_text, nprocs=16)
 
 
 	def divide_texts_historically(self,yearbin=10,texts=None):
@@ -247,11 +248,11 @@ class Corpus(object):
 	## METADATA
 
 	def load_metadata(self,combine_matches=False,load_text_data=True,load_rel_data=False,minimal=False,maximal=False):
-		meta_ld=pytxt.read_ld(self.path_metadata,keymap={'*':unicode})
+		meta_ld=tools.read_ld(self.path_metadata,keymap={'*':unicode})
 		for d in meta_ld: d['corpus']=self.name
 
 		self._meta=meta_ld
-		self._metad=pytxt.ld2dd(meta_ld,'id')
+		self._metad=tools.ld2dd(meta_ld,'id')
 		self._text_ids=[d['id'] for d in meta_ld]
 
 		if maximal or (not minimal and load_text_data): self.load_text_data()
@@ -261,7 +262,7 @@ class Corpus(object):
 	def load_text_data(self):
 		all_keys=set()
 		for data_fn in self.paths_text_data:
-			data_ld=pytxt.read_ld(data_fn,keymap={'*':unicode})
+			data_ld=tools.read_ld(data_fn,keymap={'*':unicode})
 			for _d in data_ld:
 				if not 'id' in _d: continue
 				idx=_d['id']
@@ -387,9 +388,9 @@ class Corpus(object):
 			for dx in self.meta: dx['reprinted']='title_reprint_cluster_rank' in dx and int(dx['title_reprint_cluster_rank'])>1
 
 	def save_additional_metadata(self,fn):
-		orig_keys = set(pytxt.header(self.path_metadata))
+		orig_keys = set(tools.header(self.path_metadata))
 		for data_fn in self.paths_text_data:
-			orig_keys|=set(pytxt.header(data_fn))
+			orig_keys|=set(tools.header(data_fn))
 
 		orig_keys.remove('id')
 		def writegen():
@@ -399,7 +400,7 @@ class Corpus(object):
 					if not k in orig_keys:
 						d2[k]=d[k]
 				yield d2
-		pytxt.writegen(fn,writegen)
+		tools.writegen(fn,writegen)
 
 	@property
 	def meta(self):
@@ -414,7 +415,7 @@ class Corpus(object):
 	@property
 	def metad(self):
 		if not hasattr(self,'_metad'):
-			self._metad=pytxt.ld2dd(self.meta,'id')
+			self._metad=tools.ld2dd(self.meta,'id')
 		return self._metad
 
 	def export(self,folder,meta_fn=None,txt_folder=None,compress=False):
@@ -446,7 +447,7 @@ class Corpus(object):
 	def save_metadata(self,ofn=None,num_words=True,ocr_accuracy=True,genre=False):
 		global ENGLISH
 		if not ofn:
-			timestamp=pytxt.now().split('.')[0]
+			timestamp=tools.now().split('.')[0]
 			ofn=os.path.join(self.path,'corpus-metadata.%s.%s.txt' % (self.name,timestamp))
 
 		print '>> generating metadata...'
@@ -483,8 +484,8 @@ class Corpus(object):
 			#print
 			old+=[md]
 
-		pytxt.write2(ofn, old)
-		#pytxt.writegen(os.path.join(self.path,'corpus-metadata.'+self.name+'.txt'), writegen)
+		tools.write2(ofn, old)
+		#tools.writegen(os.path.join(self.path,'corpus-metadata.'+self.name+'.txt'), writegen)
 
 
 
@@ -504,7 +505,7 @@ class Corpus(object):
 		ofnfn=os.path.join(self.path,'corpus-metadata.'+self.name+'.txt')
 		if not os.path.exists(ofnfn): resume=False
 		if resume:
-			ild=pytxt.read_ld(ofnfn)
+			ild=tools.read_ld(ofnfn)
 			if ocr_accuracy or num_words:
 				bad_ild = [d for d in ild if not d['ocr_accuracy'] or not d['num_words']]
 				for d in bad_ild:
@@ -534,7 +535,7 @@ class Corpus(object):
 				for dx in p.get():
 					yield dx
 
-		pytxt.writegen(ofnfn, writegen)
+		tools.writegen(ofnfn, writegen)
 		"""
 
 
@@ -594,7 +595,7 @@ class Corpus(object):
 
 		fnfn=self.get_path_freq_table(n=n,discover=True)
 
-		header=pytxt.header(fnfn,tsep=sep,encoding=encoding)
+		header=tools.header(fnfn,tsep=sep,encoding=encoding)
 		if toks:
 			toks=toks&set(header[1:])
 			index_tok=[(header.index(tok),tok) for tok in toks]
@@ -610,7 +611,7 @@ class Corpus(object):
 
 		data=[]
 		indices=[]
-		#for row in pytxt.readgen(fnfn,as_list=True):
+		#for row in tools.readgen(fnfn,as_list=True):
 
 		now=time.time()
 		print '>> streaming freqs:',fnfn
@@ -685,7 +686,7 @@ class Corpus(object):
 		if use_worddb:
 			# @HACK!! 5/13/18
 			print '>> using words from worddb'
-			words = [d['word'] for d in pytxt.read_ld('/Users/ryan/DH/18C/data/data.worddb.txt')]
+			words = [d['word'] for d in tools.read_ld('/Users/ryan/DH/18C/data/data.worddb.txt')]
 			n=len(words)
 			print '>> found',n,'words'
 		elif words:
@@ -962,7 +963,7 @@ class Corpus(object):
 				othercorpus.load_metadata(maximal=True)
 				self.matched_corpora[othercorpus.name]=othercorpus
 
-				match_ld=pytxt.read_ld(os.path.join(self.path_matches,match_fn))
+				match_ld=tools.read_ld(os.path.join(self.path_matches,match_fn))
 				for matchd in match_ld:
 					if matchd.get('match_ismatch','') and not matchd['match_ismatch'] in ['n','N']:
 						idx_self=matchd['id'+idself]
@@ -1055,12 +1056,12 @@ class Corpus(object):
 				dx['match_ismatch']=is_match
 				old+=[dx]
 
-		pytxt.write2(os.path.join(self.path,'matches.'+c1.name+'--'+c2.name+'.txt'), old)
+		tools.write2(os.path.join(self.path,'matches.'+c1.name+'--'+c2.name+'.txt'), old)
 
 	def copy_match_files(self,corpus,match_fn=None,copy_xml=True,copy_txt=True):
 		import shutil
 		match_fn = os.path.join(self.path,match_fn) if match_fn else os.path.join(self.path,'matches.'+corpus.name+'.xls')
-		matches = [d for d in pytxt.read_ld(match_fn) if d['match_ismatch'].lower().strip()=='y']
+		matches = [d for d in tools.read_ld(match_fn) if d['match_ismatch'].lower().strip()=='y']
 
 		c1=self
 		c2=corpus
@@ -1097,7 +1098,7 @@ class Corpus(object):
 			spelling_d=get_spelling_modernizer()
 
 		## HACK
-		#id1_done_before = set([d['id1'] for d in pytxt.readgen('data.duplicates.ESTC.bytitle.authorless-part1.txt')])
+		#id1_done_before = set([d['id1'] for d in tools.readgen('data.duplicates.ESTC.bytitle.authorless-part1.txt')])
 		#id1_done_before.remove(d['id1']) # remove last one
 		#print len(id1_done_before)
 		##
@@ -1207,9 +1208,9 @@ class Corpus(object):
 				break
 
 		if not within_author:
-			pytxt.writegen('data.duplicates.%s.bytitle.pypy.txt' % self.name, writegen)
+			tools.writegen('data.duplicates.%s.bytitle.pypy.txt' % self.name, writegen)
 		else:
-			pytxt.writegen('data.duplicates.%s.bytitle.pypy.txt' % self.name, writegen_withinauthor)
+			tools.writegen('data.duplicates.%s.bytitle.pypy.txt' % self.name, writegen_withinauthor)
 
 
 
@@ -1281,7 +1282,7 @@ class Corpus(object):
 					yield dx
 
 		ofn='data.duplicates.%s.txt' % self.name if not ofn else ofn
-		pytxt.writegen(ofn, writegen1)
+		tools.writegen(ofn, writegen1)
 		return G
 
 	def hashd(self,path_hashes=None,suffix_hashes=None,text_ids=None):
@@ -1399,7 +1400,7 @@ class Corpus(object):
 				for x in gen.get():
 					yield x
 
-		pytxt.writegen('subcorpus-metadata.txt', writegen)
+		tools.writegen('subcorpus-metadata.txt', writegen)
 		"""
 		for sc in subcorpus2author2texts:
 			do_save_subcorpus(os.path.join(odir,'_'.join(subcorpus)+'.txt'), subcorpus2author2texts[sc], subcorpus)
@@ -1473,10 +1474,10 @@ class CorpusMeta(Corpus):
 	def save_metadata(self,ofn=None):
 		#return super(CorpusMeta,self).save_metadata(ofn=ofn,num_words=False,ocr_accuracy=False)
 		if not ofn:
-			timestamp=pytxt.now().split('.')[0]
+			timestamp=tools.now().split('.')[0]
 			ofn=os.path.join(self.path,'corpus-metadata.%s.%s.txt' % (self.name,timestamp))
 
-		pytxt.write2(ofn,self.meta)
+		tools.write2(ofn,self.meta)
 
 
 
@@ -1585,7 +1586,7 @@ def do_save_subcorpus(ofnfn,author2texts,subcorpus,slice_len=1000,num_words=5000
 		num_words_author = len(author_words)
 		num_words_author_included=0
 
-		author_slices = pytxt.slice(author_words,slice_length=slice_len,runts=False)
+		author_slices = tools.slice(author_words,slice_length=slice_len,runts=False)
 		print author,'has',len(author_words),'and',len(author_slices),'slices',
 		random.shuffle(author_slices)
 		author_slices = author_slices[:(num_words/slice_len)]
@@ -1612,7 +1613,7 @@ def skipgram_do_text(text,i=0,n=10):
 	from nltk import word_tokenize
 	words=word_tokenize(text.text_plain)
 	words=[w for w in words if True in [x.isalpha() for x in w]]
-	word_slices = pytxt.slice(words,slice_length=n,runts=False)
+	word_slices = tools.slice(words,slice_length=n,runts=False)
 	return word_slices
 
 def skipgram_do_text2(text_i,n=10,lowercase=True):
@@ -1620,9 +1621,9 @@ def skipgram_do_text2(text_i,n=10,lowercase=True):
 	import random
 	print i, text.id, '...'
 	words=text.text_plain.strip().split()
-	words=[pytxt.noPunc(w.lower()) if lowercase else pytxt.noPunc(w) for w in words if True in [x.isalpha() for x in w]]
+	words=[tools.noPunc(w.lower()) if lowercase else tools.noPunc(w) for w in words if True in [x.isalpha() for x in w]]
 	#sld=[]
-	for slice_i,slice in enumerate(pytxt.slice(words,slice_length=n,runts=False)):
+	for slice_i,slice in enumerate(tools.slice(words,slice_length=n,runts=False)):
 		sdx={'id':text.id, 'random':random.random(), 'skipgram':slice, 'i':slice_i}
 		yield sdx
 		#sld+=[sdx]

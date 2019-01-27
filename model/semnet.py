@@ -1,7 +1,7 @@
 from lit.model import Model
-import pytxt
 import networkx as nx
 import numpy as np
+from lit import tools
 
 # Semantic Networks
 
@@ -37,7 +37,7 @@ class SemanticNetwork(Model):
 		#words = set(self.model.mfw()) if not words else set(words)
 		words_ld=self.model.mfw(return_ld=True) if not words_ld else words_ld
 		words = set(d[wordkey] for d in words_ld) if not words else set(words)
-		word2d=pytxt.ld2dd(words_ld,wordkey)
+		word2d=tools.ld2dd(words_ld,wordkey)
 
 		"""
 		# UHHH WHAT WAS THIS ??
