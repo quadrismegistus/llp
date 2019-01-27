@@ -1,4 +1,4 @@
-import os,tools,codecs,gzip,random,time
+import os,codecs,gzip,random,time
 from lit import tools
 nlp=None
 ENGLISH=None
