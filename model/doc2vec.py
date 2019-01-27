@@ -1,4 +1,5 @@
 from lit.model import Model
+from lit import tools
 from gensim.models.doc2vec import LabeledSentence
 class SentenceSampler(Model):
 	def __init__(self, fn, num_skips_wanted=True,min_words=50,min_words_in_sent=6,save_key=False, key_fn=None,save_word2vec=False):
@@ -206,7 +207,7 @@ class Doc2Vec(Word2Vec):
 						if w[0].isalpha() and w[-1].isalpha() and w in self.gensim:
 							variables[w]=self.gensim[w]
 							words_included+=[w]
-					wordvecs = [pytxt.parse_math_str(words, variables=variables)]
+					wordvecs = [parse_math_str(words, variables=variables)]
 				else:
 					#wordvecs=[w.lower() for w in wordl if w.lower() in self.gensim]
 					wordvecs=[self.gensim[w.lower()] for w in words.split() if w.lower() in self.gensim]
@@ -233,13 +234,6 @@ class Doc2Vec(Word2Vec):
 			sentids = [int(x) for x in line.split('\t')[1].split()]
 			#words = line.split('\t')[2].strip().split()
 
-			"""
-			Line=[]
-			for x in sentids:
-				line=eval(linecache.getline(fn,x))
-				Line+=line
-			o+=[pytxt.toks2str(Line)]
-			"""
 			ol=[]
 			textid=None
 			for x in range(sentids[0], sentids[-1]+1):
@@ -310,12 +304,7 @@ def getdoc(docid):
 		line=eval(linecache.getline('sentences.ECCO-TCP.txt',x))
 		Line+=line
 
-	#linestr= ' '.join(Line)
-	#while '\n\n' in linestr:
-	#	linestr=linestr.replace('\n\n','\n')
-	#for ln in linestr.split('\n'):
-	#	print pytxt.toks2str(ln.split())
-	print pytxt.toks2str(Line)
+	print tools.toks2str(Line)
 
 
 def word2doc(m,word,nummax=10):
@@ -329,3 +318,121 @@ def word2doc(m,word,nummax=10):
 			print x,y
 			getdoc(idx)
 			print
+
+
+
+def parse_math_str(input_string,variables={}):
+
+	# Uncomment the line below for readline support on interactive terminal
+	# import readline
+	import re
+	from pyparsing import Word, alphas, ParseException, Literal, CaselessLiteral, Combine, Optional, nums, Or, Forward, ZeroOrMore, StringEnd, alphanums
+	import math
+
+	# Debugging flag can be set to either "debug_flag=True" or "debug_flag=False"
+	debug_flag=False
+
+	exprStack = []
+	varStack  = []
+
+	def pushFirst( str, loc, toks ):
+		exprStack.append( toks[0] )
+
+	def assignVar( str, loc, toks ):
+		varStack.append( toks[0] )
+
+	# define grammar
+	point = Literal('.')
+	e = CaselessLiteral('E')
+	plusorminus = Literal('+') | Literal('-')
+	number = Word(nums)
+	integer = Combine( Optional(plusorminus) + number )
+	floatnumber = Combine( integer + Optional( point + Optional(number) ) + Optional( e + integer ) )
+
+	ident = Word(alphas,alphanums + '_')
+
+	plus  = Literal( "+" )
+	minus = Literal( "-" )
+	mult  = Literal( "*" )
+	div   = Literal( "/" )
+	lpar  = Literal( "(" ).suppress()
+	rpar  = Literal( ")" ).suppress()
+	addop  = plus | minus
+	multop = mult | div
+	expop = Literal( "^" )
+	assign = Literal( "=" )
+
+	expr = Forward()
+	atom = ( ( e | floatnumber | integer | ident ).setParseAction(pushFirst) |
+					 ( lpar + expr.suppress() + rpar )
+				 )
+
+	factor = Forward()
+	factor << atom + ZeroOrMore( ( expop + factor ).setParseAction( pushFirst ) )
+
+	term = factor + ZeroOrMore( ( multop + factor ).setParseAction( pushFirst ) )
+	expr << term + ZeroOrMore( ( addop + term ).setParseAction( pushFirst ) )
+	bnf = Optional((ident + assign).setParseAction(assignVar)) + expr
+
+	pattern =  bnf + StringEnd()
+
+	# map operator symbols to corresponding arithmetic operations
+	opn = { "+" : ( lambda a,b: a + b ),
+					"-" : ( lambda a,b: a - b ),
+					"*" : ( lambda a,b: a * b ),
+					"/" : ( lambda a,b: a / b ),
+					"^" : ( lambda a,b: a ** b ) }
+
+	# Recursive function that evaluates the stack
+	def evaluateStack( s ):
+		op = s.pop()
+		if op in "+-*/^":
+			op2 = evaluateStack( s )
+			op1 = evaluateStack( s )
+			return opn[op]( op1, op2 )
+		elif op == "PI":
+			return math.pi
+		elif op == "E":
+			return math.e
+		elif re.search('^[a-zA-Z][a-zA-Z0-9_]*$',op):
+			if variables.has_key(op):
+				return variables[op]
+			else:
+				return 0
+		elif re.search('^[-+]?[0-9]+$',op):
+			return long( op )
+		else:
+			return float( op )
+
+	# Start with a blank exprStack and a blank varStack
+	exprStack = []
+	varStack  = []
+
+	if input_string != '':
+		# try parsing the input string
+		try:
+			L=pattern.parseString( input_string )
+		except ParseException,err:
+			L=['Parse Failure',input_string]
+
+		# show result of parsing the input string
+		if debug_flag: print input_string, "->", L
+		if len(L)==0 or L[0] != 'Parse Failure':
+			if debug_flag: print "exprStack=", exprStack
+
+			# calculate result , store a copy in ans , display the result to user
+			result=evaluateStack(exprStack)
+			variables['ans']=result
+			#print result
+			return result
+
+			# Assign result to a variable if required
+			if debug_flag: print "var=",varStack
+			if len(varStack)==1:
+				variables[varStack.pop()]=result
+			if debug_flag: print "variables=",variables
+		else:
+			print 'Parse Failure'
+			print err.line
+			print " "*(err.column-1) + "^"
+			print err

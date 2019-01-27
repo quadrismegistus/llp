@@ -763,3 +763,38 @@ def now(now=None):
 		now=dt.datetime.fromtimestamp(now)
 
 	return '{0}{1}{2}-{3}{4}.{5}'.format(now.year,str(now.month).zfill(2),str(now.day).zfill(2),str(now.hour).zfill(2),str(now.minute).zfill(2),str(now.second).zfill(2))
+
+
+
+def toks2str(tlist,uni=False):
+	toks=[]
+	putleft=False
+	#print tlist
+	for tk in tlist:
+		tk=tk.strip()
+		if not tk: continue
+		tk = tk.split()[-1]
+		if not tk: continue
+		if (not len(toks)):
+			toks+=[tk]
+		elif putleft:
+			toks[-1]+=tk
+			putleft=False
+		elif tk=='`':
+			toks+=[tk]
+			putleft=True
+		elif tk=='-LRB-':
+			toks+=['(']
+			putleft=True
+		elif tk=='-RRB-':
+			toks[-1]+=')'
+		elif len(tk)>1 and tk[0]=="'":
+			toks[-1]+=tk
+		elif tk[0].isalnum():
+			toks+=[tk]
+		elif tk.startswith('<') and '>' in tk:
+			toks+=[tk]
+		else:
+			toks[-1]+=tk
+	if uni: return u' '.join(toks)
+	return ' '.join(toks)

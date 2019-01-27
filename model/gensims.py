@@ -1,4 +1,5 @@
 import gensim
+from lit import tools
 
 def load_model(model_or_path):
 	if type(model_or_path) in {str,unicode}:
@@ -112,7 +113,7 @@ def semantic_displacement(self,models1,models2,ofn='data.semantic_displacement.t
 
 	def _writegen_meta(key_str=('model_name_2_1','model_name_2_2','word')):
 		WordMeta={}
-		for dx in pytxt.writegengen(ofn, _writegen):
+		for dx in tools.writegengen(ofn, _writegen):
 			key=tuple([dx[k] for k in key_str])
 			if not key in WordMeta: WordMeta[key]=defaultdict(list)
 			#for k in ['cosine_similarity','jaccard','model_rank_1','model_rank_2','model_count_1','model_count_2','neighborhood_1_not_2','neighborhood_2_not_1']:
@@ -137,4 +138,4 @@ def semantic_displacement(self,models1,models2,ofn='data.semantic_displacement.t
 	ofn_summary=ofn.replace('.txt','.summarized.txt')
 
 
-	for dx in pytxt.writegengen(ofn_summary, _writegen_meta): yield dx
+	for dx in tools.writegengen(ofn_summary, _writegen_meta): yield dx

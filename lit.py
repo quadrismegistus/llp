@@ -1,11 +1,11 @@
-ROOT = '/Users/ryan/DH/lit'
-
+ROOT = os.path.dirname(os.path.realpath(__file__))
+SPELLING_VARIANT_PATH=os.path.join(ROOT,'data/spelling_variants_from_morphadorner.txt')
 
 
 
 ### FUNCTIONS
 
-import os,pytxt,codecs
+import os,codecs
 import tools
 V2S = None
 
@@ -14,7 +14,7 @@ V2S = None
 def variant2standard():
 	global V2S
 	if not V2S:
-		V2S = dict((d['variant'],d['standard']) for d in pytxt.tsv2ld('/Dropbox/LITLAB/TOOLS/spellings/variants.txt',header=['variant','standard','']))
+		V2S = dict((d['variant'],d['standard']) for d in tools.tsv2ld(SPELLING_VARIANT_PATH,header=['variant','standard','']))
 	return V2S
 
 def standard2variant():
