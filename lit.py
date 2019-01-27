@@ -1,16 +1,18 @@
+import os,codecs
+import tools
+
 ROOT = os.path.dirname(os.path.realpath(__file__))
 SPELLING_VARIANT_PATH=os.path.join(ROOT,'data/spelling_variants_from_morphadorner.txt')
 
 
 
+
+
+
 ### FUNCTIONS
 
-import os,codecs
-import tools
-V2S = None
-
-
 ## Spelling
+V2S = None
 def variant2standard():
 	global V2S
 	if not V2S:
