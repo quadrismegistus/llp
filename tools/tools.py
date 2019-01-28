@@ -1,33 +1,49 @@
-import codecs
-LIT_ROOT = '/Users/ryan/DH/lit'
-CORP_ROOT = '/Users/ryan/DH/lit/corpus'
-TEXT_ROOT = '/Users/ryan/DH/lit/text'
+import codecs,configparser,os
+LIT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+CONFIG_PATH = os.path.join(LIT_ROOT,'config.txt')
+config = configparser.ConfigParser()
+config.read(CONFIG_PATH)
+config = dict([(k.upper(),v) for k,v in config['Default'].items()])
 
-OED_PATH = '/Users/ryan/DH/TOOLS/spellings/oed.wordlist.txt'
-#ENG_PATH = '/Users/ryan/DH/TOOLS/spellings/github.dwyl.words_alpha.txt'
-#ENG_PATH = '/Users/ryan/DH/TOOLS/spellings/wordlist.aspell.net.txt'
+print config
 
-ENG_PATH = '/Users/ryan/DH/TOOLS/spellings/wordlist.aspell.net.with_caps.txt'  # NEW AS OF 12/17/17
-
-#http://www.lextek.com/manuals/onix/stopwords1.html
-STOPWORDS_PATH = '/Users/ryan/DH/TOOLS/stopwords/stopwords.onix.txt'
-
-SPELLING_MODERNIZER_PATH='/Users/ryan/DH/TOOLS/spellings/ememergedspellingpairs.txt'
 ENGLISH=None
 
 def get_stopwords(include_rank=None):
+	STOPWORDS_PATH = config.get('PATH_TO_ENGLISH_STOPWORDS')
+	if not STOPWORDS_PATH: raise Exception('!! PATH_TO_ENGLISH_STOPWORDS not set in config.txt')
+	if not STOPWORDS_PATH.startswith(os.path.sep): STOPWORDS_PATH=os.path.join(LIT_ROOT,STOPWORDS_PATH)
 	sw1=set(codecs.open(STOPWORDS_PATH,encoding='utf-8').read().strip().split('\n'))
 	if include_rank and type(include_rank)==int:
 		sw2={d['word'] for d in worddb() if int(d['rank'])<=include_rank}
 		sw1|=sw2
 	return sw1
 
-def get_oed():
-	return set(codecs.open(OED_PATH,encoding='utf-8').read().strip().split('\n'))
-
 def get_english_wordlist():
-	print 'loading english'
+	ENG_PATH = config.get('PATH_TO_ENGLISH_WORDLIST')
+	if not ENG_PATH: raise Exception('!! PATH_TO_ENGLISH_WORDLIST not set in config.txt')
+	if not ENG_PATH.startswith(os.path.sep): ENG_PATH=os.path.join(LIT_ROOT,ENG_PATH)
+	print 'loading english from %s' % ENG_PATH
 	return set(codecs.open(ENG_PATH,encoding='utf-8').read().strip().split('\n'))
+
+def get_spelling_modernizer():
+	SPELLING_MODERNIZER_PATH = config.get('PATH_TO_ENGLISH_SPELLING_MODERNIZER')
+	if not SPELLING_MODERNIZER_PATH: raise Exception('!! PATH_TO_ENGLISH_SPELLING_MODERNIZER not set in config.txt')
+	if not SPELLING_MODERNIZER_PATH.startswith(os.path.sep): SPELLING_MODERNIZER_PATH=os.path.join(LIT_ROOT,SPELLING_MODERNIZER_PATH)
+
+	print '>> getting spelling modernizer from %s...' % SPELLING_MODERNIZER_PATH
+	d={}
+	with codecs.open(SPELLING_MODERNIZER_PATH,encoding='utf-8') as f:
+		for ln in f:
+			ln=ln.strip()
+			if not ln: continue
+			try:
+				old,new=ln.split('\t')
+			except ValueError:
+				continue
+			d[old]=new
+	return d
+
 
 def measure_ocr_accuracy(txt_or_tokens):
 	global ENGLISH
@@ -49,16 +65,7 @@ def tokenize(txt):
 	from nltk import word_tokenize
 	return word_tokenize(txt)
 
-def get_spelling_modernizer():
-	print '>> getting spelling modernizer...'
-	d={}
-	with codecs.open(SPELLING_MODERNIZER_PATH,encoding='utf-8') as f:
-		for ln in f:
-			ln=ln.strip()
-			if not ln: continue
-			old,new=ln.split('\t')
-			d[old]=new
-	return d
+
 
 def find_nth_character(str1, substr, n):
 	pos = -1
@@ -105,44 +112,6 @@ def worddb(abs_key = 'Complex Substance (Locke) <> Mixed Modes (Locke)_max',conc
 
 
 ###
-
-def make_new_corpus(idx,name):
-	import os,pytxt
-	#eg = 'lithist','LitHist'
-	min_text = """
-from lit.text import Text
-
-class Text%s(Text):
-	pass
-	""" % name
-
-	min_corpus = """
-from lit.corpus import Corpus
-from lit.text.{0} import Text{1}
-import os
-
-class {1}(Corpus):
-	TEXT_CLASS=Text{1}
-	PATH_TXT = '{0}/_txt_{0}'
-	PATH_XML = '{0}/_xml_{0}'
-	PATH_METADATA = '{0}/corpus-metadata.{1}.txt'
-
-	def __init__(self):
-		super({1},self).__init__('{1}',path_txt=self.PATH_TXT,path_xml=self.PATH_XML,path_metadata=self.PATH_METADATA)
-		self.path = os.path.dirname(__file__)
-	""".format(idx,name)
-
-	min_corpus_init = """from .{0} import {1}""".format(idx,name)
-	corpus_folder = os.path.join(CORP_ROOT,idx)
-	if not os.path.exists(corpus_folder): os.mkdir(corpus_folder)
-	min_text_fnfn = os.path.join(TEXT_ROOT, idx+'.py')
-	min_corpus_fnfn = os.path.join(corpus_folder, idx+'.py')
-	min_corpus_init_fnfn = os.path.join(corpus_folder, '__init__.py')
-	pytxt.write2(min_text_fnfn, min_text)
-	pytxt.write2(min_corpus_init_fnfn, min_corpus_init)
-	pytxt.write2(min_corpus_fnfn, min_corpus)
-
-
 
 
 
