@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+STONES = ['save_txt_from_xml']
+
 ### TEXT CLASS
 import codecs,os
 from lit import tools
@@ -7,6 +9,16 @@ from lit.text import Text
 from lit.tools import get_spelling_modernizer
 
 spelling_d = None
+
+def save_txt_from_xml(xml_path,results_dir='./'):
+	txt = xml2txt(xml_path)
+	ofn = xml_path if xml_path[0]!=os.path.sep else xml_path[1:]
+	ofnfn = os.path.join(results_dir,ofn)
+	opath = os.path.dirname(ofnfn)
+	if not os.path.exists(opath): os.makedirs(opath)
+	with codecs.open(ofnfn,'w',encoding='utf-8') as of:
+		of.write(txt)
+		print '>> saved:',ofnfn
 
 # from /home/users/heuser/workspace/jupyter/prosodic_chadwyck/prosodic_parser.py
 def xml2txt(xml_path, xml_string=None, OK=['l','lb'], BAD=['note'], body_tag='poem', line_lim=None, modernize_spelling=False):
