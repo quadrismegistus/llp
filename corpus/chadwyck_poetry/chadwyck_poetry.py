@@ -134,7 +134,7 @@ class TextChadwyckPoetry(Text):
 			return tools.read(self.fnfn_txt)
 
 		if self.fnfn_xml:
-			return xml2txt(self.fnfn_xml, OK=OK,BAD=BAD,body_tag=body_tag=line_lim,line_lim,modernize_spelling=modernize_spelling)
+			return xml2txt(self.fnfn_xml, OK=OK,BAD=BAD,body_tag=body_tag,line_lim=line_lim,modernize_spelling=modernize_spelling)
 
 		return ''
 
