@@ -842,3 +842,28 @@ def do_configs(rootdir):
 						x=getattr(mod,obj)
 						if not hasattr(x,'__name__'): continue
 						print_config(x)
+
+
+def gleanPunc2(aToken):
+	aPunct0 = ''
+	aPunct1 = ''
+	while(len(aToken) > 0 and not aToken[0].isalnum()):
+		aPunct0 = aPunct0+aToken[:1]
+		aToken = aToken[1:]
+	while(len(aToken) > 0 and not aToken[-1].isalnum()):
+		aPunct1 = aToken[-1]+aPunct1
+		aToken = aToken[:-1]
+
+	return (aPunct0, aToken, aPunct1)
+
+def modernize_spelling(txt,spelling_d):
+	lines=[]
+	for ln in txt.split('\n'):
+		ln2=[]
+		for tok in ln.split(' '):
+			p1,tok,p2=gleanPunc2(tok)
+			tok=spelling_d.get(tok,tok)
+			ln2+=[p1+tok+p2]
+		ln2=' '.join(ln2)
+		lines+=[ln2]
+	return '\n'.join(lines)

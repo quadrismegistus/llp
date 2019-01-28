@@ -93,7 +93,7 @@ def name2text(name):
 
 class Corpus(object):
 
-	def __init__(self, name, path_xml='', path_index='', ext_xml='.xml', ext_txt='.txt', path_txt='', path_header=None, path_metadata='', paths_text_data=[], paths_rel_data=[], path_freq_table={}, **kwargs):
+	def __init__(self, name, path_xml='', path_index='', ext_xml='.xml', ext_txt='.txt', path_txt='', path_model='',path_header=None, path_metadata='', paths_text_data=[], paths_rel_data=[], path_freq_table={}, **kwargs):
 		import lit
 		self.path = os.path.dirname(__file__)
 		self.path_matches = os.path.join(lit.ROOT,'corpus','_matches')
@@ -119,7 +119,8 @@ class Corpus(object):
 		self.path_spacy = self.path_xml.replace('_xml_','_spacy_')
 		self.path_skipgrams = self.path_xml.replace('_xml_','_skipgrams_')
 		self.path_index=os.path.join(self.path,path_index) if path_index else ''
-		self.path_model = os.path.join(lit.ROOT,'model','_models_word2vec')
+		#self.path_model = os.path.join(lit.ROOT,'model','_models_word2vec')
+		self.path_model = path_model if path_model else os.path.join(self.path_txt,'_txt_','_models_word2vec_')
 		self.fnfn_model = os.path.join(self.path_model,'word2vec.'+self.name+'.model')
 		if path_header:
 			self.path_header=os.path.join(self.path,path_header)
