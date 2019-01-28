@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-
-STONES = ['save_txt_from_xml']
+STONES = ['save_txt_from_xml'] # for slingshot
 
 ### TEXT CLASS
 import codecs,os
@@ -13,6 +12,7 @@ spelling_d = None
 def save_txt_from_xml(xml_path,results_dir='./'):
 	txt = xml2txt(xml_path)
 	ofn = xml_path if xml_path[0]!=os.path.sep else xml_path[1:]
+	ofn = ofn.replace('.txt','.xml')
 	ofnfn = os.path.join(results_dir,ofn)
 	opath = os.path.dirname(ofnfn)
 	if not os.path.exists(opath): os.makedirs(opath)
