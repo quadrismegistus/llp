@@ -9,10 +9,10 @@ from lit.tools import get_spelling_modernizer
 
 spelling_d = None
 
-def save_txt_from_xml(xml_path,results_dir='./'):
-	txt = xml2txt(xml_path)
+def save_txt_from_xml(xml_path,results_dir='./', modernize_spelling=True):
+	txt = xml2txt(xml_path, modernize_spelling=modernize_spelling)
 	ofn = xml_path if xml_path[0]!=os.path.sep else xml_path[1:]
-	ofn = ofn.replace('.txt','.xml')
+	ofn = ofn.replace('.xml','.txt')
 	ofnfn = os.path.join(results_dir,ofn)
 	opath = os.path.dirname(ofnfn)
 	try:
