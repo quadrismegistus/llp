@@ -5,7 +5,7 @@ STONES = ['save_txt_from_xml'] # for slingshot
 import codecs,os
 from lit import tools
 from lit.text import Text
-from lit.tools import get_spelling_modernizer
+from lit.tools import get_spelling_modernizer,modernize_spelling_in_txt
 
 spelling_d = None
 
@@ -84,9 +84,7 @@ def xml2txt(xml_path, xml_string=None, OK=['l','lb'], BAD=['note'], body_tag='po
 		txt=txt.replace(k,v)
 
 	if modernize_spelling:
-		if not spelling_d:
-			from lit.tools import get_spelling_modernizer,modernize_spelling_in_txt
-			spelling_d=get_spelling_modernizer()
+		if not spelling_d: spelling_d=get_spelling_modernizer()
 		txt = modernize_spelling_in_txt(txt,spelling_d)
 
 	return txt
