@@ -825,7 +825,7 @@ def gleanPunc2(aToken):
 
 	return (aPunct0, aToken, aPunct1)
 
-def modernize_spelling(txt,spelling_d):
+def modernize_spelling_in_txt(txt,spelling_d):
 	lines=[]
 	for ln in txt.split('\n'):
 		ln2=[]

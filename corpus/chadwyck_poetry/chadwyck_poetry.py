@@ -85,9 +85,9 @@ def xml2txt(xml_path, xml_string=None, OK=['l','lb'], BAD=['note'], body_tag='po
 
 	if modernize_spelling:
 		if not spelling_d:
-			from lit.tools import get_spelling_modernizer,modernize_spelling
+			from lit.tools import get_spelling_modernizer,modernize_spelling_in_txt
 			spelling_d=get_spelling_modernizer()
-		txt = modernize_spelling(txt,spelling_d)
+		txt = modernize_spelling_in_txt(txt,spelling_d)
 
 	return txt
 
