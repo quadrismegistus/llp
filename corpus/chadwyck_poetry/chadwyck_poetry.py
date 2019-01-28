@@ -8,6 +8,74 @@ from lit.tools import get_spelling_modernizer
 
 spelling_d = None
 
+# from /home/users/heuser/workspace/jupyter/prosodic_chadwyck/prosodic_parser.py
+def xml2txt(xml_path, xml_string=None, OK=['l','lb'], BAD=['note'], body_tag='poem', line_lim=None, modernize_spelling=False):
+	global spelling_d
+	import bs4,codecs
+	STANZA_TAGS = ['stanza','versepara','pdiv']
+	LINE_TAGS = ['l','lb']
+	REPLACEMENTS={
+		'&indent;':'    ',
+		'&hyphen;':'-',
+		u'\u2014':' -- ',
+		u'\u2013':' -- ',
+		u'\u2018':"'",
+		u'\u2019':"'",
+		u'\xc9':'E', #u'É',
+		u'\xe9':'e', #u'é',
+		u'\xc8':'E',#u'È',
+		u'\u201d':'"',
+		u'\u201c':'"',
+	}
+	txt=[]
+	if not xml_string:
+		with codecs.open(xml_path,encoding='utf-8') as f:
+			xml_string = f.read()
+	dom = bs4.BeautifulSoup(xml_string,'lxml')
+
+	for tag in BAD:
+		[x.extract() for x in dom.findAll(tag)]
+
+	# standardize lines:
+	for tag in LINE_TAGS:
+		if tag=='l': continue
+		for ent in dom(tag):
+			ent.name='l'
+
+	## replace stanzas
+	num_stanzas=0
+	for tag in STANZA_TAGS:
+		for ent in dom(tag):
+			ent.name='stanza'
+			num_stanzas+=1
+	txt=[]
+	num_lines=0
+	if not num_stanzas:
+		for line in dom('l'):
+			txt+=[line.text.strip()]
+			num_lines+=1
+			if line_lim and num_lines>=line_lim: break
+	else:
+		for stanza in dom('stanza'):
+			for line in stanza('l'):
+				txt+=[line.text.strip()]
+				num_lines+=1
+			if line_lim and num_lines>=line_lim: break
+			txt+=['']
+
+	txt=txt[:line_lim]
+	txt='\n'.join(txt).replace(u'∣','').strip()
+	for k,v in REPLACEMENTS.items():
+		txt=txt.replace(k,v)
+
+	if modernize_spelling:
+		if not spelling_d:
+			from lit.tools import get_spelling_modernizer,modernize_spelling
+			spelling_d=get_spelling_modernizer()
+		txt = modernize_spelling(txt,spelling_d)
+
+	return txt
+
 class TextChadwyckPoetry(Text):
 	STANZA_TAGS = ['stanza','versepara','pdiv']
 	LINE_TAGS = ['l','lb']
@@ -59,69 +127,16 @@ class TextChadwyckPoetry(Text):
 
 
 	# from /home/users/heuser/workspace/jupyter/prosodic_chadwyck/prosodic_parser.py
-	def text_plain(self, OK=['l','lb'], BAD=['note'], body_tag='poem', line_lim=None, modernize_spelling=False):
-		global spelling_d
-		import bs4
-		STANZA_TAGS = self.STANZA_TAGS
-		LINE_TAGS = self.LINE_TAGS
-		REPLACEMENTS={
-			'&indent;':'    ',
-			'&hyphen;':'-',
-			u'\u2014':' -- ',
-			u'\u2013':' -- ',
-			u'\u2018':"'",
-			u'\u2019':"'",
-			u'\xc9':'E', #u'É',
-			u'\xe9':'e', #u'é',
-			u'\xc8':'E',#u'È',
-			u'\u201d':'"',
-			u'\u201c':'"',
-		}
-		txt=[]
-		dom = bs4.BeautifulSoup(xml_string,'lxml')
+	def text_plain(self, OK=['l','lb'], BAD=['note'], body_tag='poem', line_lim=None, modernize_spelling=True):
+		if not self.exists: return ''
+		if os.path.exists(self.fnfn_txt):
+			print '>> text_plain from stored text file:',self.fnfn_txt
+			return tools.read(self.fnfn_txt)
 
-		for tag in BAD:
-			[x.extract() for x in dom.findAll(tag)]
+		if self.fnfn_xml:
+			return xml2txt(self.fnfn_xml, OK=OK,BAD=BAD,body_tag=body_tag=line_lim,line_lim,modernize_spelling=modernize_spelling)
 
-		# standardize lines:
-		for tag in LINE_TAGS:
-			if tag=='l': continue
-			for ent in dom(tag):
-				ent.name='l'
-
-		## replace stanzas
-		num_stanzas=0
-		for tag in STANZA_TAGS:
-			for ent in dom(tag):
-				ent.name='stanza'
-				num_stanzas+=1
-		txt=[]
-		num_lines=0
-		if not num_stanzas:
-			for line in dom('l'):
-				txt+=[line.text.strip()]
-				num_lines+=1
-				if line_lim and num_lines>=line_lim: break
-		else:
-			for stanza in dom('stanza'):
-				for line in stanza('l'):
-					txt+=[line.text.strip()]
-					num_lines+=1
-				if line_lim and num_lines>=line_lim: break
-				txt+=['']
-
-		txt=txt[:line_lim]
-		txt='\n'.join(txt).replace(u'∣','').strip()
-		for k,v in REPLACEMENTS.items():
-			txt=txt.replace(k,v)
-
-		if modernize_spelling:
-			if not spelling_d:
-				from lit.tools import get_spelling_modernizer,modernize_spelling
-				spelling_d=get_spelling_modernizer()
-			txt = modernize_spelling(txt,spelling_d)
-
-		return txt
+		return ''
 
 	"""
 	v1
@@ -354,3 +369,8 @@ class ChadwyckPoetrySample(ChadwyckPoetry):
 		Just get everything posthumous.
 		"""
 		pass
+
+
+####
+
+# Functions
