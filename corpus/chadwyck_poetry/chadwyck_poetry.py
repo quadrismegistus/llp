@@ -15,7 +15,10 @@ def save_txt_from_xml(xml_path,results_dir='./'):
 	ofn = ofn.replace('.txt','.xml')
 	ofnfn = os.path.join(results_dir,ofn)
 	opath = os.path.dirname(ofnfn)
-	if not os.path.exists(opath): os.makedirs(opath)
+	try:
+		if not os.path.exists(opath): os.makedirs(opath)
+	except OSError:
+		pass
 	with codecs.open(ofnfn,'w',encoding='utf-8') as of:
 		of.write(txt)
 		print '>> saved:',ofnfn
