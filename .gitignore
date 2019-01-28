@@ -4,6 +4,7 @@ corpus/*
 !corpus/manifest.txt
 !corpus/*.py
 !corpus/default/
-!corpus/*/*.py
+!corpus/**/*.py
+corpus/_matches
 .DS_Store
 model/_models_word2vec/

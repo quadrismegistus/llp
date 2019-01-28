@@ -68,7 +68,7 @@ class TextChadwyckPoetry(Text):
 			print '>> text_plain from stored text file:',self.fnfn_txt
 			return tools.read(self.fnfn_txt)
 
-		print '>> text_plain from stored XML file...'
+		#print '>> text_plain from stored XML file...'
 
 		txt=[]
 		dom = self.dom
