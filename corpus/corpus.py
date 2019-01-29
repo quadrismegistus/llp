@@ -1700,13 +1700,21 @@ class CorpusGroups(Corpus):
 	def save_as_paths(self,ofolder=None,path_key='path_txt'):
 		#if not ofolder: ofolder='groups_%s_%s' % (self.corpus.name, tools.now())
 		if not ofolder: ofolder='groups_%s' % self.corpus.name
+		ofolder2=os.path.join(ofolder,'groups')
 		if not os.path.exists(ofolder): os.makedirs(ofolder)
+		if not os.path.exists(ofolder2):
+			os.makedirs(ofolder2)
+		else:
+			for fn in os.listdir(ofolder2):
+				if fn.endswith('.txt'):
+					os.remove(os.path.join(ofolder2,fn))
+		
 		self._desc+=['>> saving groups to %s' % ofolder]
 		self._desc+=['\t'+self.table_of_counts.replace('\n','\n\t')]
 		with codecs.open(os.path.join(ofolder,'log.txt'),'w') as lf: lf.write(self.log)      # write log
  		for groupname,grouptexts in sorted(self.groups.items()):
 			#print '>> saving group "%s" with %s texts...' % (groupname,len(grouptexts))
-			ofnfn=os.path.join(ofolder,str(groupname)+'.txt')
+			ofnfn=os.path.join(ofolder2,str(groupname)+'.txt')
 			with codecs.open(ofnfn,'w',encoding='utf-8') as of:
 				for t in grouptexts:
 					x=getattr(t,path_key)
