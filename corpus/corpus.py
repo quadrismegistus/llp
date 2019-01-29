@@ -1647,15 +1647,15 @@ class CorpusGroups(Corpus):
 		for g,gl in sorted(self.groups.items()):
 			if min_len and len(gl)<min_len:
 				self._desc+=['>> deleted group %s because its length (%s) < min_len (%s)' % (g,len(gl),min_len)]
-				del self.groups[g]
+				if g in self.groups: del self.groups[g]
 
 			if min_group and str(g)<str(min_group):
 				self._desc+=['>> deleted group %s because its name is < minimum of %s' % (g,min_group)]
-				del self.groups[g]
+				if g in self.groups: del self.groups[g]
 
 			if max_group and str(g)>str(max_group):
 				self._desc+=['>> deleted group %s because its name is > maximum of %s' % (g,max_group)]
-				del self.groups[g]
+				if g in self.groups: del self.groups[g]
 
 		if min_group:
 			self.groups
@@ -1708,7 +1708,7 @@ class CorpusGroups(Corpus):
 			for fn in os.listdir(ofolder2):
 				if fn.endswith('.txt'):
 					os.remove(os.path.join(ofolder2,fn))
-		
+
 		self._desc+=['>> saving groups to %s' % ofolder]
 		self._desc+=['\t'+self.table_of_counts.replace('\n','\n\t')]
 		with codecs.open(os.path.join(ofolder,'log.txt'),'w') as lf: lf.write(self.log)      # write log
