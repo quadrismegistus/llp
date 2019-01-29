@@ -5,8 +5,6 @@ config = configparser.ConfigParser()
 config.read(CONFIG_PATH)
 config = dict([(k.upper(),v) for k,v in config['Default'].items()])
 
-print config
-
 ENGLISH=None
 
 def get_stopwords(include_rank=None):

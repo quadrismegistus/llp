@@ -145,6 +145,10 @@ class Corpus(object):
 
 		#self.models = self.word2vec_by_period
 
+	@property
+	def num_texts(self):
+		return len(self.texts())
+
 
 	## Sections
 	@property
@@ -307,15 +311,11 @@ class Corpus(object):
 		tools.crunch(text_is, do_text, nprocs=16)
 
 
-	def divide_texts_historically(self,yearbin=10,texts=None):
-		periodd={}
-		if not texts: texts=self.texts()
-		for t in texts:
-			period = int(t.year)/int(yearbin) * int(yearbin)
-			period_str = '%s-%s' % (period, period+yearbin-1)
-			if not period_str in periodd: periodd[period_str]=[]
-			periodd[period_str]+=[t]
-		return periodd
+	def new_grouping(self):
+		return CorpusGroups(self)
+
+
+
 
 
 	## METADATA
@@ -1623,6 +1623,105 @@ class Corpus_in_Sections(Corpus):
 
 
 
+
+## CorpusGroups
+class CorpusGroups(Corpus):
+	def __init__(self,corpus,texts=None):
+		self.corpus=corpus
+		self._groups={}
+		self._desc=[]
+
+	@property
+	def log(self):
+		header='## Groups for corpus %s ##\n# texts in corpus: %s\n' % (self.corpus.name,self.corpus.num_texts)
+		body='\n'.join(self._desc)
+		return header+body
+
+	def group_by_author_dob(self,yearbin=10,yearplus=0,texts=None):
+		return self.group_by_year(year_key='author_dob',yearbin=yearbin,yearplus=yearplus,texts=texts)
+
+	def group_by_author_at_30(self,yearbin=10,texts=None):
+		return self.group_by_author_dob(yearbin=yearbin,yearplus=30,texts=texts)
+
+	def prune_groups(self,min_len=None,min_group=None,max_group=None):
+		for g,gl in sorted(self.groups.items()):
+			if min_len and len(gl)<min_len:
+				self._desc+=['>> deleted group %s because its length (%s) < min_len (%s)' % (g,len(gl),min_len)]
+				del self.groups[g]
+
+			if min_group and str(g)<str(min_group):
+				self._desc+=['>> deleted group %s because its name is < minimum of %s' % (g,min_group)]
+				del self.groups[g]
+
+			if max_group and str(g)>str(max_group):
+				self._desc+=['>> deleted group %s because its name is > maximum of %s' % (g,max_group)]
+				del self.groups[g]
+
+		if min_group:
+			self.groups
+
+	def group_by_year(self,year_key='year',yearbin=10,yearplus=0,texts=None):
+		# function to get 'decade' from year
+		def get_dec(yr,res=25,plus=30):
+			yr = ''.join([x for x in yr if x.isdigit()])
+			if len(yr)!=4: return 0
+			year=int(yr)
+			year+=plus
+			dec=year/int(res)*int(res)
+			return dec
+
+		# group texts
+		periodd={}
+		if not texts: texts=self.corpus.texts()
+		for text in texts:
+			period = get_dec(text.meta.get(year_key,''), res=yearbin, plus=yearplus)
+			period_str = '%s-%s' % (period, period+yearbin-1)
+			if not period_str in periodd: periodd[period_str]=[]
+			periodd[period_str]+=[text]
+		self._groups=periodd
+
+		self._desc=['>> grouped by {year_key}{yearplus} into {yearbin}-year long bins'.format(year_key=year_key,yearbin=yearbin,yearplus=' (+%s)' % yearplus if yearplus else '')]
+		self._desc+=['\t'+self.table_of_counts.replace('\n','\n\t')]
+		return self._groups
+
+	@property
+	def table_of_counts(self):
+		o=[]
+		for group in sorted(self.groups):
+			o+=['%s\t%s' % (group, len(self.groups[group]))]
+		return '\n'.join(o)
+
+	def save_as_ids(self,ofolder=None):
+		return self.save_as_paths(ofolder=ofolder,path_key='id')
+
+	def save_as_paths_xml(self,ofolder=None):
+		return self.save_as_paths(ofolder=ofolder,path_key='path_xml')
+
+	def save_as_paths(self,ofolder=None,path_key='path_txt'):
+		#if not ofolder: ofolder='groups_%s_%s' % (self.corpus.name, tools.now())
+		if not ofolder: ofolder='groups_%s' % self.corpus.name
+		if not os.path.exists(ofolder): os.makedirs(ofolder)
+		self._desc+=['>> saving groups to %s' % ofolder]
+		self._desc+=['\t'+self.table_of_counts.replace('\n','\n\t')]
+		with codecs.open(os.path.join(ofolder,'log.txt'),'w') as lf: lf.write(self.log)      # write log
+ 		for groupname,grouptexts in sorted(self.groups.items()):
+			#print '>> saving group "%s" with %s texts...' % (groupname,len(grouptexts))
+			ofnfn=os.path.join(ofolder,str(groupname)+'.txt')
+			with codecs.open(ofnfn,'w',encoding='utf-8') as of:
+				for t in grouptexts:
+					x=getattr(t,path_key)
+					of.write(x+'\n')
+
+	@property
+	def texts(self):
+		texts=[]
+		for group,group_texts in sorted(self.groups.items()):
+			texts+=group_texts
+		return texts
+
+	@property
+	def groups(self):
+		return self._groups
 
 
 ### FUNCTIONS
