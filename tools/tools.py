@@ -1,5 +1,4 @@
 import codecs,configparser,os
-from lit import tools
 LIT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 CONFIG_PATH = os.path.join(LIT_ROOT,'config.txt')
 config = configparser.ConfigParser()
@@ -80,18 +79,8 @@ def to_singular(ld):
 	p=inflect.engine()
 	return [d for d in ld if p.singular_noun(d['word']) in {d['word'],False}]
 
-# def get_abstract_words(max_rank=None,only_singular=False,ld=False):
-# 	# Load abstract words
-# 	import tools
-# 	abs_worddb = tools.read_ld('/Users/ryan/DH/18C/data/data.worddb.abstract.txt')
-# 	if max_rank: abs_worddb = [d for d in abs_worddb if float(d['rank'])<=max_rank]
-# 	if only_singular: abs_worddb=to_singular(abs_worddb)
-# 	if ld: return abs_worddb
-# 	return {d['word'] for d in abs_worddb}
-
 def worddb(abs_key = 'Complex Substance (Locke) <> Mixed Modes (Locke)_max',conc_key='Complex Substance (Locke) <> Mixed Modes (Locke)_min',cutoff_abs=0.1,cutoff_conc=-0.1,allow_names=False,only_content_words=True):
-	import tools
-	worddb = tools.read_ld('/Users/ryan/DH/18C/data/data.worddb.txt')
+	worddb = read_ld('/Users/ryan/DH/18C/data/data.worddb.txt')
 	for d in worddb:
 		d['Abstract/Concrete'] = ''
 
