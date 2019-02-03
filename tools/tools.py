@@ -1,4 +1,5 @@
 import codecs,configparser,os
+from lit import tools
 LIT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 CONFIG_PATH = os.path.join(LIT_ROOT,'config.txt')
 config = configparser.ConfigParser()
@@ -81,16 +82,16 @@ def to_singular(ld):
 
 # def get_abstract_words(max_rank=None,only_singular=False,ld=False):
 # 	# Load abstract words
-# 	import pytxt
-# 	abs_worddb = pytxt.read_ld('/Users/ryan/DH/18C/data/data.worddb.abstract.txt')
+# 	import tools
+# 	abs_worddb = tools.read_ld('/Users/ryan/DH/18C/data/data.worddb.abstract.txt')
 # 	if max_rank: abs_worddb = [d for d in abs_worddb if float(d['rank'])<=max_rank]
 # 	if only_singular: abs_worddb=to_singular(abs_worddb)
 # 	if ld: return abs_worddb
 # 	return {d['word'] for d in abs_worddb}
 
 def worddb(abs_key = 'Complex Substance (Locke) <> Mixed Modes (Locke)_max',conc_key='Complex Substance (Locke) <> Mixed Modes (Locke)_min',cutoff_abs=0.1,cutoff_conc=-0.1,allow_names=False,only_content_words=True):
-	import pytxt
-	worddb = pytxt.read_ld('/Users/ryan/DH/18C/data/data.worddb.txt')
+	import tools
+	worddb = tools.read_ld('/Users/ryan/DH/18C/data/data.worddb.txt')
 	for d in worddb:
 		d['Abstract/Concrete'] = ''
 
@@ -690,7 +691,7 @@ def write_ld2(fn,gen1,gen2,uni=True,badkeys=[]):
 	print ">> saved:",fn
 
 
-def write2(fn,data,uni=True,join_cell=u'\t',join_line=u'\n',limcol=None):
+def write2(fn,data,uni=True,join_cell=u'\t',join_line=u'\n',limcol=None,toprint=True):
 	## pass off to other write functions if necessary
 	if fn.endswith('.xls'): return write_xls(fn,data)
 	if fn.endswith('.csv'): join_cell=','
@@ -719,7 +720,7 @@ def write2(fn,data,uni=True,join_cell=u'\t',join_line=u'\n',limcol=None):
 	of = codecs.open(fn,'w',encoding='utf-8') if True else open(fn,'w')
 	for line in o: of.write(line)
 	of.close()
-	print '>> saved:',fn
+	if toprint: print '>> saved:',fn
 
 
 def now(now=None):
@@ -834,3 +835,61 @@ def modernize_spelling_in_txt(txt,spelling_d):
 		ln2=' '.join(ln2)
 		lines+=[ln2]
 	return '\n'.join(lines)
+
+
+
+
+
+
+### multiprocessing
+def crunch(objects,function_or_methodname,ismethod=None,nprocs=8,args=[],kwargs={}):
+	import time,random
+	ismethod=type(function_or_methodname) in [str,unicode] if ismethod is None else ismethod
+
+	def do_preparse(text,args=[],kwargs={}):
+		threadid=os.getpid()
+		time.sleep(random.uniform(0,5))
+		print "[{2}] Starting working on {0} at {1}".format(text if False else 'ObjectX', now(), threadid)
+		#print ismethod,function_or_methodname,args,kwargs
+		if ismethod:
+			x=getattr(text,function_or_methodname)(*args,**kwargs)
+		else:
+			x=function_or_methodname(text, *args, **kwargs)
+
+		print "[{2}] Finished working on {0} at {1}".format(text if False else 'ObjectX', now(), threadid)
+		return x
+
+	import thread,multiprocessing,os
+	from multiprocessing import Process, Pipe
+	from itertools import izip
+
+	def spawn(f):
+		def fun(q_in,q_out):
+			numdone=0
+			while True:
+				numdone+=1
+				i,x = q_in.get()
+				if i == None:
+					break
+				q_out.put((i,f(x,args=args,kwargs=kwargs)))
+		return fun
+
+	def parmap(f, X, nprocs = multiprocessing.cpu_count()):
+		q_in   = multiprocessing.Queue(1)
+		q_out  = multiprocessing.Queue()
+
+		proc = [multiprocessing.Process(target=spawn(f),args=(q_in,q_out)) for _ in range(nprocs)]
+		for p in proc:
+			p.daemon = True
+			p.start()
+
+		sent = [q_in.put((i,x)) for i,x in enumerate(X)]
+		[q_in.put((None,None)) for _ in range(nprocs)]
+		res = [q_out.get() for _ in range(len(sent))]
+
+		[p.join() for p in proc]
+
+		return [x for i,x in sorted(res)]
+
+	parmap(do_preparse, objects, nprocs=nprocs)
+	return True

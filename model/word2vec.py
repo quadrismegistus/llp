@@ -12,11 +12,12 @@ TOP2000SINGNOUN=dict(n=2000,only_pos='NN',pos_regex=False,remove_stopwords=True,
 
 DEFAULT_MFWD=TOP5000
 
-import os,gensim,logging,pytxt,time,numpy as np,random,pystats
+import os,gensim,logging,time,numpy as np,random,pystats
 from lit.model import Model
 from scipy.spatial.distance import cosine,pdist,squareform,cdist
 from scipy.stats import pearsonr,spearmanr
 import multiprocessing as mp,gzip,random,time
+from lit import tools
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.ERROR)
 
@@ -36,7 +37,7 @@ KEYWORDS|=KEYWORDS_OTHER
 KEYWORDS|=KEYWORDS_BECOMING_ABSTRACT
 
 class Word2Vec(Model):
-	def __init__(self, corpus, skipgram_n=10, name=None, mongo_q={}, fn=None, skipgram_fn=None, vocab_size=20000, num_skips_wanted=None,partial=True,period=None):
+	def __init__(self, corpus, skipgram_n=10, name=None, mongo_q={}, fn=None, skipgram_fn=None, vocab_size=20000, num_skips_wanted=None,period=None):
 		"""Initialize a Word2Vec object.
 
 		Each W2V object...
@@ -54,7 +55,10 @@ class Word2Vec(Model):
 		if name:
 			self.name=name
 		elif fn:
-			self.name=fn.split('word2vec.')[1].split('.skipgram_n=')[0]
+			try:
+				self.name=fn.split('word2vec.')[1].split('.skipgram_n=')[0]
+			except IndexError:
+				self.name=fn
 		else:
 			self.name=self.corpus.name
 		self.period = period
@@ -67,12 +71,21 @@ class Word2Vec(Model):
 		self.skipgram_fn=skipgram_fn
 		self.vocab_size=vocab_size
 		self.num_skips_wanted=num_skips_wanted
-		self.partial=partial
+
+	@property
+	def run_str(self):
+		run_l = [x for x in self.fn.split('.') if x.startswith('run')]
+		if not run_l: return None
+		return ''.join([x for x in run_l[0] if x.isdigit()])
 
 	@property
 	def run_num(self):
-		if not '.run_' in self.fn: return None
-		return int(self.fn.split('.run_')[1].split('.')[0])
+		#if not '.run_' in self.fn: return None
+		#return int(self.fn.split('.run_')[1].split('.')[0])
+		#run_l = [x for x in self.fn.split('.') if x.startswith('run')]
+		#if not run_l: return None
+		return int(self.run_str)
+
 
 
 	def model(self, num_workers=8, min_count=10, num_dimensions=100, sg=1, num_epochs=None):
@@ -113,28 +126,19 @@ class Word2Vec(Model):
 		return os.path.basename(self.fnfn).replace('.txt.gz','.vocab.txt')
 
 	@property
-	def fnfn(self): return os.path.join(self.path,'partial_models' if self.partial else 'full_models',self.fn)
+	def fnfn(self):
+		return os.path.join(self.path,self.fn)
 
 	@property
-	def fnfn_full(self): return os.path.join(self.path,'full_models',self.fn)
-
-	@property
-	def fnfn_partial(self): return os.path.join(self.path,'partial_models',self.fn)
-
-	@property
-	def fnfn_vocab(self): return os.path.join(self.path,'partial_models' if self.partial else 'full_models',self.fn_vocab)
-
-	@property
-	def fnfn_vocab_full(self): return os.path.join(self.path,'full_models',self.fn_vocab)
-
-	@property
-	def fnfn_vocab_partial(self): return os.path.join(self.path,'partial_models',self.fn_vocab)
+	def fnfn_vocab(self): return os.path.join(self.path,self.fn_vocab)
 
 	@property
 	def path(self):
-		import lit
-		odir=os.path.join(lit.ROOT,'model','_models_word2vec')
-		return odir
+		return self.path_model
+
+		#import lit
+		#odir=os.path.join(lit.ROOT,'model','_models_word2vec')
+		#return odir
 
 	@property
 	def named(self):
@@ -149,24 +153,18 @@ class Word2Vec(Model):
 		#self.gensim.init_sims(replace=True)
 		self.gensim.save_word2vec_format(os.path.join(odir,self.fn), os.path.join(odir,self.fn_vocab))
 
-	def load(self,partial=None):
+	def load(self):
 		if not self._gensim is None: return True
-		if partial is None: partial=self.partial
-		fnfn=self.fnfn_partial if partial else self.fnfn_full
-		fnfn_vocab=self.fnfn_vocab_partial if partial else self.fnfn_vocab_full
-
 		then=time.time()
-		if os.path.exists(fnfn_vocab):
-			print '>> loading word2vec model [{0}] [{1}]'.format(fnfn,os.path.basename(fnfn_vocab))
-			#DEPRECATED: self._gensim=gensim.models.Word2Vec.load_word2vec_format(fnfn, fnfn_vocab)
-			self._gensim=gensim.models.KeyedVectors.load_word2vec_format(fnfn, fnfn_vocab)
+		if os.path.exists(self.fnfn_vocab):
+			print '>> loading word2vec model [{0}] [{1}]'.format(self.fnfn,os.path.basename(self.fnfn_vocab))
+			self._gensim=gensim.models.KeyedVectors.load_word2vec_format(self.fnfn, self.fnfn_vocab)
 		else:
-			print '>> loading word2vec model [{0}]'.format(fnfn)
-			#DEPRECATED: self._gensim=gensim.models.Word2Vec.load_word2vec_format(fnfn)
-			self._gensim=gensim.models.KeyedVectors.load_word2vec_format(fnfn)
+			print '>> loading word2vec model [{0}]'.format(self.fnfn)
+			self._gensim=gensim.models.KeyedVectors.load_word2vec_format(self.fnfn)
 		self._gensim.init_sims(replace=True)
 		now=time.time()
-		print '>> done loading word2vec model:',os.path.basename(fnfn),'['+str(round(now-then,1))+' seconds]'
+		print '>> done loading word2vec model:',os.path.basename(self.fnfn),'['+str(round(now-then,1))+' seconds]'
 
 	@property
 	def gensim(self):
@@ -353,7 +351,7 @@ class Word2Vec(Model):
 			wdx={'word':word, 'num_synonyms':len(real_synonyms), 'synonyms':real_synonyms}
 			old+=[wdx]
 
-		if save: pytxt.write2('num_synonyms.{0}.txt'.format(self.name), old)
+		if save: tools.write2('num_synonyms.{0}.txt'.format(self.name), old)
 		return old
 
 	def mfw(self,**attrs):
@@ -422,7 +420,7 @@ class Word2Vec(Model):
 			odx={'word':word,'rank':rank+1,'jaccard':jacc}
 			old+=[odx]
 
-		pytxt.write2(self.fn.replace('word2vec.','data.word2vec.jaccard_model_comparison'), old)
+		tools.write2(self.fn.replace('word2vec.','data.word2vec.jaccard_model_comparison'), old)
 
 
 
@@ -450,22 +448,16 @@ class Word2Vec(Model):
 		model = self.gensim
 		vd={} # vector dictionary
 
-		vd['Complex Substance (Locke) <> Mixed Modes (Locke)'] = self.centroid(pytxt.fields['Locke_MixedModes']) - self.centroid(pytxt.fields['Locke_ComplexIdeasOfSubstance'])
+		from lit.tools.freqs import get_fields
+		fields = get_fields()
 
-		if include_social:
-			try:
-				vd['Man/Woman/Person <> Mankind/Community/Society']=self.centroid(['mankind','community','society']) - self.centroid(['man','woman','person'])
-			except TypeError:
-				pass
-			vd['Vices <> Virtues']=self.centroid(pytxt.fields['Virtues']) - self.centroid(pytxt.fields['Vices'])
-
-		if not only_major:
-			vd['Concreteness <> Abstractness']=self.centroid(pytxt.fields['AbstractValues']) - self.centroid(pytxt.fields['HardSeed'])
-			vd['Concreteness (NN) <> Abstractness (NN)']=self.centroid(pytxt.fields['AbstractValues_NN']) - self.centroid(pytxt.fields['HardSeed_NN'])
-			vd['Concreteness (NN)']=self.centroid(pytxt.fields['HardSeed_NN'])
-			vd['Abstractness (NN)']=self.centroid(pytxt.fields['AbstractValues_NN'])
-			vd['Mixed Modes (Locke)'] = self.centroid(pytxt.fields['Locke_MixedModes'])
-			vd['Complex Substance (Locke)'] = self.centroid(pytxt.fields['Locke_ComplexIdeasOfSubstance'])
+		vd['Complex Substance (Locke) <> Mixed Modes (Locke)'] = self.centroid(fields['Locke.MixedMode']) - self.centroid(fields['Locke.ComplexIdeaOfSubstance'])
+		vd['Concrete (HGI) <> Abstract (HGI)'] = self.centroid(fields['HGI.Abstract']) - self.centroid(fields['HGI.Concrete'])
+		vd['Human (VG)'] = self.centroid(fields['VG.Human'])
+		vd['Object (VG) <> Human (VG)'] = self.centroid(fields['VG.Human']) - self.centroid(fields['VG.Object'])
+		vd['Animal (VG) <> Human (VG)'] = self.centroid(fields['VG.Human']) - self.centroid(fields['VG.Animal'])
+		vd['Vice (HGI) <> Virtue (HGI)']=self.centroid(fields['HGI.Moral.Virtue']) - self.centroid(fields['HGI.Moral.Vice'])
+		vd['Human (Man+Woman+Boy+Girl)']=self.centroid(['man','woman','boy','girl'])
 
 		return vd
 
@@ -476,16 +468,16 @@ class Word2Vec(Model):
 		vd={} # vector dictionary
 
 		# Centroids
-		vd['Concreteness <> Abstractness']=self.centroid(pytxt.fields['AbstractValues']) - self.centroid(pytxt.fields['HardSeed'])
-		vd['Concreteness (NN) <> Abstractness (NN)']=self.centroid(pytxt.fields['AbstractValues_NN']) - self.centroid(pytxt.fields['HardSeed_NN'])
-		vd['Pre1150 <> Post1150'] = self.centroid(pytxt.fields['WordOrigin_1150-1700']) - self.centroid(pytxt.fields['WordOrigin_0850-1150'])
-		vd['Pre1150 (NN) <> Post1150 (NN)'] = self.centroid(pytxt.fields['WordOrigin_NN_1150-1700']) - self.centroid(pytxt.fields['WordOrigin_NN_0850-1150'])
-		vd['Complex Substance (Locke) <> Mixed Modes (Locke)'] = self.centroid(pytxt.fields['Locke_MixedModes']) - self.centroid(pytxt.fields['Locke_ComplexIdeasOfSubstance'])
-		vd['Simple Modes (Locke) <> Mixed Modes (Locke)'] = self.centroid(pytxt.fields['Locke_MixedModes']) - self.centroid(pytxt.fields['Locke_SimpleModes'])
-		vd['Specific Complex Substance (Locke) <> General Complex Substance (Locke)'] = self.centroid(pytxt.fields['Locke_ComplexIdeasOfSubstance_General']) - self.centroid(pytxt.fields['Locke_ComplexIdeasOfSubstance_Specific'])
+		vd['Concreteness <> Abstractness']=self.centroid(tools.fields['AbstractValues']) - self.centroid(tools.fields['HardSeed'])
+		vd['Concreteness (NN) <> Abstractness (NN)']=self.centroid(tools.fields['AbstractValues_NN']) - self.centroid(tools.fields['HardSeed_NN'])
+		vd['Pre1150 <> Post1150'] = self.centroid(tools.fields['WordOrigin_1150-1700']) - self.centroid(tools.fields['WordOrigin_0850-1150'])
+		vd['Pre1150 (NN) <> Post1150 (NN)'] = self.centroid(tools.fields['WordOrigin_NN_1150-1700']) - self.centroid(tools.fields['WordOrigin_NN_0850-1150'])
+		vd['Complex Substance (Locke) <> Mixed Modes (Locke)'] = self.centroid(tools.fields['Locke_MixedModes']) - self.centroid(tools.fields['Locke_ComplexIdeasOfSubstance'])
+		vd['Simple Modes (Locke) <> Mixed Modes (Locke)'] = self.centroid(tools.fields['Locke_MixedModes']) - self.centroid(tools.fields['Locke_SimpleModes'])
+		vd['Specific Complex Substance (Locke) <> General Complex Substance (Locke)'] = self.centroid(tools.fields['Locke_ComplexIdeasOfSubstance_General']) - self.centroid(tools.fields['Locke_ComplexIdeasOfSubstance_Specific'])
 		#vd['Man+Horse+Dog+Cat+Mouse']=self.centroid(['man','horse','dog','cat','mouse'])
 
-		vd['Vices <> Virtues']=self.centroid(pytxt.fields['Virtues']) - self.centroid(pytxt.fields['Vices'])
+		vd['Vices <> Virtues']=self.centroid(tools.fields['Virtues']) - self.centroid(tools.fields['Vices'])
 
 		# Opp
 		oppositions_NOT_included="""
@@ -634,9 +626,10 @@ class Word2Vec(Model):
 
 		return model.most_similar(positive=pos, negative=neg)
 
-	def similar(self,word,topn=10):
+	def similar(self,words,topn=10):
+		words = words if not type(words) in {set,list,tuple} else [w for w in words if w in self.gensim]
 		try:
-			return self.gensim.most_similar(word,topn=topn)
+			return self.gensim.most_similar(words,topn=topn)
 		except KeyError:
 			return []
 
@@ -660,7 +653,22 @@ class Word2Vec(Model):
 			self._num_words = sum([self.gensim.vocab[w].count for w in self.gensim.vocab])
 		return self._num_words
 
-	def model_words(self,words=None,mfw_d=None,save=True,vectord={},interesting_vectors=False,abstract_vectors=True,model_lm=False):
+	def model_words(self,words=None,mfw_d=None,save=True,vectord={},interesting_vectors=False,abstract_vectors=True,model_lm=False,odir='.',force=False):
+		# already written?
+		ofn='data.word2vec.words.' + self.fn.replace('.gz','')
+		ofnfn=os.path.join(odir,ofn)
+		if os.path.exists(ofnfn):
+			if save:
+				if not force:
+					return # already saved
+				else:
+					pass # let function play out
+			else: # getting not putting
+				if not force:
+					return tools.read_ld(ofnfn)  # return as saved
+				else:
+					pass  # let function play out
+
 		import time
 		mfw_d=mfw_d if mfw_d else self.mfw_d
 		model=self.gensim
@@ -680,7 +688,7 @@ class Word2Vec(Model):
 			if not word in model: continue
 			i+=1
 			odx=self.cosine_word(word,vectord)
-			if not i%1000: print '>> model_words: {} of {}...'.format(i+1,len(words))
+			#if not i%1000: print '>> model_words: {} of {}...'.format(i+1,len(words))
 			odx['rank']=i
 			odx['model_rank'],odx['model_count']=self.gensim.vocab[word].index,self.gensim.vocab[word].count
 			#odx['model_tf']=float(odx['model_count']) / self.num_words
@@ -695,8 +703,9 @@ class Word2Vec(Model):
 		"""
 
 		if save:
-			ofn=self.fn.replace('word2vec','data.word2vec.words').replace('.txt.gz','.txt')
-			pytxt.write2(ofn, old)
+			ofn='data.word2vec.words.' + self.fn.replace('.gz','')
+			ofnfn=os.path.join(odir,ofn)
+			tools.write2(ofnfn, old, toprint=False)
 
 			nownow=time.time()
 			print '>> saved %s in %s seconds' % (ofn, round(nownow-now,1))
@@ -706,9 +715,9 @@ class Word2Vec(Model):
 		return old
 
 	def model_worddb(self,fn='data.worddb.xlsx',word_key='word',ofn='data.worddb.with-vectors.txt',save=True,vectord={},interesting_vectors=True,model_lm=False):
-		import pytxt
-		db_ld=pytxt.read_ld(fn)
-		db_dd=pytxt.ld2dd(db_ld,word_key)
+		import tools
+		db_ld=tools.read_ld(fn)
+		db_dd=tools.ld2dd(db_ld,word_key)
 		words = db_dd.keys()
 
 		model_ld = self.model_words(words=words,save=False,vectord=vectord,interesting_vectors=interesting_vectors,model_lm=model_lm)
@@ -716,7 +725,7 @@ class Word2Vec(Model):
 			for k,v in db_dd.get(dx['word'],{}).items(): dx[k]=v
 
 		if save:
-			pytxt.write2(ofn.replace('.txt','.'+self.name+'.txt'),model_ld)
+			tools.write2(ofn.replace('.txt','.'+self.name+'.txt'),model_ld)
 
 		return model_ld
 
@@ -725,7 +734,7 @@ class Word2Vec(Model):
 	def model_lm(self,fn='data.word2vec.singnouns.ECCO-TCP.txt',top_words=1000):
 		import pystats
 
-		ld=pytxt.tsv2ld(fn)
+		ld=tools.tsv2ld(fn)
 		ld = [d for d in ld if d['rank']<=top_words]
 		keys = ld[0].keys()
 		keys.remove('word')
@@ -744,10 +753,10 @@ class Word2Vec(Model):
 			except TypeError:
 				continue
 
-		pytxt.write2(fn.replace('.txt','.linreg-results.txt'), old)
+		tools.write2(fn.replace('.txt','.linreg-results.txt'), old)
 
 	def model_lm_net(fn='data.word2vec.singnouns.ECCO-TCP.linreg-results.txt'):
-		ld=pytxt.tsv2ld(fn)
+		ld=tools.tsv2ld(fn)
 		import networkx as nx
 		g=nx.Graph()
 		M=model(r=True)
@@ -775,7 +784,7 @@ class Word2Vec(Model):
 
 
 	def model_lm2_net(fn='data.word2vec.nouns.entropy3.cor-results.txt'):
-		ld=pytxt.tsv2ld(fn)
+		ld=tools.tsv2ld(fn)
 		import networkx as nx
 		g=nx.Graph()
 		M=model(r=True)
@@ -797,7 +806,7 @@ class Word2Vec(Model):
 	def load_dist(self,fn=None,return_gen=False):
 		fn='dists.word-word-cosine-sim.'+self.name+'.txt' if not fn else fn
 		if not os.path.exists(fn): return None
-		return pytxt.tsv2ld(fn) if not return_gen else pytxt.readgen(fn)
+		return tools.tsv2ld(fn) if not return_gen else tools.readgen(fn)
 
 	def dist(self,words=[], to_similarity=False, to_zscore=False, use_nan=False):
 
@@ -934,7 +943,7 @@ class Word2Vec(Model):
 				yield dx
 
 		fn='dists.word-word-cosine-sim.'+self.name+'.txt' if not fn else fn
-		pytxt.writegen(fn,writegen)
+		tools.writegen(fn,writegen)
 
 
 	"""
@@ -944,7 +953,7 @@ class Word2Vec(Model):
 	def fields_default(self):
 		fields = {}
 		fieldwords=set()
-		for k,v in pytxt.fields.items():
+		for k,v in tools.fields.items():
 			if '_' in k and k.split('_')[0] in ['AbstractValues','HardSeed']:
 				fwords=set([x for x in v if x in self.vocab and not x in fieldwords])
 				fields[k]=fwords
@@ -985,13 +994,13 @@ class Word2Vec(Model):
 				old+=[dx2]
 
 		ofn=ofn.replace('.txt', '.'+self.name+'.txt')
-		pytxt.write2(ofn, old)
+		tools.write2(ofn, old)
 
 	def model_dists_tsne(self,words=[],words_ld=[],save=True,n_components=2,k=24,ofn=None):
 		if not words_ld:
 			words_ld=self.mfw(return_ld=True)
 		words = set(d['word'] for d in words_ld)
-		word2d=pytxt.ld2dd(words_ld,'word')
+		word2d=tools.ld2dd(words_ld,'word')
 		dist,dist_words = self.dist(words=words)
 
 		from sklearn.manifold import TSNE
@@ -1015,14 +1024,14 @@ class Word2Vec(Model):
 			old+=[dx]
 		if save:
 			ofn = 'dists.tsne.{0}.txt'.format(self.name) if not ofn else ofn
-			pytxt.write2(ofn, old)
+			tools.write2(ofn, old)
 		return old
 
 
 	def kclust(self,k=24,words=[],save=True):
 		words_ld=self.mfw(return_ld=True)
 		words = set(d['word'] for d in words_ld)
-		word2d=pytxt.ld2dd(words_ld,'word')
+		word2d=tools.ld2dd(words_ld,'word')
 		dist,dist_words = self.dist(words=words)
 
 		from sklearn.cluster import KMeans
@@ -1038,7 +1047,7 @@ class Word2Vec(Model):
 			for ii in range(n_components):
 				dx['tsne_V'+str(ii+1)]=fit[i][ii]
 			old+=[dx]
-		if save: pytxt.write2('dists.tsne.{0}.txt'.format(self.name), old)
+		if save: tools.write2('dists.tsne.{0}.txt'.format(self.name), old)
 		return old
 
 	def has_word(self,word):
@@ -1157,7 +1166,7 @@ def compare_dists(ns=[2,5,10,15,20,25], num_mfw=1000, topn=100):
 			for ii,(word,cos) in enumerate(top_tuples):
 				dx={'word1':w, 'word1_rank': i+1,'word2':word, 'closeness_rank':ii+1, 'closeness_cosine':cos, 'model':mname, 'word1_pos':w2pos.get(w,"?"), 'word2_pos':w2pos.get(word,"?")}
 				old+=[dx]
-	pytxt.write2('data.model-comparison.txt', old)
+	tools.write2('data.model-comparison.txt', old)
 
 def compare_models(model_type='corpus_size', num_mfw=1000, topn=100):
 	model_fns=[fn for fn in os.listdir('.') if model_type in fn and fn.endswith('.model')]
@@ -1191,7 +1200,7 @@ def compare_models(model_type='corpus_size', num_mfw=1000, topn=100):
 			for ii,(word,cos) in enumerate(top_tuples):
 				dx={'word1':w, 'word1_rank': i+1,'word2':word, 'closeness_rank':ii+1, 'closeness_cosine':cos, 'model':mname, 'word1_pos':w2pos.get(w,"?"), 'word2_pos':w2pos.get(word,"?")}
 				old+=[dx]
-	pytxt.write2('data.model-comparison.{0}.txt'.format(model_type), old)
+	tools.write2('data.model-comparison.{0}.txt'.format(model_type), old)
 
 
 
@@ -1216,12 +1225,12 @@ def entropy_gen_data(num_mfw=2000):
 		odx=dict(odx1.items() + odx2.items())
 		odx['rank']=i
 		old+=[odx]
-	pytxt.write2('data.word2vec.nouns.entropy3.txt', old)
+	tools.write2('data.word2vec.nouns.entropy3.txt', old)
 
 def entropy(fn='data.word2vec.nouns.entropy3.txt'):
 	import numpy,scipy
-	ld=pytxt.tsv2ld(fn)
-	dl=pytxt.ld2dl(ld)
+	ld=tools.tsv2ld(fn)
+	dl=tools.ld2dl(ld)
 	M=model(r=True)
 	vectord=interesting_vectors(M)
 
@@ -1257,7 +1266,7 @@ def entropy(fn='data.word2vec.nouns.entropy3.txt'):
 		}
 		old+=[odx]
 
-	pytxt.write2('data.word2vec.nouns.entropy3.analysis.txt', old)
+	tools.write2('data.word2vec.nouns.entropy3.analysis.txt', old)
 
 
 
@@ -1446,8 +1455,8 @@ class SkipgramsCorpus(object):
 
 	def slice(self,text,lowercase=True):
 		words=text.text_plain().strip().split()
-		words=[pytxt.noPunc(w.lower()) if lowercase else pytxt.noPunc(w) for w in words if True in [x.isalpha() for x in w]]
-		for slice_i,slice in enumerate(pytxt.slice(words,slice_length=self.n,runts=False)):
+		words=[tools.noPunc(w.lower()) if lowercase else tools.noPunc(w) for w in words if True in [x.isalpha() for x in w]]
+		for slice_i,slice in enumerate(tools.slice(words,slice_length=self.n,runts=False)):
 			yield slice
 
 	def __iter__(self):

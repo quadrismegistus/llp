@@ -1,6 +1,7 @@
-import os,gensim,logging,pytxt,time,numpy as np,random,pystats
+import os,gensim,logging,time,numpy as np,random,pystats
 from lit.model import Model
 from lit.model.word2vec import Word2Vec,KEYWORDS
+from lit import tools
 from scipy.spatial.distance import cosine,pdist,squareform
 from scipy.stats import pearsonr,spearmanr
 import multiprocessing as mp,gzip,random,time
@@ -21,16 +22,15 @@ DEFAULT_MFWD=TOP5000
 
 
 class Word2Vecs(Model):
-	def __init__(self,corpus,fns,periods,skipgram_n=10,name=None,partial=True):
+	def __init__(self,corpus,fns,periods,skipgram_n=10,name=None):
 		self.fns=fns
 		self.periods=periods
 		self.corpus=corpus
 		self.name=name
-		self.w2v = self.models = [Word2Vec(fn=fn,period=period,skipgram_n=skipgram_n,corpus=corpus,partial=partial) for fn,period in zip(self.fns,self.periods)]
+		self.w2v = self.models = [Word2Vec(fn=fn,period=period,skipgram_n=skipgram_n,corpus=corpus) for fn,period in zip(self.fns,self.periods)]
 		self.mfw_d=DEFAULT_MFWD
 		self.aligned=False
 		self.modeld = dict((m.name.replace(self.corpus.name+'.',''),m) for m in self.models)
-		self.partial=partial
 		self.models.sort(key=lambda _m: _m.name)
 
 	"""
@@ -62,8 +62,8 @@ class Word2Vecs(Model):
 			if not os.path.exists(statfn):
 				self._statd={}
 			else:
-				ld=pytxt.read_ld(statfn)
-				self._statd=pytxt.ld2dd(ld,'period')
+				ld=tools.read_ld(statfn)
+				self._statd=tools.ld2dd(ld,'period')
 		return self._statd
 
 	def mfw(self,use_first_model=False,use_last_model=True,intersection=True,**attrs):
@@ -95,23 +95,27 @@ class Word2Vecs(Model):
 
 
 
-	def load(self,partial=None):
+	def load(self):
 		for m in self.models:
-			m.load(partial = partial if partial is not None else self.partial)
+			m.load()
 
 	def save(self,odir=None, gensim_format=False, word2vec_format=True):
 		for model in self.models:
 			model.save(odir=None, gensim_format=gensim_format, word2vec_format=word2vec_format)
 
-	def limit_vocab_and_save(self,odir='.',num_words=None,fpm_cutoff=1.0,overwrite=False,english=False):
+	def limit_by_rank(self,max_rank):
+		for m in self.models: m.limit_vocab(n=max_rank,fpm_cutoff=None)
+
+	def limit_vocab_and_save(self,odir='.',n=None,fpm_cutoff=1.0,overwrite=False,english=False):
+		if not os.path.exists(odir): os.makedirs(odir)
 		for model in self.models:
 			ofnfn=os.path.join(odir,model.fn)
 			if not overwrite and os.path.exists(ofnfn):
-				print '>> already a partial model in directory "{0}" named "{1}" and overwrite set to False. skipping...'.format(odir,model.fn)
+				print '>> already a model in directory "{0}" named "{1}" and overwrite set to False. skipping...'.format(odir,model.fn)
 				continue
 
-			model.load(partial=False)
-			model.limit_vocab(n=num_words,fpm_cutoff=fpm_cutoff,english=english)
+			model.load()
+			model.limit_vocab(n=n,fpm_cutoff=fpm_cutoff,english=english)
 			model.save(odir=odir, gensim_format=False, word2vec_format=True)
 			model.unload()
 
@@ -129,7 +133,7 @@ class Word2Vecs(Model):
 			words=self.mfw(**mfw_d)
 			print 'Using MFW: # words:',len(words),words[:3],'...'
 
-		for m1,m2 in pytxt.bigrams(self.models):
+		for m1,m2 in tools.bigrams(self.models):
 			m1.load()
 			m2.load()
 			m1.align(m2,words=words)
@@ -142,39 +146,50 @@ class Word2Vecs(Model):
 			print model, np.median(dist)
 
 
-	def model_words(self, **kwargs):
+	def model_words(self, mp=True, **kwargs):
 		#words=self.mfw() if not words else words
-		#for w2v in self.models:
-			#w2v.model_words(words=words)
-			#w2v.unload()
-
-		pytxt.crunch(self.models, 'model_words',kwargs=kwargs)
+		if not mp:
+			for w2v in self.models:
+				w2v.model_words(**kwargs)
+				w2v.unload()
+		else:
+			tools.crunch(self.models, 'model_words',kwargs=kwargs)
 
 		## consolidate
 		self.consolidate_model_words()
 
-	def consolidate_model_words(self):
+	def consolidate_model_words(self,idir='.'):
 		old1=[]
 		old2=[]
-		for w2v in self.models:
-			fnfn1=w2v.fn.replace('word2vec','data.word2vec.words').replace('.txt.gz','.txt')
+		#for w2v in self.models:
+		for fn in sorted(os.listdir(idir)):
+			if not fn.startswith('data.word2vec.words.'): continue
+			fnfn1=os.path.join(idir,fn)
 			fnfn2=fnfn1.replace('.txt','.linreg-results.txt').replace('.txt.gz','.txt')
 			print '>> consolidating:',fnfn1,fnfn2
-			ld1=pytxt.tsv2ld(fnfn1)
-			ld2=pytxt.tsv2ld(fnfn2)
+			ld1=tools.tsv2ld(fnfn1)
+			ld2=tools.tsv2ld(fnfn2)
+
+			# period
+			period_l = [x for x in fnfn1.split('.') if x.split('-')[0].isdigit()]
+			period = period_l[0] if period_l else ''
+
+
 			for ld in [ld1,ld2]:
 				for d in ld:
-					d['model']=w2v.name
-					for i,x in enumerate(w2v.name.split('.')):
+					#d['model']=w2v.name
+					d['model']=fn
+					d['period']=period
+					for i,x in enumerate(fn.split('.')):
 						d['model_name_'+str(i+1)]=x
 			old1+=ld1
 			old2+=ld2
 
 
-		word2ld=pytxt.ld2dld(old1,'word')
+		word2ld=tools.ld2dld(old1,'word')
 		old3=[]
 		for word,wld in word2ld.items():
-			period2ld=pytxt.ld2dld(wld,'model_name_2')
+			period2ld=tools.ld2dld(wld,'model_name_2')
 			#wld.sort(key=lambda _d: _d['model_name_2'])
 			vecs=[k for k in wld[0].keys() if '<>' in k]
 			for vec in vecs:
@@ -200,9 +215,9 @@ class Word2Vecs(Model):
 		ofn1='data.word2vec.consolidated.words.'+self.name+'.txt'
 		ofn2='data.word2vec.consolidated.words.'+self.name+'.linreg-results.txt'
 		ofn3='data.word2vec.consolidated.words.'+self.name+'.linreg-words.txt'
-		pytxt.write2(ofn1,old1)
-		pytxt.write2(ofn2,old2)
-		pytxt.write2(ofn3,old3)
+		tools.write2(ofn1,old1)
+		tools.write2(ofn2,old2)
+		tools.write2(ofn3,old3)
 
 	def gen_dists(self,words=[],num_mfw=2000,sample_per_period=None):
 		#mfw=self.mfw(n=num_mfw)
@@ -269,11 +284,11 @@ class Word2Vecs(Model):
 				#dx[name2]=spearmanr(A,B)
 			old+=[dx]
 
-		pytxt.write2('dists.comparison-fro.'+self.name+'.txt', old)
+		tools.write2('dists.comparison-fro.'+self.name+'.txt', old)
 
 	def model_dists_tsne(self,fn=None,save=True):
 		if not fn: fn='dists.comparison.'+self.name+'.txt'
-		ld=pytxt.tsv2ld(fn)
+		ld=tools.tsv2ld(fn)
 		M=np.array([[v for k,v in sorted(d.items()) if k!='rownamecol'] for d in ld])
 
 		from sklearn.manifold import TSNE
@@ -286,7 +301,7 @@ class Word2Vecs(Model):
 			for ii,xx in enumerate(dx['model'].split('.')): dx['model_'+str(ii)]=xx
 			dx['tsne_V1'],dx['tsne_V2']=fit[i]
 			old+=[dx]
-		if save: pytxt.write2(fn.replace('.txt','.tsne.txt'), old)
+		if save: tools.write2(fn.replace('.txt','.tsne.txt'), old)
 		return old
 
 
@@ -350,7 +365,7 @@ class Word2Vecs(Model):
 				for missingperiod in periods-ww2periods[ww]:
 					yield {'word1':ww[0], 'word2':ww[1], 'closeness_rank':666, 'closeness_cosine':0, 'model_name_2':missingperiod}
 
-		pytxt.writegen('data.word2vec.consolidated.ranks.{0}.txt'.format(self.name), writegen)
+		tools.writegen('data.word2vec.consolidated.ranks.{0}.txt'.format(self.name), writegen)
 
 	def model_ranks_lm(self,fn=None,max_rank=100):
 		if not fn: fn='data.word2vec.consolidated.ranks.{0}.txt'.format(self.name)
@@ -358,7 +373,7 @@ class Word2Vecs(Model):
 	    ## Build necessary data structure
 		from collections import defaultdict
 		wordpair2period2ranks={}
-		for d in pytxt.readgen(fn):
+		for d in tools.readgen(fn):
 			wordpair=(d['word1'],d['word2'])
 			period=d['model_name_2']
 			rank=float(d['closeness_rank'])
@@ -396,7 +411,7 @@ class Word2Vecs(Model):
 				odx['rank_diff']=np.mean(Y[-2:]) - np.mean(Y[:2])
 				yield odx
 
-		pytxt.writegen(fn.replace('.txt','.linreg.txt'), writegen)
+		tools.writegen(fn.replace('.txt','.linreg.txt'), writegen)
 
 
 	def semantic_displacement(self,words=None,model_pairs=[('1750-','1790-')], ofn='data.semantic_displacement.3.txt',min_count=None,neighborhood_size=10):
@@ -482,7 +497,7 @@ class Word2Vecs(Model):
 
 		def _writegen_meta(key_str=('model_name_2_1','model_name_2_2','word')):
 			WordMeta={}
-			for dx in pytxt.writegengen(ofn, _writegen):
+			for dx in tools.writegengen(ofn, _writegen):
 				key=tuple([dx[k] for k in key_str])
 				if not key in WordMeta: WordMeta[key]=defaultdict(list)
 				#for k in ['cosine_similarity','jaccard','model_rank_1','model_rank_2','model_count_1','model_count_2','neighborhood_1_not_2','neighborhood_2_not_1']:
@@ -507,7 +522,7 @@ class Word2Vecs(Model):
 		ofn_summary=ofn.replace('.txt','.summarized.txt')
 
 
-		for dx in pytxt.writegengen(ofn_summary, _writegen_meta): yield dx
+		for dx in tools.writegengen(ofn_summary, _writegen_meta): yield dx
 
 
 
@@ -522,10 +537,10 @@ class Word2Vecs(Model):
 
 		name=self.corpus.name
 		goog_url=SEMANTIC_NETWORK_GOOG_URLS[name]
-		cluster_ld = pytxt.tsv2ld(goog_url)
-		cluster_id2d=pytxt.ld2dd(cluster_ld,'ID')
-		node_ld = pytxt.tsv2ld(self.fn.replace('.graphml','.analysis-with-modularity.txt'))
-		id2ld =pytxt.ld2dld(node_ld,'partition_id')
+		cluster_ld = tools.tsv2ld(goog_url)
+		cluster_id2d=tools.ld2dd(cluster_ld,'ID')
+		node_ld = tools.tsv2ld(self.fn.replace('.graphml','.analysis-with-modularity.txt'))
+		id2ld =tools.ld2dld(node_ld,'partition_id')
 
 		def writegen():
 			pool=mp.Pool(processes=4)
@@ -537,7 +552,7 @@ class Word2Vecs(Model):
 				for dx in gen.get():
 					yield dx
 
-		pytxt.writegen('word2vec.comparison.semantic_networks.'+self.name+'.txt', writegen)
+		tools.writegen('word2vec.comparison.semantic_networks.'+self.name+'.txt', writegen)
 
 	def load_meta_dist(self,fn_dist=None,fn_dist_words=None):
 		if not fn_dist: fn_dist = 'data.meta_dist.%s.npy' % self.name
@@ -618,7 +633,7 @@ class Word2Vecs(Model):
 			old+=[dx]
 		if save:
 			ofn = 'dists.tsne.{0}.txt'.format(self.name) if not ofn else ofn
-			pytxt.write2(ofn, old)
+			tools.write2(ofn, old)
 		return old
 
 
@@ -690,7 +705,7 @@ class Word2Vecs(Model):
 						yield odx2
 
 
-		pytxt.writegen('data.rate_of_change.txt', writegen)
+		tools.writegen('data.rate_of_change.txt', writegen)
 
 	## Rates of change
 	def rate_of_change_cosine(self,words=None):
@@ -715,7 +730,7 @@ class Word2Vecs(Model):
 						yield odx2
 
 
-		pytxt.writegen('data.rate_of_change.txt', writegen)
+		tools.writegen('data.rate_of_change.txt', writegen)
 
 	## Rates of change
 	def rate_of_change_bigrams(self,words=None):
@@ -743,7 +758,7 @@ class Word2Vecs(Model):
 					yield dx
 
 
-		pytxt.writegen('data.rate_of_change.txt', writegen)
+		tools.writegen('data.rate_of_change.txt', writegen)
 
 
 # words=[],special=[],
@@ -896,7 +911,7 @@ def semantic_displacement(self,models1,models2,ofn='data.semantic_displacement.t
 
 	def _writegen_meta(key_str=('model_name_2_1','model_name_2_2','word')):
 		WordMeta={}
-		for dx in pytxt.writegengen(ofn, _writegen):
+		for dx in tools.writegengen(ofn, _writegen):
 			key=tuple([dx[k] for k in key_str])
 			if not key in WordMeta: WordMeta[key]=defaultdict(list)
 			#for k in ['cosine_similarity','jaccard','model_rank_1','model_rank_2','model_count_1','model_count_2','neighborhood_1_not_2','neighborhood_2_not_1']:
@@ -921,4 +936,4 @@ def semantic_displacement(self,models1,models2,ofn='data.semantic_displacement.t
 	ofn_summary=ofn.replace('.txt','.summarized.txt')
 
 
-	for dx in pytxt.writegengen(ofn_summary, _writegen_meta): yield dx
+	for dx in tools.writegengen(ofn_summary, _writegen_meta): yield dx

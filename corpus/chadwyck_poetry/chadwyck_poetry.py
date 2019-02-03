@@ -317,6 +317,11 @@ class ChadwyckPoetry(Corpus):
 		tools.write2(os.path.join(self.path,'corpus-metadata.%s.%s.txt' % (self.name,timestamp)), self.meta)
 
 
+	## word2vec
+	def word2vec_by_period(self,year_min=1500,year_max=2000,**attrs):
+		return super(ChadwyckPoetry,self).word2vec_by_period(year_min=year_min,year_max=year_max,**attrs)
+
+
 
 
 

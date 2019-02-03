@@ -922,13 +922,13 @@ class Corpus(object):
 	def fnfn_skipgrams(self):
 		return os.path.join(self.path_skipgrams,'skipgrams.'+self.name+'.txt.gz')
 
-	def word2vec(self,skipgram_n=10,name=None,skipgram_fn=None,partial=True):
+	def word2vec(self,skipgram_n=10,name=None,skipgram_fn=None):
 		if not name: name=self.name
 		from lit.model.word2vec import Word2Vec
 		if skipgram_fn and not type(skipgram_fn) in [unicode,str]:
 			skipgram_fn=self.fnfn_skipgrams
 
-		return Word2Vec(corpus=self, skipgram_n=skipgram_n, name=name, skipgram_fn=skipgram_fn,partial=partial)
+		return Word2Vec(corpus=self, skipgram_n=skipgram_n, name=name, skipgram_fn=skipgram_fn)
 
 	def doc2vec(self,skipgram_n=5,name=None,skipgram_fn=None):
 		if not name: name=self.name
@@ -938,7 +938,7 @@ class Corpus(object):
 
 		return Doc2Vec(corpus=self, skipgram_n=skipgram_n, name=name, skipgram_fn=skipgram_fn)
 
-	def word2vec_by_period(self,bin_years_by=10,word_size=None,skipgram_n=10, year_min=None, year_max=None,partial=True):
+	def word2vec_by_period(self,bin_years_by=None,word_size=None,skipgram_n=10, year_min=None, year_max=None):
 		"""NEW word2vec_by_period using skipgram txt files
 		DOES NOT YET IMPLEMENT word_size!!!
 		"""
@@ -948,25 +948,24 @@ class Corpus(object):
 		if not year_min: year_min=self.year_start
 		if not year_max: year_max=self.year_end
 
-		path_model = os.path.join(self.path_model,'partial_models') if partial else os.path.join(self.path_model,'full_models')
+		path_model = self.path_model
 		model_fns = os.listdir(path_model)
 		model_fns2=[]
 		periods=[]
 
 		for mfn in model_fns:
-			if not mfn.endswith('.model.txt.gz'): continue
+			if not (mfn.endswith('.txt') or mfn.endswith('.txt.gz')) or '.vocab.' in mfn: continue
 			mfn_l = mfn.split('.')
-			corpus_name=mfn_l[1]
-			if corpus_name!=self.name: continue
-			period=mfn_l[2]
-			if not '-' in period: continue
-			period_start,period_end=period.split('-')
+			period_l = [mfn_x for mfn_x in mfn_l if mfn_x.split('-')[0].isdigit()]
+			if not period_l: continue
+
+			period = period_l[0]
+			period_start,period_end=period.split('-') if '-' in period else (period_l[0],period_l[0])
 			period_start=int(period_start)
 			period_end=int(period_end)+1
-			if period_end-period_start!=bin_years_by: continue
 			if period_start<year_min: continue
 			if period_end>year_max: continue
-
+			if bin_years_by and period_end-period_start!=bin_years_by: continue
 			model_fns2+=[mfn]
 			periods+=[period]
 
@@ -976,7 +975,7 @@ class Corpus(object):
 		name_l=[self.name, 'by_period', str(bin_years_by)+'years']
 		if word_size: name_l+=[str(word_size / 1000000)+'Mwords']
 		w2vs_name = '.'.join(name_l)
-		W2Vs=Word2Vecs(corpus=self, fns=model_fns2, periods=periods, skipgram_n=skipgram_n, name=w2vs_name, partial=partial)
+		W2Vs=Word2Vecs(corpus=self, fns=model_fns2, periods=periods, skipgram_n=skipgram_n, name=w2vs_name)
 		return W2Vs
 
 
