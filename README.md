@@ -22,16 +22,16 @@ Now that you have a corpus object,
 
 ```python
 
-# Get a list of texts
+# Get the texts as a list
 texts = corpus.texts()
 
-# Get a list of dictionaries, each the metadata for a text
+# Get the metadata as a list of dictionaries
 metadata = corpus.meta
 
 # Save a list of the most frequent words
 corpus.gen_mfw()
 
-# Save text frequencies in a term-document matrix for the top 10000 most frequent words
+# Save a term-document matrix for the top 10000 most frequent words
 corpus.gen_freq_table(n=10000)
 
 # Generate a word2vec model with gensim
