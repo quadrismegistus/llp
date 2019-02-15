@@ -47,13 +47,13 @@ corpus.rank_duplicates()
 
 ## Texts
 
-With a text object,
+With any text object,
 
 ```python
 # for every text in the corpus...
 for text in corpus.texts():
 
-	# get its full text
+	# get the full text as a string
 	text_as_string = text.text
 	
 	# get its metadata as a dictionary
