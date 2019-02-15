@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #### TEXT CLASS
-import codecs
+import codecs,os
 from llp import tools
 from llp.text import Text,text_plain_from_xml,clean_text
 BAD={'figdesc','head','edit','note','l'}

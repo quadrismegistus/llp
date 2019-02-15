@@ -1,2 +1,3 @@
-# lit
-A corpus manager for text analysis, in Python
+# Literary Language Processing (LLP)
+
+Corpora, models, and tools for the digital humanities. Written in Python.
