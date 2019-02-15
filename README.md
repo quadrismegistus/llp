@@ -47,31 +47,32 @@ corpus.rank_duplicates()
 
 ## Texts
 
+With a text object,
+
 ```python
 # for every text in the corpus...
 for text in corpus.texts():
 
-	# get full text string
+	# get its full text
 	text_as_string = text.text
 	
-	# get text metadata
+	# get its metadata as a dictionary
 	text_metadata_dicionary = text.meta
 	
-	# tokenize
+	# get its word tokens as a list
 	tokens = text.tokens
 	
-	# word counts
+	# get its word counts as a dictionary
 	counts = text.freqs()
 	
-	# n-gram counts
+	# get its n-gram counts as a dictionary
 	bigrams = text.freqs_ngram(n=2)
 	
-	# key word in context
-	passages_as_list_of_dictionaries = text.get_passages(phrases=['virtue','honour'])
+	# get a list of passages mentioning a phrase (Key Word In Context)
+	passages = text.get_passages(phrases=['labour'])
 	
-	# spacy
+	# get its spacy (spacy.io) representation
 	text_as_spacy_object = text.spacy()
-	named_entities = text_as_spacy_object.ents
 	
 ```
 
