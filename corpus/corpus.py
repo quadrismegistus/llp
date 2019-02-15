@@ -93,7 +93,10 @@ def name2text(name):
 
 class Corpus(object):
 
-	def __init__(self, name, path_xml='', path_index='', ext_xml='.xml', ext_txt='.txt', path_txt='', path_model='',path_header=None, path_metadata='', paths_text_data=[], paths_rel_data=[], path_freq_table={}, **kwargs):
+	def __init__(self, name, path_xml='', path_index='', ext_xml='.xml', ext_txt='.txt', path_txt='',
+				path_model='',path_header=None, path_metadata='', paths_text_data=[], paths_rel_data=[],
+				path_freq_table={}, col_id='id',col_fn='', **kwargs):
+				
 		import llp
 		self.path = os.path.dirname(__file__)
 		self.path_matches = os.path.join(llp.ROOT,'corpus','_matches')
@@ -126,6 +129,8 @@ class Corpus(object):
 			self.path_header=os.path.join(self.path,path_header)
 		self.ext_xml = ext_xml
 		self.ext_txt = ext_txt
+		self.col_fn=col_fn
+		self.col_id=col_id
 		self.path_metadata = os.path.join(self.path,path_metadata) if path_metadata else os.path.join(self.path,'corpus-metadata.'+self.name+'.txt')
 		self.path_mfw_simple = os.path.join(self.path,'mfw.'+self.name+'.txt')
 		self.paths_text_data=[os.path.join(self.path,_fn) for _fn in paths_text_data]
@@ -193,11 +198,19 @@ class Corpus(object):
 	def exists_metadata(self):
 		return os.path.exists(self.path_metadata)
 
+
+	def get_id_from_metad(self,metad):
+		if self.col_id and self.col_id in metad:
+			return metad[self.col_fn]
+		if self.col_fn and self.col_fn in metad:
+			return os.path.splitext(metad[self.col_fn])[0]
+		return None
+
 	def get_text_ids(self,from_metadata=False,from_files=False,limit=False):
 
 		#DO I NEED ALL THIS>--> #if (not from_files and (from_metadata and os.path.exists(self.path_metadata)) or (not self.path_ext_texts[0] or not self.path_ext_texts[0])):
 		if not from_files and self.exists_metadata:
-			self._text_ids=[d['id'] for d in self.meta]
+			self._text_ids=[self.get_id_from_metad(d) for d in self.meta]
 		else:
 			## Otherwise get the filenames from the main file directory
 			path,ext=self.path_ext_texts
@@ -329,8 +342,8 @@ class Corpus(object):
 		for d in meta_ld: d['corpus']=self.name
 
 		self._meta=meta_ld
-		self._metad=tools.ld2dd(meta_ld,'id')
-		self._text_ids=[d['id'] for d in meta_ld]
+		self._text_ids=[self.get_id_from_metad(d) for d in meta_ld]
+		self._metad=dict(zip(self._text_ids,self._meta))
 
 		if maximal or (not minimal and load_text_data): self.load_text_data()
 		if maximal or (not minimal and combine_matches): self.combine_matches()
@@ -495,7 +508,7 @@ class Corpus(object):
 	def metad(self):
 		from llp import tools
 		if not hasattr(self,'_metad'):
-			self._metad=tools.ld2dd(self.meta,'id')
+			self._metad=dict(zip(self._text_ids,self._meta))
 		return self._metad
 
 	def export(self,folder,meta_fn=None,txt_folder=None,compress=False):
@@ -567,60 +580,6 @@ class Corpus(object):
 
 		tools.write2(ofn, old)
 		#tools.writegen(os.path.join(self.path,'corpus-metadata.'+self.name+'.txt'), writegen)
-
-
-
-	"""
-	def save_metadata_mp(self,num_words=True,ocr_accuracy=True,num_processes=8, resume=True):
-		global ENGLISH
-
-		print '>> generating metadata...'
-		texts = [t for t in self.texts() if t.exists]
-		num_texts = len(texts)
-		old=[]
-		if ocr_accuracy:
-			if not ENGLISH:
-				import llp
-				ENGLISH=llp.load_english()
-
-		ofnfn=os.path.join(self.path,'corpus-metadata.'+self.name+'.txt')
-		if not os.path.exists(ofnfn): resume=False
-		if resume:
-			ild=tools.read_ld(ofnfn)
-			if ocr_accuracy or num_words:
-				bad_ild = [d for d in ild if not d['ocr_accuracy'] or not d['num_words']]
-				for d in bad_ild:
-					bfnfn=os.path.join(self.path_txt, d['id']+self.ext_txt)
-					if os.path.exists(bfnfn):
-						cmd='rm '+bfnfn
-						print cmd
-
-			if ocr_accuracy: ild = [d for d in ild if d['ocr_accuracy']]
-			if num_words: ild = [d for d in ild if d['num_words']]
-
-			ids_done = set([d['id'] for d in ild])
-			texts = [t for t in texts if not t.id in ids_done]
-			num_texts=len(texts)
-
-		print ">> GEN METADATA FOR:",num_texts,'texts'
-
-		def writegen():
-			if resume:
-				for d in ild:
-					yield d
-
-			import multiprocessing as mp
-			pool = mp.Pool(processes=num_processes)
-			results = [pool.apply_async(do_metadata_text,args=(i,text,num_words,ocr_accuracy)) for i,text in enumerate(texts)]
-			for p in results:
-				for dx in p.get():
-					yield dx
-
-		tools.writegen(ofnfn, writegen)
-		"""
-
-
-
 
 
 

@@ -4,14 +4,19 @@ Literary Language Processing (LLP): Corpora, models, and tools for the digital h
 
 ## Make a corpus in two lines
 
+If you have a folder of plain text files,
+
 ```python
 from llp.corpus.default import PlainTextCorpus
 
 corpus = PlainTextCorpus(
-	'/path/to/a/folder/of/txt/files', 
-	'/path/to/a/metadata_TSV_or_Excel_file'
+	path_txt='/path/to/a/folder/of/txt/files',
+	path_metadata='/path/to/a/metadata_TSV_or_Excel_file',
+	col_fn='column_in_metadata_containing_filename'  # relative path from POV of path_txt
 )
 ```
+
+## What corpora can do
 
 ## What texts can do
 
