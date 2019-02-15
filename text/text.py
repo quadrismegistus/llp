@@ -183,13 +183,12 @@ class Text(object):
 			self._meta=d
 		return self._meta
 
-	@property
-	def spacy(self,load_from_file=False):
+	def spacy(self,load_from_file=False,model_name='en_core_web_sm'):
 		import spacy
 		global nlp
 		if not nlp:
 			print '>> loading spacy...'
-			nlp = spacy.load('en')
+			nlp = spacy.load(model_name)
 
 		doc=None
 		if self.parsed and load_from_file:
@@ -206,8 +205,8 @@ class Text(object):
 
 		if not doc:
 			#print '>> making spacy document for text',self.id
-			txt=self.text_plain()
-			txt=txt.replace(u'\u2014',' -- ')
+			txt=self.text
+			txt=clean_text(txt)
 			doc=nlp(txt)
 
 		return doc
@@ -399,37 +398,15 @@ class Text(object):
 	def freqs_ngram(self,n=2):
 		return tools.toks2freq(tools.ngram([x for x in self.tokens], n))
 
-	def get_freqs(self, ngrams, as_str=False, fpm=False,str_key_prefix=None):
-		ngram2freqs={}
-		odx={}
-		tokens = [x[0] for x in self.tokens]
-		numwords = float(self.num_words)
-		for i,gram in enumerate(ngrams):
-
-			if type(gram) in [str,unicode]:
-				gram=tuple(gram.split())
-			#print i,gram,'...'
-			gramlen=len(gram)
-			if not gramlen in ngram2freqs:
-				ngram2freqs[gramlen]=tools.toks2freq(tools.ngram(tokens,gramlen))
-				#print ngram2freqs[gramlen]
-
-			key=gram if not as_str else ' '.join(gram)
-			if str_key_prefix and as_str:
-				key=str_key_prefix+key
-			val=ngram2freqs[gramlen].get(gram,0)
-			if fpm: val=val/numwords*1000000
-			odx[key]=val
-		return odx
-
 
 	def get_passages(self,phrases=[],window=500):
+		import time
 		tic=time.clock()
 		#print '>> loading passages (I/O)..'
 		txt=self.text
 		passages=list(tools.passages(txt,phrases=phrases,window=window))
 		for dx in passages:
-			dx['tcp_id']=self.id
+			dx['id']=self.id
 			dx['corpus']=self.corpus.name
 			for k,v in self.meta.items(): dx[k]=v
 		toc=time.clock()
@@ -474,34 +451,6 @@ class Text(object):
 			with gzip.open(fnfn_txt,'wb') as f:
 				f.write(txt.encode('utf-8'))
 			print '>> saved:',fnfn_txt
-
-	def save_passages(self,phrases=[],window=500,db=None,i=0):
-		window=int(window)
-		print '>> save_passages [#'+str(i)+'] called ...'
-		passages=self.get_passages(phrases=phrases,window=window)
-		if not passages: return
-		print '>> saving [#'+str(i)+']',len(passages),'passages...'
-		c=None
-		if not db:
-			#print '>> connecting mongo..'
-			c=MongoClient(connect=False)
-			db1=getattr(c,self.corpus.mongo_name)
-			db2=getattr(db1,self.corpus.mongo_query_table_name(phrases))
-			db=db2
-		if passages:
-			print '>> inserting [#'+str(i)+']',len(passages),'passages...'
-			#gevent.sleep(2)
-			while True:
-				try:
-					db.insert(passages)
-					break
-				except ServerSelectionTimeoutError:
-					print '>> ServerSelectionTimeoutError! sleeping, will try again'
-					gevent.sleep(0)
-
-			print '\t>> done inserting [#'+str(i)+']',len(passages),'passages...'
-		if c: c.close()
-		return
 
 
 
@@ -582,156 +531,6 @@ def clean_text(txt,replacements=REPLACEMENTS):
 		txt=txt.replace(k,v)
 	return bleach.clean(txt,strip=True)
 
-
-class Passages(object):
-	def __init__(self, passage_ld=None, mongo_tuple=None, name=None):
-		self.passage_ld=passage_ld
-		self.mongo_tuple=mongo_tuple
-		self.name=name
-		self.db=None
-
-	@property
-	def mongo_db(self):
-		if not self.db:
-			c=MongoClient()
-			db1=getattr(c,self.mongo_tuple[0])
-			db2=getattr(db1,self.mongo_tuple[1])
-			self.db=db2
-		return self.db
-
-	def highlights(self):
-		self.passage_ld.sort(key=lambda _dx: (_dx['year'],_dx['title'],_dx['index']))
-		for dx in self.passage_ld:
-			hlt=self.highlight(dx)
-			print str(dx['year']).zfill(4),'\t',hlt
-
-	def highlight(self,dx):
-		psplit=dx['passage'].replace('\r',' ').replace('\n',' ').split('***')
-		return psplit[0][-25:] + psplit[1] + psplit[2][:25]
-
-
-	def remove_duplicates(self):
-		"""for dx in self.passage_ld: dx['is_duplicate']=None
-
-		for dx1 in self.passage_ld:
-			range1=set(range(dx1['index'],dx1['index_end']))
-
-			for dx2 in self.passage_ld:
-				if dx1 is dx2: continue
-				if dx1['tcp_id'] != dx2['tcp_id']: continue
-				if dx1['is_duplicate'] or dx2['is_duplicate']: continue
-				range2 = set(range(dx2['index'],dx2['index_end']))
-
-				range2_minus_range1 = range2-range1		# virtually minus virtual is ly
-				range1_minus_range2 = range1-range2		# virtual minus virtually is [nothing]
-
-				#print range1
-				#print range2
-				#print range2_minus_range1, range1_minus_range2
-
-				if not range1 & range2:
-					# If no overlap
-					pass
-				else:
-					if not range1 ^ range2:
-						# Total overlap
-						# Arbitrarily give one the duplicate
-						dx1['is_duplicate']=True
-						dx2['is_duplicate']=False
-
-					elif len(range2_minus_range1)>len(range1_minus_range2):
-						print '1 is duplicate'
-						dx1['is_duplicate']=True
-					elif len(range2_minus_range1)<len(range1_minus_range2):
-						print '2 is duplicate'
-						dx2['is_duplicate']=True
-					else:
-						pass # do nothing; leave both"""
-
-		for d in self.passage_ld: d['is_duplicate']=None
-		for textid,textld in tools.ld2dld(self.passage_ld, 'tcp_id').items():
-			for dx1 in textld:
-				range1=set(range(dx1['index'],dx1['index_end']))
-
-				for dx2 in [dx for dx in textld if dx['index']>=dx1['index']]:
-					range2=set(range(dx2['index'],dx2['index_end']))
-
-					if dx1 is dx2: continue
-					if dx1['is_duplicate'] or dx2['is_duplicate']: continue
-					range2 = set(range(dx2['index'],dx2['index_end']))
-
-					range2_minus_range1 = range2-range1		# virtually minus virtual is ly
-					range1_minus_range2 = range1-range2		# virtual minus virtually is [nothing]
-
-					#print range1
-					#print range2
-					#print range2_minus_range1, range1_minus_range2
-
-					if not range1 & range2:
-						# If no overlap
-						pass
-					else:
-						if not range1 ^ range2:
-							# Total overlap
-							# Arbitrarily give one the duplicate
-							dx1['is_duplicate']=True
-							dx2['is_duplicate']=False
-
-						elif len(range2_minus_range1)>len(range1_minus_range2):
-							print '1 is duplicate'
-							dx1['is_duplicate']=True
-						elif len(range2_minus_range1)<len(range1_minus_range2):
-							print '2 is duplicate'
-							dx2['is_duplicate']=True
-						else:
-							pass # do nothing; leave both"""
-
-		len_before = len(self.passage_ld)
-		self.passage_ld = [dx for dx in self.passage_ld if dx['is_duplicate']!=True]
-		len_after = len(self.passage_ld)
-		print '>> Trimmed',len_before-len_after,'passages for a new total of',len_after,'passages'
-
-	def make_scrivener(self):
-		phrase=self.name
-		sfolder = 'passages_'+phrase
-		if not os.path.exists(sfolder): os.mkdir(sfolder)
-		os.chdir(sfolder)
-		tools.write2('passages_'+phrase+'.xls', self.passage_ld)
-
-		for text_id,tld in tools.ld2dld(self.passage_ld,'tcp_id').items():
-			td=tld[0]
-			year=td['year']
-			author=td['author']
-			author='Unknown' if not author else author
-			title=td['title']
-			title_alpha = tools.alphas(title)
-			title_window = tools.get_word_window(title_alpha,10)
-			title_window=title_window[:100]
-			key=str(int(year))+'.'+author.split(',')[0]+'.'+title_window+' -- '+text_id
-
-			if not os.path.exists(key): os.mkdir(key)
-			txt_meta = ''
-			for k,v in sorted(td.items()):
-				if k in ['index','index_end','passage']: continue
-				if k.startswith('id_') and not k.endswith('_TCP'): continue
-				txt_meta+='['+k+']\n'+unicode(v)+'\n\n'
-
-			tools.write2(os.path.join(key,'_Metadata.txt'), txt_meta)
-
-			for i,match in enumerate(tld):
-				txt_match='[index]\n'+str(match['index'])+', '+str(match['index_end'])+'\n\n[passage]\n'+match['passage']+'\n'
-				tools.write2(os.path.join(key,'Match '+str(i+1)+'.txt'), txt_match)
-
-			ifnfn=td['fnfn_xml']
-
-			css_fnfn='schemas.ecco/pfs2.css'
-			#shutil.copy('../'+ifnfn, os.path.join(key,'_Text-XML.xml'))
-
-			"""xml_txt = codecs.open('../'+ifnfn,encoding='utf-8').read()
-			css_txt = codecs.open('../'+css_fnfn,encoding='utf-8').read()
-
-			html = '<html><head><style type="text/css">'+css_txt+'</style></head><body>'+xml_txt+'</body></head></html>'
-			tools.write2(os.path.join(key,'_Text-HTML.htm'), html)"""
 
 
 

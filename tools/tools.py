@@ -1,4 +1,4 @@
-import codecs,configparser,os
+import codecs,configparser,os,re
 LIT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 CONFIG_PATH = os.path.join(LIT_ROOT,'config.txt')
 config = configparser.ConfigParser()
@@ -901,3 +901,38 @@ def ngram(l,n=3):
 		gram.pop()
 		gram.reverse()
 	return grams
+
+
+
+
+
+### PASSAGES
+
+
+def get_word_window(text,numwords=100,go_backwards=False):
+	import re
+	spaces = [match.start() for match in re.finditer(re.compile('\s'), text)]
+	spaces = list(reversed(spaces)) if go_backwards else spaces
+	spaces = spaces[:numwords]
+	return text[:spaces[-1]] if not go_backwards else text[spaces[-1]:]
+
+def index(text,phrase,ignorecase=True):
+	compiled = re.compile(phrase, re.IGNORECASE) if ignorecase else re.compile(phrase)
+	passage_indices = [(match.start(), match.end()) for match in re.finditer(compiled, text)]
+	return passage_indices
+
+def passages(text,phrases=[],window=200,indices=None,ignorecase=True,marker='***'):
+	txt_lower = text.lower()
+	window_radius=int(window/2)
+	for phrase in phrases:
+		if phrase.lower() in txt_lower:
+			if not indices: indices = index(text,phrase,ignorecase=ignorecase)
+
+			for ia,ib in indices:
+				pre,post=text[:ia],text[ib:]
+				match = text[ia:ib]
+				window=get_word_window(pre,window_radius,True) + marker+match+marker+get_word_window(post,window_radius,False)
+				dx={'index':ia, 'index_end':ib, 'passage':window,'phrase':phrase}
+				yield dx
+
+write = write2
