@@ -52,6 +52,7 @@ With any text object,
 ```python
 # for every text in the corpus...
 for text in corpus.texts():
+
 	# get the full text as a string
 	text_as_string = text.txt
 	
