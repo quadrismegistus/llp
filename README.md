@@ -50,7 +50,7 @@ corpus.rank_duplicates()
 With any text object,
 
 ```python
-# for every text in the corpus...
+# For every text in the corpus...
 for text in corpus.texts():
 
 	# get the full text as a string
