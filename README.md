@@ -10,15 +10,17 @@ If you have a folder of plain text files,
 from llp.corpus.default import PlainTextCorpus
 
 corpus = PlainTextCorpus(
-	path_txt='/path/to/a/folder/of/txt/files',
-	path_metadata='/path/to/a/metadata_TSV_or_Excel_file',
-	col_fn='column_in_metadata_containing_filename'  # relative path from POV of path_txt
+	path_txt='folder', 				# path to a folder of txt files
+	path_metadata='metadata.xls', # path to a metadata CSV, TSV, or XLS file
+	col_fn='filename'  				# column in meadata pointing to txt file (relative to `path_txt`)
 )
 ```
 
-## What corpora can do
+## Corpora
 
-## What texts can do
+...
+
+## Texts
 
 ```python
 # for every text in the corpus...
