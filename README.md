@@ -28,9 +28,21 @@ texts = corpus.texts()
 # Get a list of dictionaries, each the metadata for a text
 metadata = corpus.meta
 
-# Save frequencies in a term-document matrix
-corpus.save
+# Save a list of the most frequent words
+corpus.gen_mfw()
 
+# Save text frequencies in a term-document matrix for the top 10000 most frequent words
+corpus.gen_freq_table(n=10000)
+
+# Generate a word2vec model with gensim
+w2v_model = corpus.word2vec()
+w2v_model.model()
+
+# Save a list of possible duplicate texts in corpus, by title similarity
+corpus.rank_duplicates_bytitle()
+
+# Save a list of possible duplicate texts in corpus, by the content of the text (MinHash)
+corpus.rank_duplicates()
 ```
 
 ## Texts

@@ -785,7 +785,15 @@ class Corpus(object):
 		for x in func:
 			yield x
 
-	def gen_mfw(self,yearbin=25,year_min=None,year_max=None):
+	def divide_texts_historically(self,yearbin=10,yearmin=None,yearmax=None,texts=None,min_len=None):
+		Grouping = CorpusGroups(self,texts=texts)
+		if yearmin or yearmax or min_len:
+			Grouping.prune_groups(min_len=None,min_group=yearmin,max_group=yearmax)
+		Grouping.group_by_year(yearbin=yearbin)
+		return Grouping.groups
+
+
+	def gen_mfw(self,yearbin=None,year_min=None,year_max=None):
 		"""
 		From tokenize_texts()
 		"""
@@ -795,11 +803,11 @@ class Corpus(object):
 		period2texts = {'all':texts} if not yearbin else self.divide_texts_historically(yearbin=yearbin,texts=texts)
 		period2bounter = {}
 		for period,texts in sorted(period2texts.items()):
-			print period
+			print '>> generating mfw for text grouping \'%s\' (%s texts)' % (period,len(texts))
 			countd = period2bounter[period] = bounter(1024)
 			texts=texts
 			for i,text in enumerate(texts):
-				if not i%100: print '>>',i,len(texts),'...'
+				#if not i%100: print '>>',i,len(texts),'...'
 				freqs = text.freqs()
 				if freqs: countd.update(freqs)
 
@@ -821,7 +829,7 @@ class Corpus(object):
 				f.write(word+'\t'+str(median_val)+'\n')
 		"""
 		for i,word in enumerate(all_words):
-			if not i%1000: print '>>',i,num_words,'...'
+			#if not i%1000: print '>>',i,num_words,'...'
 			vals = [float(countd[word])/totals[period]*1000000 for period,countd in period2bounter.items()]
 			median_val = np.mean(vals)
 			#COUNTD.update({word:median_val})
@@ -831,9 +839,9 @@ class Corpus(object):
 
 		with codecs.open(self.path_mfw,'w',encoding='utf-8') as f:
 			for i,(word,val) in enumerate(sorted(COUNTD.iteritems(), key=lambda _t: -_t[1])):
-				if not i%1000: print '>>',i,num_words,'...'
+				#if not i%1000: print '>>',i,num_words,'...'
 				f.write(word+'\n')
-
+		print '>> saved:',self.path_mfw
 
 
 	### TOKENIZING
@@ -1126,7 +1134,7 @@ class Corpus(object):
 
 	### DE-DUPING
 
-	def rank_duplicates_bytitle(self,within_author=True,func='token_sort_ratio',min_ratio=90, allow_anonymous=True, func_anonymous='ratio', anonymous_must_be_equal=False,split_on_punc=[':',';','.','!','?'],modernize_spellings=True):
+	def rank_duplicates_bytitle(self,within_author=False,func='token_sort_ratio',min_ratio=90, allow_anonymous=True, func_anonymous='ratio', anonymous_must_be_equal=False,split_on_punc=[':',';','.','!','?'],modernize_spellings=False):
 		from fuzzywuzzy import fuzz
 		from llp import tools
 		func=getattr(fuzz,func)
@@ -1247,9 +1255,9 @@ class Corpus(object):
 
 		from llp import tools
 		if not within_author:
-			tools.writegen('data.duplicates.%s.bytitle.pypy.txt' % self.name, writegen)
+			tools.writegen('data.duplicates.%s.bytitle.txt' % self.name, writegen)
 		else:
-			tools.writegen('data.duplicates.%s.bytitle.pypy.txt' % self.name, writegen_withinauthor)
+			tools.writegen('data.duplicates.%s.bytitle.txt' % self.name, writegen_withinauthor)
 
 
 
@@ -1332,22 +1340,20 @@ class Corpus(object):
 		if not suffix_hashes: suffix_hashes='.hash.pickle'
 		if not path_hashes: path_hashes=self.path_txt.replace('_txt_','_hash_')
 
-		print '>> loading hashes from files...'
+		#print '>> loading hashes from files...'
 		text_ids=self.text_ids if not text_ids else text_ids
 
 		hashd={}
 		for i,idx in enumerate(text_ids):
-			if i and not i%1000:
-				print '>>',i,'..'
+			#if i and not i%1000:
+				#print '>>',i,'..'
 				#break
 			fnfn=os.path.join(path_hashes, idx+suffix_hashes)
 			try:
 				hashval=cPickle.load(open(fnfn))
 			except IOError as e:
-				print '!!',e
-				print '!!',idx
-				print
-				continue
+				hashobj=self.textd[idx].minhash
+				hashval=hashobj.digest()
 			mh=MinHash(seed=1111, hashvalues=hashval)
 			hashd[idx]=mh
 
@@ -1599,6 +1605,7 @@ class CorpusGroups(Corpus):
 		self.corpus=corpus
 		self._groups={}
 		self._desc=[]
+		self._texts=texts
 
 	@property
 	def log(self):
@@ -1614,6 +1621,14 @@ class CorpusGroups(Corpus):
 			for gtext in grouptexts:
 				t2g[gtext.id]=groupname
 		return t2g
+
+	@property
+	def group2textid(self):
+		g2id={}
+		for group_name,group_texts in  sorted(self.groups.items()):
+			for t in group_texts:
+				g2id[group_name]=t.id
+		return g2id
 
 	def group_by_author_dob(self,yearbin=10,yearplus=0,texts=None):
 		return self.group_by_year(year_key='author_dob',yearbin=yearbin,yearplus=yearplus,texts=texts)
@@ -1650,7 +1665,12 @@ class CorpusGroups(Corpus):
 
 		# group texts
 		periodd={}
-		if not texts: texts=self.corpus.texts()
+		if not texts:
+			if self._texts:
+				texts=self._texts
+			else:
+				texts=self.corpus.texts()
+
 		for text in texts:
 			period = get_dec(text.meta.get(year_key,''), res=yearbin, plus=yearplus)
 			period_str = '%s-%s' % (period, period+yearbin-1)

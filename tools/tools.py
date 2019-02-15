@@ -711,6 +711,24 @@ def write2(fn,data,uni=True,join_cell=u'\t',join_line=u'\n',limcol=None,toprint=
 	of.close()
 	if toprint: print '>> saved:',fn
 
+def slice(l,num_slices=None,slice_length=None,runts=True,random=False):
+	"""
+	Returns a new list of n evenly-sized segments of the original list
+	"""
+	if random:
+		import random
+		random.shuffle(l)
+	if not num_slices and not slice_length: return l
+	if not slice_length: slice_length=int(len(l)/num_slices)
+	newlist=[l[i:i+slice_length] for i in range(0, len(l), slice_length)]
+	if runts: return newlist
+	return [lx for lx in newlist if len(lx)==slice_length]
+
+
+def noPunc(token):
+	from string import punctuation
+	return token.strip(punctuation)
+
 
 def now(now=None):
 	import datetime as dt

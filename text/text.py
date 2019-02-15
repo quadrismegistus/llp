@@ -328,6 +328,14 @@ class Text(object):
 		return float(self.meta['ocr_accuracy']) if 'ocr_accuracy' in self.meta else ''
 
 	@property
+	def minhash(self):
+		from datasketch import MinHash
+		m = MinHash()
+		for word in self.tokens:
+			m.update(word.encode('utf-8'))
+		return m
+
+	@property
 	def length(self):
 		return self.num_words
 
@@ -342,7 +350,8 @@ class Text(object):
 
 	@property
 	def freqs_tokens(self):
-		return tools.toks2freq([x.lower() for x in self.tokens])
+		from collections import Counter
+		return Counter([x.lower() for x in self.tokens])
 
 	@property
 	def is_tokenized(self):
@@ -374,7 +383,7 @@ class Text(object):
 		return fnfn
 
 	#@property
-	def freqs(self,modernize_spelling=True,modernize_spelling_before=3000,use_text_if_nec=True):
+	def freqs(self,modernize_spelling=False,modernize_spelling_before=3000,use_text_if_nec=True):
 		fnfn=self.fnfn_freqs
 		if not os.path.exists(fnfn):
 			#print '!! no freqs file for:',self.id,'--?-->',fnfn
@@ -599,6 +608,8 @@ class TextSection(Text):
 	def unload(self):
 		self._xml=''
 		self._txt=''
+
+
 
 	@property
 	def id(self):
