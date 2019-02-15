@@ -38,10 +38,6 @@ corpus.gen_mfw()
 
 # Save a term-document matrix for the top 10000 most frequent words
 corpus.gen_freq_table(n=10000)
-
-# Generate a word2vec model with gensim
-w2v_model = corpus.word2vec()
-w2v_model.model()
 ```
 
 ## Do things with texts
@@ -75,3 +71,16 @@ passages = text.get_passages(phrases=['labour'])
 text_spacy = text.spacy()
 ```
 
+## Do things with models
+
+```python
+# Generate a word2vec model with gensim
+w2v_model = corpus.word2vec()
+w2v_model.model()
+
+# Save model
+w2v_model.save()
+
+# Get the original gensim object
+gensim_model = w2v_model.gensim
+```
