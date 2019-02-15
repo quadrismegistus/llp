@@ -215,7 +215,10 @@ class Text(object):
 	def parsed(self):
 		return os.path.exists(self.fnfn_spacy)
 
-
+	@property
+	def txt(self):
+		return self.text
+	
 	@property
 	def text(self):
 		return self.text_plain()

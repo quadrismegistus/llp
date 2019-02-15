@@ -54,7 +54,7 @@ With any text object,
 for text in corpus.texts():
 
 	# get the full text as a string
-	text_as_string = text.text
+	text_as_string = text.txt
 	
 	# get its metadata as a dictionary
 	text_metadata_dicionary = text.meta
