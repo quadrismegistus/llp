@@ -12,7 +12,7 @@ from llp.corpus.default import PlainTextCorpus
 corpus = PlainTextCorpus(
 	path_txt='texts',              # path to a folder of txt files
 	path_metadata='metadata.xls',  # path to a metadata CSV, TSV, XLS, XLSX file
-	col_fn='filename'              # column in meadatta pointing to txt file (relative to `path_txt`)
+	col_fn='filename'              # column in metadata pointing to txt file (relative to `path_txt`)
 )
 ```
 
