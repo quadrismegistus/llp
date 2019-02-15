@@ -4,7 +4,7 @@ Literary Language Processing (LLP): Corpora, models, and tools for the digital h
 
 ## Make a corpus in two lines
 
-If you have a folder of plain text files, a 
+If you have a folder of plain text files, and an accompanying metadata file,
 
 ```python
 from llp.corpus.default import PlainTextCorpus
@@ -16,7 +16,7 @@ corpus = PlainTextCorpus(
 )
 ```
 
-## Corpora
+## Do things with corpora
 
 Now that you have a corpus object,
 
@@ -45,7 +45,7 @@ corpus.rank_duplicates_bytitle()
 corpus.rank_duplicates()
 ```
 
-## Texts
+## Do things with texts
 
 With any text object,
 
