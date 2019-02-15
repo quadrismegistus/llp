@@ -96,7 +96,7 @@ class Corpus(object):
 	def __init__(self, name, path_xml='', path_index='', ext_xml='.xml', ext_txt='.txt', path_txt='',
 				path_model='',path_header=None, path_metadata='', paths_text_data=[], paths_rel_data=[],
 				path_freq_table={}, col_id='id',col_fn='', **kwargs):
-				
+
 		import llp
 		self.path = os.path.dirname(__file__)
 		self.path_matches = os.path.join(llp.ROOT,'corpus','_matches')
@@ -723,15 +723,9 @@ class Corpus(object):
 		print '   done [{0} seconds]'.format(round(nownow-now,1))
 		return df
 
-	def gen_freq_table(self,n=25000,words=None,only_english=True,use_worddb=False):
+	def gen_freq_table(self,n=25000,words=None,only_english=False):
 		from llp import tools
-		if use_worddb:
-			# @HACK!! 5/13/18
-			print '>> using words from worddb'
-			words = [d['word'] for d in tools.read_ld('/Users/ryan/DH/18C/data/data.worddb.txt')]
-			n=len(words)
-			print '>> found',n,'words'
-		elif words:
+		if words:
 			n=len(words)
 		else:
 			words = list(self.mfw(n=n,only_english=only_english))

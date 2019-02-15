@@ -10,7 +10,7 @@ If you have a folder of plain text files,
 from llp.corpus.default import PlainTextCorpus
 
 corpus = PlainTextCorpus(
-	path_txt='folder',             # path to a folder of txt files
+	path_txt='texts',              # path to a folder of txt files
 	path_metadata='metadata.xls',  # path to a metadata CSV, TSV, or XLS file
 	col_fn='filename'              # column in meadata pointing to txt file (relative to `path_txt`)
 )
@@ -18,7 +18,20 @@ corpus = PlainTextCorpus(
 
 ## Corpora
 
-...
+Now that you have a corpus object,
+
+```python
+
+# Get a list of texts
+texts = corpus.texts()
+
+# Get a list of dictionaries, each the metadata for a text
+metadata = corpus.meta
+
+# Save frequencies in a term-document matrix
+corpus.save
+
+```
 
 ## Texts
 

@@ -10,9 +10,9 @@ class PlainTextCorpus(Corpus):
 	TEXT_CLASS=TextPlainTextCorpus
 
 	def __init__(self, path_txt=None, path_metadata=None, col_fn='fn', col_id='id', ext='.txt', path_root=None, name=None):
-		self.PATH_TXT=os.path.abspath(PATH_TXT) if PATH_TXT else None
-		self.PATH_METADATA=os.path.abspath(PATH_METADATA) if PATH_METADATA else None
-		self.PATH_ROOT=os.path.split(PATH_TXT)[0] if PATH_TXT else None
+		self.PATH_TXT=os.path.abspath(path_txt) if path_txt else None
+		self.PATH_METADATA=os.path.abspath(path_metadata) if path_metadata else None
+		self.PATH_ROOT=os.path.split(path_txt)[0] if path_txt else None
 		super(PlainTextCorpus,self).__init__(
 						'PlainTextCorpus' if not name else name,
 						path_txt=self.PATH_TXT,
