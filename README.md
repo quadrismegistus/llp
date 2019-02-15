@@ -10,9 +10,9 @@ If you have a folder of plain text files,
 from llp.corpus.default import PlainTextCorpus
 
 corpus = PlainTextCorpus(
-	path_txt='folder', 				# path to a folder of txt files
-	path_metadata='metadata.xls', # path to a metadata CSV, TSV, or XLS file
-	col_fn='filename'  				# column in meadata pointing to txt file (relative to `path_txt`)
+	path_txt='folder',             # path to a folder of txt files
+	path_metadata='metadata.xls',  # path to a metadata CSV, TSV, or XLS file
+	col_fn='filename'              # column in meadata pointing to txt file (relative to `path_txt`)
 )
 ```
 
