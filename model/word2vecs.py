@@ -1,7 +1,7 @@
 import os,gensim,logging,time,numpy as np,random,pystats
-from lit.model import Model
-from lit.model.word2vec import Word2Vec,KEYWORDS
-from lit import tools
+from llp.model import Model
+from llp.model.word2vec import Word2Vec,KEYWORDS
+from llp import tools
 from scipy.spatial.distance import cosine,pdist,squareform
 from scipy.stats import pearsonr,spearmanr
 import multiprocessing as mp,gzip,random,time
@@ -594,14 +594,14 @@ class Word2Vecs(Model):
 		This will get the cosine distance matrix for each model in self.models,
 		then median the distances, and then pass that off to semnet.py to make a network.
 		"""
-		from lit.model.semnet import SemanticNetwork
+		from llp.model.semnet import SemanticNetwork
 		M,Mw = self.meta_dist(words,models=models,apply_median=True)
 		SN=SemanticNetwork(self)
 		SN.gen_from_dist(M,Mw,num_edge_factor=2,cosine_cut=None,save=True,k_core=None,giant_component=False)
 		return SN
 
 	def semantic_network(self,**attrs):
-		from lit.model.semnet import SemanticNetwork
+		from llp.model.semnet import SemanticNetwork
 		sn=SemanticNetwork(model=self)
 		return sn
 

@@ -2,8 +2,8 @@
 
 #### TEXT CLASS
 import codecs
-from lit import tools
-from lit.text import Text,text_plain_from_xml,clean_text
+from llp import tools
+from llp.text import Text,text_plain_from_xml,clean_text
 BAD={'figdesc','head','edit','note','l'}
 OK={'p'}
 
@@ -117,7 +117,7 @@ class TextChadwyck(Text):
 
 
 ### CORPUS CLASS
-from lit.corpus import Corpus
+from llp.corpus import Corpus
 class Chadwyck(Corpus):
 	TEXT_CLASS=TextChadwyck
 	PATH_TXT = 'chadwyck/_txt_chadwyck'

@@ -1,5 +1,5 @@
 ### TEXT CLASS
-from lit.text import Text
+from llp.text import Text
 
 class TextCLMET(Text):
 	genre2Genre={u'Drama':'Drama',
@@ -35,7 +35,7 @@ class TextCLMET(Text):
 
 
 ### CORPUS CLASS
-from lit.corpus import Corpus
+from llp.corpus import Corpus
 import os
 
 class CLMET(Corpus):

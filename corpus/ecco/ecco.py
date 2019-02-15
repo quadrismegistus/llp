@@ -3,12 +3,12 @@
 ### TEXT CLASSES
 
 import os,codecs
-from lit import tools
+from llp import tools
 
-from lit.text import Text
-from lit.text.tcp import TextTCP,TextSectionTCP
-#import lit
-#lit.ENGLISH=lit.load_english()
+from llp.text import Text
+from llp.text.tcp import TextTCP,TextSectionTCP
+#import llp
+#llp.ENGLISH=llp.load_english()
 
 class TextECCO(Text):
 	@property
@@ -126,7 +126,7 @@ class TextECCO_LitLang(Text):
 
 		words=[w for w,p in self.tokens]
 		md['num_words']=len(words)
-		md['ocr_accuracy']=len([w for w in words if w in lit.ENGLISH]) / float(len(words)) if len(words) else 0.0
+		md['ocr_accuracy']=len([w for w in words if w in llp.ENGLISH]) / float(len(words)) if len(words) else 0.0
 
 		return md
 
@@ -174,7 +174,7 @@ class TextECCO_LitLang(Text):
 			print '>>',self.fnfn_txt,'from cache'
 			return cache
 
-		from lit.text import clean_text
+		from llp.text import clean_text
 
 		"""
 		Get the plain text from the ECCO xml files.
@@ -270,10 +270,10 @@ def clean_text(txt):
 ### CORPUS CLASSES
 
 import os
-from lit import tools
+from llp import tools
 
-from lit.corpus import Corpus
-from lit.corpus.tcp import TCP
+from llp.corpus import Corpus
+from llp.corpus.tcp import TCP
 
 
 class ECCO_TCP(TCP):
@@ -320,7 +320,7 @@ class ECCO(Corpus):
 		self.path = os.path.dirname(__file__)
 
 	def match_estc(self):
-		from lit.corpus.estc import ESTC
+		from llp.corpus.estc import ESTC
 		estc=ESTC()
 		self.match_records(estc, id_field_1='ESTCID', id_field_2='id_estc', match_by_id=True, match_by_title=False)
 
@@ -383,17 +383,17 @@ class ECCO_LitLang(Corpus):
 
 
 	def match_estc(self):
-		from lit.corpus.estc import ESTC
+		from llp.corpus.estc import ESTC
 		estc=ESTC()
 
 		self.match_records(estc, id_field_1='ESTCID', id_field_2='id', match_by_id=True, match_by_title=False)
 
 	def match_ravengarside(self):
-		from lit.corpus.ravengarside import RavenGarside
+		from llp.corpus.ravengarside import RavenGarside
 		rg=RavenGarside()
 		self.match_records(rg, match_by_title=True)
 
 	def match_eccotcp(self):
-		from lit.corpus.ecco import ECCO_TCP
+		from llp.corpus.ecco import ECCO_TCP
 		etcp = ECCO_TCP()
 		self.match_records(etcp, match_by_title=True, match_by_id=True, id_field_1='id_ESTC', id_field_2='id_ESTC')

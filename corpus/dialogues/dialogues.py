@@ -3,7 +3,7 @@
 
 #### TEXT CLASS
 import codecs,os,bs4
-from lit.text import Text
+from llp.text import Text
 
 class TextEnglishDialogues(Text):
 	STANZA_TAGS = ['stanza','versepara','pdiv']
@@ -63,16 +63,16 @@ class TextEnglishDialogues(Text):
 
 ### CORPUS CLASS
 
-from lit.corpus import Corpus
+from llp.corpus import Corpus
 import os,codecs,re
-from lit import tools
+from llp import tools
 
 class EnglishDialogues(Corpus):
 	"""
 	Steps taking in bringing this corpus from raw to refined.
 	>> wrote meta_by_file() and text_plain() for TextEnglishDialogues
 
-	from lit.corpus.dialogues import EnglishDialogues
+	from llp.corpus.dialogues import EnglishDialogues
 	corpus=EnglishDialogues()
 	corpus.tokenize_texts()
 	corpus.save_metadata()

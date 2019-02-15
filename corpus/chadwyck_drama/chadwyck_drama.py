@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import codecs,os
-from lit import tools
-from lit.text import Text
-from lit.corpus import Corpus
+from llp import tools
+from llp.text import Text
+from llp.corpus import Corpus
 
 
 
@@ -108,7 +108,7 @@ class ChadwyckDrama(Corpus):
 	"""
 	Steps taking in bringing this corpus from raw to refined.
 
-	from lit.corpus.chadwyck_drama import ChadwyckDrama
+	from llp.corpus.chadwyck_drama import ChadwyckDrama
 	corpus = ChadwyckDrama()
 	corpus.gen_xml()
 	corpus.tokenize_texts()

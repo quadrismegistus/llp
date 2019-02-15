@@ -1,1 +1,1 @@
-from .chadwyck_poetry import ChadwyckPoetry
+from .chadwyck_poetry import *

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import codecs,json,re
-from lit import tools
+from llp import tools
 
-from lit.text import Text
+from llp.text import Text
 from collections import defaultdict
 
 
@@ -134,10 +134,10 @@ class TextESTC(Text):
 
 ## CORPUS ##
 
-from lit.corpus import Corpus
+from llp.corpus import Corpus
 from collections import defaultdict,Counter
 import os
-from lit import tools
+from llp import tools
 
 
 """

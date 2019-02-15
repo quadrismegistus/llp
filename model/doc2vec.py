@@ -1,5 +1,5 @@
-from lit.model import Model
-from lit import tools
+from llp.model import Model
+from llp import tools
 from gensim.models.doc2vec import LabeledSentence
 class SentenceSampler(Model):
 	def __init__(self, fn, num_skips_wanted=True,min_words=50,min_words_in_sent=6,save_key=False, key_fn=None,save_word2vec=False):

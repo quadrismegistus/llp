@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from lit.corpus import Corpus
-from lit.text import Text
+from llp.corpus import Corpus
+from llp.text import Text
 import os
 
 class Long18C(Corpus):
@@ -20,7 +20,7 @@ class Long18C(Corpus):
 	# 	"""NEW word2vec_by_period using skipgram txt files
 	# 	DOES NOT YET IMPLEMENT word_size!!!
 	# 	"""
-	# 	from lit.model.word2vec import Word2Vec,Word2Vecs
+	# 	from llp.model.word2vec import Word2Vec,Word2Vecs
 	#
 	# 	if not year_min: year_min=self.year_start
 	# 	if not year_max: year_max=self.year_end
@@ -66,7 +66,7 @@ class Long18C(Corpus):
 		for fn in os.listdir(model_idir):
 			if not fn.endswith('.txt.gz'): continue
 			if self.name in fn:
-				## then 'lit' format
+				## then 'llp' format
 				fnfn=os.path.join(model_idir,fn)
 				fnfn_vocab=fnfn.replace('.txt.gz','.vocab.txt')
 				newfn=fn

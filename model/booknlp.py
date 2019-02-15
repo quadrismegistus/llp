@@ -1,4 +1,4 @@
-from lit.config import settings
+from llp.config import settings
 import os
 PATH_TO_BOOKNLP_BINARY = settings['PATH_TO_BOOKNLP_BINARY']
 

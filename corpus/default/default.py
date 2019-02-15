@@ -1,7 +1,7 @@
 
-from lit.corpus import Corpus
+from llp.corpus import Corpus
 import os
-from lit.text import Text
+from llp.text import Text
 
 class TextPlainTextCorpus(Text):
 	pass

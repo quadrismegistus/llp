@@ -1,7 +1,7 @@
 
-from lit.corpus import Corpus
-from lit.text import Text
-from lit import tools
+from llp.corpus import Corpus
+from llp.text import Text
+from llp import tools
 import os
 
 

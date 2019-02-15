@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 
-from lit.corpus import Corpus
-from lit.text import Text
+from llp.corpus import Corpus
+from llp.text import Text
 import os,codecs,re
-from lit import tools
+from llp import tools
 
 class MarkMark(Corpus):
 	"""
 	Steps taking in bringing this corpus from raw to refined.
 
-	from lit.corpus.markmark import MarkMark
+	from llp.corpus.markmark import MarkMark
 	corpus = MarkMark()
 	corpus.gen()
 	corpus.tokenize_texts()

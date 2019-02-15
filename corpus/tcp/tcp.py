@@ -1,6 +1,6 @@
 import os
-from lit.corpus import Corpus,Corpus_in_Sections
-from lit import tools
+from llp.corpus import Corpus,Corpus_in_Sections
+from llp import tools
 STYPE_FN=os.path.join(__file__,'data.section_types.xlsx')
 
 class TCP(Corpus):
@@ -15,8 +15,8 @@ class TCP(Corpus):
 
 def gen_section_types():
 	import tools
-	from lit.corpus.eebo import EEBO_TCP
-	from lit.corpus.ecco import ECCO_TCP
+	from llp.corpus.eebo import EEBO_TCP
+	from llp.corpus.ecco import ECCO_TCP
 	corpora = [EEBO_TCP(), ECCO_TCP()]
 
 	from collections import defaultdict,Counter

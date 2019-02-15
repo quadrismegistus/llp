@@ -1,6 +1,6 @@
 
-from lit.corpus import Corpus
-from lit.text import Text
+from llp.corpus import Corpus
+from llp.text import Text
 import os
 
 
@@ -21,7 +21,7 @@ class Chicago(Corpus):
 		self.path = os.path.dirname(__file__)
 
 	def gen_metadata(self):
-		from lit.tools import read_ld,ld2dd,write2
+		from llp.tools import read_ld,ld2dd,write2
 		"""
 		Generates a single metadata table from AUTHORS_METADATA.csv and NOVELS_METADATA.csv
 		"""

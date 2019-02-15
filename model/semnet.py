@@ -1,7 +1,7 @@
-from lit.model import Model
+from llp.model import Model
 import networkx as nx
 import numpy as np
-from lit import tools
+from llp import tools
 
 # Semantic Networks
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from lit.corpus import Corpus
-from lit.text import Text
+from llp.corpus import Corpus
+from llp.text import Text
 import os
 
 class TedJDH(Corpus):

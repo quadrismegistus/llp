@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from lit.corpus import CorpusMeta,name2corpus
-from lit.corpus.litlab import LitLab
-from lit.corpus.tedjdh import TedJDH
-from lit.corpus.chadwyck import Chadwyck
-from lit.corpus.gildedage import GildedAge
-from lit.corpus.eebo import EEBO_TCP
+from llp.corpus import CorpusMeta,name2corpus
+from llp.corpus.litlab import LitLab
+from llp.corpus.tedjdh import TedJDH
+from llp.corpus.chadwyck import Chadwyck
+from llp.corpus.gildedage import GildedAge
+from llp.corpus.eebo import EEBO_TCP
 import os
 
 class Fiction1700_1900(CorpusMeta):

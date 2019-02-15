@@ -1,10 +1,10 @@
 import os,codecs,gzip,random,time
-from lit import tools
+
 
 PATH_CORPUS = os.path.dirname(__file__)
 PATH_MANIFEST=os.path.join(PATH_CORPUS,'manifest.txt')
 PATH_MANIFEST_LOCAL=os.path.join(PATH_CORPUS,'manifest_local.txt')
-PATH_MANIFEST_HOME='~/.lit/manifest.txt'
+PATH_MANIFEST_HOME='~/.llp/manifest.txt'
 
 PATH_MANIFESTS = [PATH_MANIFEST, PATH_MANIFEST_LOCAL, PATH_MANIFEST_HOME]
 
@@ -80,23 +80,23 @@ def string_import(name):
 def name2corpus(name):
 	modulename = name.lower().split('-')[0]
 	classname = name.replace('-','_')
-	module = string_import('lit.corpus.'+modulename)
+	module = string_import('llp.corpus.'+modulename)
 	classx = getattr(module,classname)
 	return classx
 
 def name2text(name):
 	modulename = name.lower().split('-')[0]
 	classname = 'Text'+name.replace('-','_')
-	module = string_import('lit.text.'+modulename)
+	module = string_import('llp.text.'+modulename)
 	classx = getattr(module,classname)
 	return classx
 
 class Corpus(object):
 
 	def __init__(self, name, path_xml='', path_index='', ext_xml='.xml', ext_txt='.txt', path_txt='', path_model='',path_header=None, path_metadata='', paths_text_data=[], paths_rel_data=[], path_freq_table={}, **kwargs):
-		import lit
+		import llp
 		self.path = os.path.dirname(__file__)
-		self.path_matches = os.path.join(lit.ROOT,'corpus','_matches')
+		self.path_matches = os.path.join(llp.ROOT,'corpus','_matches')
 		self.name=name
 		path = path_xml if path_xml else path_txt
 		if not path_xml:
@@ -119,7 +119,7 @@ class Corpus(object):
 		self.path_spacy = self.path_xml.replace('_xml_','_spacy_')
 		self.path_skipgrams = self.path_xml.replace('_xml_','_skipgrams_')
 		self.path_index=os.path.join(self.path,path_index) if path_index else ''
-		#self.path_model = os.path.join(lit.ROOT,'model','_models_word2vec')
+		#self.path_model = os.path.join(llp.ROOT,'model','_models_word2vec')
 		self.path_model = path_model if path_model else os.path.join(self.path_txt,'_txt_','_models_word2vec_')
 		self.fnfn_model = os.path.join(self.path_model,'word2vec.'+self.name+'.model')
 		if path_header:
@@ -255,6 +255,8 @@ class Corpus(object):
 			text.split()
 
 	def save_plain_text(self,compress=True,use_gen=False,force=False,path_txt=None):
+		from llp import tools
+
 		ext = '.txt' if not compress else '.txt.gz'
 		if not path_txt: path_txt=self.path_txt
 
@@ -308,6 +310,7 @@ class Corpus(object):
 		print "DONE:",num_texts-num_todo
 		print "TODO:",num_todo
 		text_is=zip(texts,range(len(texts)))
+		from llp import tools
 		tools.crunch(text_is, do_text, nprocs=16)
 
 
@@ -320,7 +323,8 @@ class Corpus(object):
 
 	## METADATA
 
-	def load_metadata(self,combine_matches=False,load_text_data=True,load_rel_data=False,minimal=False,maximal=False):
+	def load_metadata(self,combine_matches=False,load_text_data=True,load_rel_data=False,minimal=False,maximal=False,fix_ids=True):
+		from llp import tools
 		meta_ld=tools.read_ld(self.path_metadata,keymap={'*':unicode})
 		for d in meta_ld: d['corpus']=self.name
 
@@ -333,6 +337,7 @@ class Corpus(object):
 		if maximal or (not minimal and load_rel_data): self.load_rel_data()
 
 	def load_text_data(self):
+		from llp import tools
 		all_keys=set()
 		for data_fn in self.paths_text_data:
 			data_ld=tools.read_ld(data_fn,keymap={'*':unicode})
@@ -461,6 +466,7 @@ class Corpus(object):
 			for dx in self.meta: dx['reprinted']='title_reprint_cluster_rank' in dx and int(dx['title_reprint_cluster_rank'])>1
 
 	def save_additional_metadata(self,fn):
+		from llp import tools
 		orig_keys = set(tools.header(self.path_metadata))
 		for data_fn in self.paths_text_data:
 			orig_keys|=set(tools.header(data_fn))
@@ -487,6 +493,7 @@ class Corpus(object):
 
 	@property
 	def metad(self):
+		from llp import tools
 		if not hasattr(self,'_metad'):
 			self._metad=tools.ld2dd(self.meta,'id')
 		return self._metad
@@ -519,6 +526,7 @@ class Corpus(object):
 
 	def save_metadata(self,ofn=None,num_words=True,ocr_accuracy=True,genre=False):
 		global ENGLISH
+		from llp import tools
 		if not ofn:
 			timestamp=tools.now().split('.')[0]
 			ofn=os.path.join(self.path,'corpus-metadata.%s.%s.txt' % (self.name,timestamp))
@@ -529,7 +537,7 @@ class Corpus(object):
 		old=[]
 		if ocr_accuracy:
 			if not ENGLISH:
-				from lit.tools import get_english_wordlist
+				from llp.tools import get_english_wordlist
 				ENGLISH=get_english_wordlist()
 
 		old=[]
@@ -572,8 +580,8 @@ class Corpus(object):
 		old=[]
 		if ocr_accuracy:
 			if not ENGLISH:
-				import lit
-				ENGLISH=lit.load_english()
+				import llp
+				ENGLISH=llp.load_english()
 
 		ofnfn=os.path.join(self.path,'corpus-metadata.'+self.name+'.txt')
 		if not os.path.exists(ofnfn): resume=False
@@ -660,7 +668,8 @@ class Corpus(object):
 		[textid1] [tab] [count1]          [tab] [count2]           ...
 		[textid2] [tab] [count1]          [tab] [count2]           ...
 		"""
-		from lit.tools import find_nth_character
+		from llp.tools import find_nth_character
+		from llp import tools
 
 		if toks: toks=set(toks)
 		if text_ids: text_ids=set(text_ids)
@@ -756,6 +765,7 @@ class Corpus(object):
 		return df
 
 	def gen_freq_table(self,n=25000,words=None,only_english=True,use_worddb=False):
+		from llp import tools
 		if use_worddb:
 			# @HACK!! 5/13/18
 			print '>> using words from worddb'
@@ -796,11 +806,12 @@ class Corpus(object):
 		return os.path.join(self.path, 'data.mfw.%s.txt' % self.name)
 
 	def mfw_simple(self,**attrs):
+		from llp import tools
 		n=attrs.get('n',None)
 		pos=attrs.get('only_pos',None)
 		eng=attrs.get('only_english',None)
 		if eng:
-			from lit.tools import get_english_wordlist
+			from llp.tools import get_english_wordlist
 			ENGLISH=get_english_wordlist()
 
 		mfw_fn=self.path_mfw
@@ -924,7 +935,7 @@ class Corpus(object):
 
 	def word2vec(self,skipgram_n=10,name=None,skipgram_fn=None):
 		if not name: name=self.name
-		from lit.model.word2vec import Word2Vec
+		from llp.model.word2vec import Word2Vec
 		if skipgram_fn and not type(skipgram_fn) in [unicode,str]:
 			skipgram_fn=self.fnfn_skipgrams
 
@@ -932,7 +943,7 @@ class Corpus(object):
 
 	def doc2vec(self,skipgram_n=5,name=None,skipgram_fn=None):
 		if not name: name=self.name
-		from lit.model.word2vec import Doc2Vec
+		from llp.model.word2vec import Doc2Vec
 		if not skipgram_fn or not type(skipgram_fn) in [unicode,str]:
 			skipgram_fn=os.path.join(self.path_skipgrams,'sentences.'+self.name+'.txt.gz')
 
@@ -942,8 +953,8 @@ class Corpus(object):
 		"""NEW word2vec_by_period using skipgram txt files
 		DOES NOT YET IMPLEMENT word_size!!!
 		"""
-		from lit.model.word2vec import Word2Vec
-		from lit.model.word2vecs import Word2Vecs
+		from llp.model.word2vec import Word2Vec
+		from llp.model.word2vecs import Word2Vecs
 
 		if not year_min: year_min=self.year_start
 		if not year_max: year_max=self.year_end
@@ -1034,7 +1045,7 @@ class Corpus(object):
 				othercorpus = name2corpus(othername)()
 				othercorpus.load_metadata(maximal=True)
 				self.matched_corpora[othercorpus.name]=othercorpus
-
+				from llp import tools
 				match_ld=tools.read_ld(os.path.join(self.path_matches,match_fn))
 				for matchd in match_ld:
 					if matchd.get('match_ismatch','') and not matchd['match_ismatch'] in ['n','N']:
@@ -1127,11 +1138,12 @@ class Corpus(object):
 				dx['match_ratio']=mratio
 				dx['match_ismatch']=is_match
 				old+=[dx]
-
+		from llp import tools
 		tools.write2(os.path.join(self.path,'matches.'+c1.name+'--'+c2.name+'.txt'), old)
 
 	def copy_match_files(self,corpus,match_fn=None,copy_xml=True,copy_txt=True):
 		import shutil
+		from llp import tools
 		match_fn = os.path.join(self.path,match_fn) if match_fn else os.path.join(self.path,'matches.'+corpus.name+'.xls')
 		matches = [d for d in tools.read_ld(match_fn) if d['match_ismatch'].lower().strip()=='y']
 
@@ -1163,10 +1175,11 @@ class Corpus(object):
 
 	def rank_duplicates_bytitle(self,within_author=True,func='token_sort_ratio',min_ratio=90, allow_anonymous=True, func_anonymous='ratio', anonymous_must_be_equal=False,split_on_punc=[':',';','.','!','?'],modernize_spellings=True):
 		from fuzzywuzzy import fuzz
+		from llp import tools
 		func=getattr(fuzz,func)
 		func_anonymous = func if not func_anonymous else getattr(fuzz,func_anonymous)
 		if modernize_spellings:
-			from lit.tools import get_spelling_modernizer
+			from llp.tools import get_spelling_modernizer
 			spelling_d=get_spelling_modernizer()
 
 		## HACK
@@ -1279,6 +1292,7 @@ class Corpus(object):
 					numtextsdone+=1
 				break
 
+		from llp import tools
 		if not within_author:
 			tools.writegen('data.duplicates.%s.bytitle.pypy.txt' % self.name, writegen)
 		else:
@@ -1354,6 +1368,7 @@ class Corpus(object):
 					yield dx
 
 		ofn='data.duplicates.%s.txt' % self.name if not ofn else ofn
+		from llp import tools
 		tools.writegen(ofn, writegen1)
 		return G
 
@@ -1472,6 +1487,7 @@ class Corpus(object):
 				for x in gen.get():
 					yield x
 
+		from llp import tools
 		tools.writegen('subcorpus-metadata.txt', writegen)
 		"""
 		for sc in subcorpus2author2texts:
@@ -1483,7 +1499,7 @@ class Corpus(object):
 
 	def modernize_spelling(self,word):
 		if not hasattr(self,'spelling_modernizer'):
-			from lit.tools import get_spelling_modernizer
+			from llp.tools import get_spelling_modernizer
 			self.spelling_modernizer = get_spelling_modernizer()
 		return self.spelling_modernizer.get(word,word)
 
@@ -1545,6 +1561,7 @@ class CorpusMeta(Corpus):
 
 	def save_metadata(self,ofn=None):
 		#return super(CorpusMeta,self).save_metadata(ofn=ofn,num_words=False,ocr_accuracy=False)
+		from llp import tools
 		if not ofn:
 			timestamp=tools.now().split('.')[0]
 			ofn=os.path.join(self.path,'corpus-metadata.%s.%s.txt' % (self.name,timestamp))
@@ -1589,7 +1606,7 @@ class Corpus_in_Sections(Corpus):
 
 	def create_texts_from_meta(self):
 		if not hasattr(self,'TEXT_SECTION_CLASS') or not self.TEXT_SECTION_CLASS:
-			from lit.text import TextSection
+			from llp.text import TextSection
 			self.TEXT_SECTION_CLASS=TextSection
 
 	 	self._texts=[]
@@ -1636,6 +1653,15 @@ class CorpusGroups(Corpus):
 		body='\n'.join(self._desc)
 		return header+body
 
+	@property
+	def textid2group(self):
+		if hasattr(self,'_textid2group'): return self._textid2group
+		self._textid2group=t2g={}
+		for groupname,grouptexts in sorted(self.groups.items()):
+			for gtext in grouptexts:
+				t2g[gtext.id]=groupname
+		return t2g
+
 	def group_by_author_dob(self,yearbin=10,yearplus=0,texts=None):
 		return self.group_by_year(year_key='author_dob',yearbin=yearbin,yearplus=yearplus,texts=texts)
 
@@ -1659,7 +1685,7 @@ class CorpusGroups(Corpus):
 		if min_group:
 			self.groups
 
-	def group_by_year(self,year_key='year',yearbin=10,yearplus=0,texts=None):
+	def group_by_year(self,year_key='year',yearbin=10,yearplus=0,texts=None,toreturn=False):
 		# function to get 'decade' from year
 		def get_dec(yr,res=25,plus=30):
 			yr = ''.join([x for x in yr if x.isdigit()])
@@ -1681,7 +1707,7 @@ class CorpusGroups(Corpus):
 
 		self._desc=['>> grouped by {year_key}{yearplus} into {yearbin}-year long bins'.format(year_key=year_key,yearbin=yearbin,yearplus=' (+%s)' % yearplus if yearplus else '')]
 		self._desc+=['\t'+self.table_of_counts.replace('\n','\n\t')]
-		return self._groups
+		if toreturn: return self._groups
 
 	@property
 	def table_of_counts(self):
@@ -1698,6 +1724,7 @@ class CorpusGroups(Corpus):
 
 	def save_as_paths(self,ofolder=None,path_key='path_txt'):
 		#if not ofolder: ofolder='groups_%s_%s' % (self.corpus.name, tools.now())
+		from llp import tools
 		if not ofolder: ofolder='groups_%s' % self.corpus.name
 		ofolder2=os.path.join(ofolder,'groups')
 		if not os.path.exists(ofolder): os.makedirs(ofolder)
@@ -1756,6 +1783,7 @@ def do_save_subcorpus(ofnfn,author2texts,subcorpus,slice_len=1000,num_words=5000
 	numlines=0
 	numwords=0
 	old=[]
+	from llp import tools
 	for author in sorted(author2texts):
 		texts=author2texts[author]
 		author_words=[]
@@ -1788,6 +1816,7 @@ def do_save_subcorpus(ofnfn,author2texts,subcorpus,slice_len=1000,num_words=5000
 	return old
 
 def skipgram_do_text(text,i=0,n=10):
+	from llp import tools
 	print i, text.id, '...'
 	from nltk import word_tokenize
 	words=word_tokenize(text.text_plain)
@@ -1799,6 +1828,7 @@ def skipgram_do_text2(text_i,n=10,lowercase=True):
 	text,i=text_i
 	import random
 	print i, text.id, '...'
+	from llp import tools
 	words=text.text_plain.strip().split()
 	words=[tools.noPunc(w.lower()) if lowercase else tools.noPunc(w) for w in words if True in [x.isalpha() for x in w]]
 	#sld=[]

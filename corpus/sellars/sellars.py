@@ -1,6 +1,6 @@
 import os
-from lit.corpus import Corpus
-from lit.text import Text
+from llp.corpus import Corpus
+from llp.text import Text
 
 class TextSellars(Text):
 	@property

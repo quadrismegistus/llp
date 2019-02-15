@@ -1,6 +1,6 @@
 
-from lit.corpus import Corpus
-from lit.text.default import TextPlainTextCorpus
+from llp.corpus import Corpus
+from llp.text.default import TextPlainTextCorpus
 import os
 
 # class DotTXT(PlainTextCorpus):

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import os,codecs
-from lit import tools
-from lit.text import Text,TextSection
-from lit.text import clean_text
+from llp import tools
+from llp.text import Text,TextSection
+from llp.text import clean_text
 
 
 class TextSectionTCP(TextSection):

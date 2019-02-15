@@ -2,7 +2,7 @@
 
 import codecs
 
-from lit.text import Text
+from llp.text import Text
 
 class TextLitLab(Text):
 
@@ -36,8 +36,8 @@ class TextLitLab(Text):
 
 import os
 
-from lit.corpus import Corpus
-from lit.corpus import CorpusMeta,name2corpus
+from llp.corpus import Corpus
+from llp.corpus import CorpusMeta,name2corpus
 
 
 class LitLab(Corpus):
@@ -59,9 +59,9 @@ class LitLab(Corpus):
 
 class LitLabCanon(CorpusMeta):
 	def __init__(self, name='LitLabCanon'):
-		from lit.corpus.chadwyck import Chadwyck
-		from lit.corpus.markmark import MarkMark
-		from lit.corpus.gildedage import GildedAge
+		from llp.corpus.chadwyck import Chadwyck
+		from llp.corpus.markmark import MarkMark
+		from llp.corpus.gildedage import GildedAge
 		corpora = [Chadwyck(), GildedAge(), MarkMark()]
 		super(LitLabCanon,self).__init__(name=name,corpora=corpora)
 		self.path = os.path.dirname(__file__)

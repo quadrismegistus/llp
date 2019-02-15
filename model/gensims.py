@@ -1,5 +1,5 @@
 import gensim
-from lit import tools
+from llp import tools
 
 def load_model(model_or_path):
 	if type(model_or_path) in {str,unicode}:

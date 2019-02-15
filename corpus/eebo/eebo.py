@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import codecs
-from lit.text import Text
-from lit.text.tcp import TextTCP
+from llp.text import Text
+from llp.text.tcp import TextTCP
 
 class TextEEBO_TCP(TextTCP):
 	@property
@@ -21,8 +21,8 @@ class TextEEBO_TCP(TextTCP):
 		return self._meta
 
 import os
-from lit.corpus.tcp import TCP
-from lit.text.tcp import TextSectionTCP
+from llp.corpus.tcp import TCP
+from llp.text.tcp import TextSectionTCP
 
 class EEBO_TCP(TCP):
 	"""

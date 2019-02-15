@@ -13,11 +13,11 @@ TOP2000SINGNOUN=dict(n=2000,only_pos='NN',pos_regex=False,remove_stopwords=True,
 DEFAULT_MFWD=TOP5000
 
 import os,gensim,logging,time,numpy as np,random,pystats
-from lit.model import Model
+from llp.model import Model
 from scipy.spatial.distance import cosine,pdist,squareform,cdist
 from scipy.stats import pearsonr,spearmanr
 import multiprocessing as mp,gzip,random,time
-from lit import tools
+from llp import tools
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.ERROR)
 
@@ -136,8 +136,8 @@ class Word2Vec(Model):
 	def path(self):
 		return self.path_model
 
-		#import lit
-		#odir=os.path.join(lit.ROOT,'model','_models_word2vec')
+		#import llp
+		#odir=os.path.join(llp.ROOT,'model','_models_word2vec')
 		#return odir
 
 	@property
@@ -256,8 +256,8 @@ class Word2Vec(Model):
 			yield w
 
 	def remove_non_english(self):
-		import lit.tools
-		eng = lit.tools.get_english_wordlist()
+		import llp.tools
+		eng = llp.tools.get_english_wordlist()
 		logging.info('>> removing non-english words...')
 		self.limit_vocab(words=eng)
 
@@ -321,7 +321,7 @@ class Word2Vec(Model):
 		return
 
 	def semantic_network(self,**attrs):
-		from lit.model.semnet import SemanticNetwork
+		from llp.model.semnet import SemanticNetwork
 		"""
 		- Words selected using self.mfw() [opts set by self.mfw_d] unless manually supplied (words)
 		- Draw a network between all words meeting the conditions:
@@ -448,7 +448,7 @@ class Word2Vec(Model):
 		model = self.gensim
 		vd={} # vector dictionary
 
-		from lit.tools.freqs import get_fields
+		from llp.tools.freqs import get_fields
 		fields = get_fields()
 
 		vd['Complex Substance (Locke) <> Mixed Modes (Locke)'] = self.centroid(fields['Locke.MixedMode']) - self.centroid(fields['Locke.ComplexIdeaOfSubstance'])

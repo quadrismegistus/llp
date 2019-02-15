@@ -2,9 +2,9 @@
 
 import os
 
-from lit.corpus import Corpus
+from llp.corpus import Corpus
 import codecs
-from lit.text import Text
+from llp.text import Text
 
 class GildedAge(Corpus):
 	PATH_TXT = 'gildedage/_txt_gildedage'

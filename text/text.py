@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os,codecs,gzip
-from lit import tools
+from llp import tools
 nlp=None
 
 
@@ -53,19 +53,7 @@ class Text(object):
 		return False
 
 	@property
-	def path_xml(self): return self.corpus.path_xml
-
-	@property
-	def path_spacy(self): return self.corpus.path_xml
-
-	@property
-	def path_index(self): return self.corpus.path_index
-
-	@property
-	def path_xml(self): return self.corpus.path_xml
-
-	@property
-	def path_header(self): return self.corpus.path_header
+	def path_xml(self): return self.fnfn_xml
 
 	@property
 	def ext_xml(self): return self.corpus.ext_xml
@@ -172,15 +160,7 @@ class Text(object):
 	def century(self): return int(self.year)/100*100
 
 	def get_author_dates(self,author):
-		import re
-		dates = [x for x in re.split('\W',author) if x.isdigit() and len(x)==4]
-		if not dates:
-			return (None,None)
-		elif len(dates)==1:
-			return (int(dates[0]),None)
-		else:
-			return tuple([int(x) for x in dates[:2]])
-		return (None,None)
+		return get_author_dates(self.author)
 
 	@property
 	def author_dates(self):
@@ -886,3 +866,15 @@ def text_plain_from_xml(xml, OK={'p','l'}, BAD=[], body_tag='text'):
 				txt+=[clean_text(tag.text)]
 	TXT='\n\n'.join(txt).replace(u'∣','')
 	return TXT
+
+
+def get_author_dates(author):
+	import re
+	dates = [x for x in re.split('\W',author) if x.isdigit() and len(x)==4]
+	if not dates:
+		return (None,None)
+	elif len(dates)==1:
+		return (int(dates[0]),None)
+	else:
+		return tuple([int(x) for x in dates[:2]])
+	return (None,None)

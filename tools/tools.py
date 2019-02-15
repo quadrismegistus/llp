@@ -122,9 +122,9 @@ def read_ld(fn,keymap={},toprint=True):
 
 
 
-def writegen(fnfn,generator,header=None):
+def writegen(fnfn,generator,header=None,args=[],kwargs={}):
 	of = codecs.open(fnfn,'w',encoding='utf-8')
-	for i,dx in enumerate(generator()):
+	for i,dx in enumerate(generator(*args,**kwargs)):
 		if not header: header=sorted(dx.keys())
 		if not i: of.write('\t'.join(header) + '\n')
 		of.write('\t'.join([unicode(dx.get(h,'')) for h in header]) + '\n')
@@ -719,7 +719,7 @@ def now(now=None):
 	elif type(now) in [int,float,str]:
 		now=dt.datetime.fromtimestamp(now)
 
-	return '{0}{1}{2}-{3}{4}.{5}'.format(now.year,str(now.month).zfill(2),str(now.day).zfill(2),str(now.hour).zfill(2),str(now.minute).zfill(2),str(now.second).zfill(2))
+	return '{0}-{1}-{2} {3}:{4}:{5}'.format(now.year,str(now.month).zfill(2),str(now.day).zfill(2),str(now.hour).zfill(2),str(now.minute).zfill(2),str(now.second).zfill(2))
 
 
 
@@ -882,3 +882,22 @@ def crunch(objects,function_or_methodname,ismethod=None,nprocs=8,args=[],kwargs=
 
 	parmap(do_preparse, objects, nprocs=nprocs)
 	return True
+
+
+
+
+def bigrams(l):
+	return ngram(l,2)
+
+def ngram(l,n=3):
+	grams=[]
+	gram=[]
+	for x in l:
+		gram.append(x)
+		if len(gram)<n: continue
+		g=tuple(gram)
+		grams.append(g)
+		gram.reverse()
+		gram.pop()
+		gram.reverse()
+	return grams
