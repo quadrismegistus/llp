@@ -53,26 +53,25 @@ With any text object,
 # For every text in the corpus...
 for text in corpus.texts():
 
-	# get the full text as a string
+	# Get the full text as a string
 	text_as_string = text.txt
 	
-	# get its metadata as a dictionary
+	# Get its metadata as a dictionary
 	text_metadata_dicionary = text.meta
 	
-	# get its word tokens as a list
+	# Get its word tokens as a list
 	tokens = text.tokens
 	
-	# get its word counts as a dictionary
+	# Get its word counts as a dictionary
 	counts = text.freqs()
 	
-	# get its n-gram counts as a dictionary
+	# Get its n-gram counts as a dictionary
 	bigrams = text.freqs_ngram(n=2)
 	
-	# get a list of passages mentioning a phrase (Key Word In Context)
+	# Get a list of passages mentioning a phrase (Key Word In Context)
 	passages = text.get_passages(phrases=['labour'])
 	
-	# get its spacy (spacy.io) representation
+	# Get its spacy (spacy.io) representation
 	text_as_spacy_object = text.spacy()
-	
 ```
 
