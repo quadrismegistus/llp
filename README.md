@@ -2,6 +2,8 @@
 
 Literary Language Processing (LLP): Corpora, models, and tools for the digital humanities. Written in Python.
 
+## Make a corpus in two lines
+
 ```python
 from llp.corpus.default import PlainTextCorpus
 
@@ -9,11 +11,14 @@ corpus = PlainTextCorpus(
 	'/path/to/a/folder/of/txt/files', 
 	'/path/to/a/metadata_TSV_or_Excel_file'
 )
+```
 
-### Texts
+## What texts can do
 
-# loop over texts
+```python
+# for every text in the corpus...
 for text in corpus.texts():
+
 	# get full text string
 	text_as_string = text.text
 	
