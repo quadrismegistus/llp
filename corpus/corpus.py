@@ -1,4 +1,5 @@
 import os,codecs,gzip,random,time
+from llp import tools
 
 
 PATH_CORPUS = os.path.dirname(__file__)
@@ -34,8 +35,8 @@ def load_manifest(force=False):
 
 	return MANIFEST
 
-def load_corpus(name=None,required_data = ['path_python','class_name']):
-	manifest=load_manifest()
+def load_corpus(name=None,required_data = ['path_python','class_name'], manifest=None):
+	manifest=load_manifest() if not manifest else manifest
 
 	if not name:
 		print ">> Printing available corpora"
@@ -70,6 +71,12 @@ def load_corpus(name=None,required_data = ['path_python','class_name']):
 	return class_obj
 
 ####
+
+def corpora(load=True):
+	manifest=load_manifest()
+	for corpus_name in sorted(manifest):
+		corpus_obj=load_corpus(corpus_name, manifest=manifest) if load else manifest[corpus_name]
+		yield (corpus_name, corpus_obj)
 
 def string_import(name):
 	m = __import__(name)
@@ -201,12 +208,12 @@ class Corpus(object):
 
 	def get_id_from_metad(self,metad):
 		if self.col_id and self.col_id in metad:
-			return metad[self.col_fn]
+			return metad[self.col_id]
 		if self.col_fn and self.col_fn in metad:
 			return os.path.splitext(metad[self.col_fn])[0]
 		return None
 
-	def get_text_ids(self,from_metadata=False,from_files=False,limit=False):
+	def get_text_ids(self,from_metadata=True,from_files=False,limit=False):
 
 		#DO I NEED ALL THIS>--> #if (not from_files and (from_metadata and os.path.exists(self.path_metadata)) or (not self.path_ext_texts[0] or not self.path_ext_texts[0])):
 		if not from_files and self.exists_metadata:
@@ -255,7 +262,8 @@ class Corpus(object):
 	@property
 	def text_ids(self):
 		if not hasattr(self, '_text_ids'):
-			return self.get_text_ids(from_files=True)
+			#return self.get_text_ids(from_files=True)
+			return self.get_text_ids()
 		return self._text_ids
 
 	def limit_texts(self,year_range=[]):
@@ -508,7 +516,7 @@ class Corpus(object):
 	def metad(self):
 		from llp import tools
 		if not hasattr(self,'_metad'):
-			self._metad=dict(zip(self._text_ids,self._meta))
+			self._metad=dict(zip(self.text_ids,self._meta))
 		return self._metad
 
 	def export(self,folder,meta_fn=None,txt_folder=None,compress=False):
@@ -1688,6 +1696,12 @@ class CorpusGroups(Corpus):
 		for group in sorted(self.groups):
 			o+=['%s\t%s' % (group, len(self.groups[group]))]
 		return '\n'.join(o)
+
+	def save_id2group(self,ofn=None):
+		if not ofn: ofn='data.groups.%s.id2group.txt' % self.corpus.name
+		ld=[{'id':idx, 'group':group} for idx,group in self.textid2group.items()]
+		tools.write(ofn,ld)
+
 
 	def save_as_ids(self,ofolder=None):
 		return self.save_as_paths(ofolder=ofolder,path_key='id')

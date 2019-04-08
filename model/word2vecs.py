@@ -219,12 +219,24 @@ class Word2Vecs(Model):
 		tools.write2(ofn2,old2)
 		tools.write2(ofn3,old3)
 
-	def gen_dists(self,words=[],num_mfw=2000,sample_per_period=None):
+	def gen_dists(self,words=[],num_mfw=2000,sample_per_period=None,ofolder=None,nprocs=1):
 		#mfw=self.mfw(n=num_mfw)
 		models = self.models if not sample_per_period else self.models_sample(sample_per_period)
-		for model in models:
-			model.gen_dist(words=words, num_mfw=num_mfw)
-			model.unload()
+
+		import os
+		if not ofolder: ofolder='dists_'+self.name
+		if not os.path.exists(ofolder): os.makedirs(ofolder)
+		cwd=os.getcwd()
+		os.chdir(ofolder)
+
+		if nprocs>1:
+			tools.crunch(models, 'gen_dist', kwargs={'words':words,'num_mfw':num_mfw,'unload':True}, nprocs=nprocs)
+		else:
+			for model in models:
+				model.gen_dist(words=words, num_mfw=num_mfw)
+				model.unload()
+
+		os.chdir(cwd)
 
 	def model_dists(self,use_ranks=True,sample_per_period=None): #,norm=True): <-- it doesn't look like normalizing really makes sense?
 		from scipy.stats import rankdata,spearmanr

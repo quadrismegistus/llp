@@ -837,14 +837,14 @@ class Word2Vec(Model):
 				# otherwise, add a row of nan's
 				row = [np.nan for i in range(self.gensim.vector_size)]
 			else:
-				row=self.gensim[word]
+				row=[float(x) for x in self.gensim[word]]
 
 			M_words+=[word]
 			M+=[row]
 
 		M=np.array(M)
-		#dist = squareform(pdist(M,'cosine'))
-		dist = squareform(cdist(M,'cosine'))
+		dist = squareform(pdist(M,'cosine'))
+		#dist = squareform(cdist(M,'cosine'))
 
 		if to_zscore:
 			to_sim(dist)
@@ -930,7 +930,7 @@ class Word2Vec(Model):
 
 
 
-	def gen_dist(self,words=[],num_mfw=2000,fn=None):
+	def gen_dist(self,words=[],num_mfw=2000,fn=None,unload=False):
 		if not words: words=list(self.mfw(n=num_mfw))
 		dist,M_words = self.dist(words=words)
 
@@ -944,6 +944,7 @@ class Word2Vec(Model):
 
 		fn='dists.word-word-cosine-sim.'+self.name+'.txt' if not fn else fn
 		tools.writegen(fn,writegen)
+		if unload: self.unload()
 
 
 	"""

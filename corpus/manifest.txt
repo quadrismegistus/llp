@@ -53,8 +53,8 @@ class_name = ChadwyckPoetry
 
 [Chicago]
 name = Chicago
+desc = The University of Chicago Corpus of Twentieth Century Novels
 path_txt = /oak/stanford/groups/malgeehe/stacks/raw/chicago/Texts
-path_xml = chicago/_xml_chicago
 path_metadata = chicago/corpus-metadata.Chicago.txt
 path_python = chicago/chicago.py
 class_name = Chicago
@@ -62,8 +62,11 @@ class_name = Chicago
 
 [CLMET]
 name = CLMET
-path_txt = clmet/_txt_clmet
+desc = Corpus of Late Modern English Texts
+link = https://perswww.kuleuven.be/~u0044428/clmet.htm
+path_txt = /Volumes/Present/DH/corpora/clmet/txt
 path_xml = /Volumes/Present/DH/corpora/clmet/xml
+ext_xml='.txt'
 path_metadata = clmet/corpus-metadata.CLMET.txt
 path_python = clmet/clmet.py
 class_name = CLMET
@@ -71,6 +74,7 @@ class_name = CLMET
 
 [COHA]
 name = COHA
+desc = Corpus of Historical American English
 path_txt = /Volumes/Present/DH/corpora/coha/txt
 path_metadata = coha/corpus-metadata.COHA.txt
 path_python = coha/coha.py
@@ -79,6 +83,7 @@ class_name = COHA
 
 [DialNarr]
 name = DialNarr
+desc = Separated Dialogue and Narration Portions of Chadwyck-Healey Novels
 path_txt = dialnarr/_txt_dialnarr
 path_metadata = dialnarr/corpus-metadata.DialNarr.txt
 path_python = dialnarr/dialnarr.py
@@ -87,6 +92,7 @@ class_name = DialNarr
 
 [EnglishDialogues]
 name = EnglishDialogues
+desc = A Corpus of English Dialogues, 1560-1760
 path_xml = dialogues/_xml_corpus_english_dialogues
 path_metadata = dialogues/corpus-metadata.EnglishDialogues.txt
 path_python = dialogues/dialogues.py
@@ -95,6 +101,7 @@ class_name = EnglishDialogues
 
 [ECCO]
 name = ECCO
+desc = Eighteenth Century Collections Online
 path_txt = ecco/_txt_ecco
 path_metadata = ecco/corpus-metadata.ECCO.txt
 path_python = ecco/ecco.py
@@ -103,6 +110,7 @@ class_name = ECCO
 
 [ECCO_LitLang]
 name = ECCO_LitLang
+desc = Eighteenth Century Collections Online (Literature and Language section)
 path_txt = ecco/_txt_ecco_litlang
 path_xml = ecco/_xml_ecco_litlang
 path_metadata = ecco/corpus-metadata.ECCO_LitLang.xlsx
@@ -112,6 +120,7 @@ class_name = ECCO_LitLang
 
 [ECCO_TCP]
 name = ECCO_TCP
+desc = Eighteenth Century Collections Online (curated by the Text Creation Partnership)
 path_txt = ecco/_txt_ecco_tcp
 path_xml = ecco/_xml_ecco_tcp
 path_metadata = ecco/corpus-metadata.ECCO-TCP.xlsx
@@ -121,6 +130,7 @@ class_name = ECCO_TCP
 
 [EEBO_TCP]
 name = EEBO_TCP
+desc = Early English Books Online (curated by the Text Creation Partnership)
 path_xml = /Volumes/Present/DH/corpora/eebo/_xml_eebo_tcp
 path_metadata = eebo/corpus-metadata.EEBO-TCP.txt
 path_python = eebo/eebo.py
@@ -129,6 +139,7 @@ class_name = EEBO_TCP
 
 [ESTC]
 name = ESTC
+desc = English Short Title Catalogue
 path_txt = estc/_json_estc
 path_metadata = estc/corpus-metadata.ESTC.txt
 path_python = estc/estc.py
@@ -137,6 +148,7 @@ class_name = ESTC
 
 [GildedAge]
 name = GildedAge
+desc = U.S. Fiction of the Gilded Age
 path_txt = gildedage/_txt_gildedage
 path_metadata = gildedage/corpus-metadata.GildedAge.xlsx
 path_python = gildedage/gildedage.py
@@ -145,6 +157,7 @@ class_name = GildedAge
 
 [LitLab]
 name = LitLab
+desc = Literary Lab Corpus of 18th and 19th Century Novels
 path_xml = litlab/_txt_litlab
 path_metadata = litlab/corpus-metadata.LitLab.xlsx
 path_python = litlab/litlab.py
@@ -153,6 +166,7 @@ class_name = LitLab
 
 [MarkMark]
 name = MarkMark
+desc = Mark Algee-Hewitt's and Mark McGurl's 20th Century Corpus
 path_txt = markmark/_txt_markmark
 path_metadata = markmark/corpus-metadata.MarkMark.txt
 path_python = markmark/markmark.py
@@ -161,6 +175,7 @@ class_name = MarkMark
 
 [OldBailey]
 name = OldBailey
+desc = Old Bailey Online
 path_xml = oldbailey/_xml_parsed_old_bailey
 path_metadata = oldbailey/corpus-metadata.OldBailey.xlsx
 path_python = oldbailey/oldbailey.py
@@ -169,6 +184,7 @@ class_name = OldBailey
 
 [RavenGarside]
 name = RavenGarside
+desc = Raven & Garside's Bibliography of English Novels, 1770-1830
 path_metadata = ravengarside/corpus-metadata.RavenGarside.xlsx
 path_python = ravengarside/ravengarside.py
 class_name = RavenGarside
@@ -176,6 +192,7 @@ class_name = RavenGarside
 
 [Sellars]
 name = Sellars
+desc = 19th Century Texts compiled by Jordan Sellars
 path_txt = sellars/_txt_sellars
 path_xml = None
 path_metadata = sellars/corpus-metadata.Sellars.xls
@@ -185,7 +202,8 @@ class_name = Sellars
 
 [Spectator]
 name = Spectator
-path_txt = spectator/_txt_spectator
+desc = The Spectator (1711-1714)
+path_txt = spectator/txt
 path_metadata = spectator/corpus-metadata.Spectator.txt
 path_python = spectator/spectator.py
 class_name = Spectator
@@ -193,6 +211,7 @@ class_name = Spectator
 
 [TedJDH]
 name = TedJDH
+desc = Corpus used by Ted Underwood in the 2012 Journal of Digital Humanities piece
 path_txt = tedjdh/_txt_tedjdh
 path_metadata = tedjdh/corpus-metadata.TedJDH.xls
 path_python = tedjdh/tedjdh.py

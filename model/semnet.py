@@ -1,4 +1,4 @@
-from llp.model import Model
+from llp.model import Model,NullModel
 import networkx as nx
 import numpy as np
 from llp import tools
@@ -10,14 +10,14 @@ SEMANTIC_NETWORK_GOOG_URLS['ECCO']='https://docs.google.com/spreadsheets/d/1jGMg
 SEMANTIC_NETWORK_GOOG_URLS['ECCO.by_period.10years']='https://docs.google.com/spreadsheets/d/e/2PACX-1vSONgEG9ITNpYDG54bckoe4Vc8DhMHNqjXDSI9Rmw3hwgb5XZvhhM4RYK83mmlwTbdt1Dxq-YO0Z4rK/pubhtml'
 
 class SemanticNetwork(Model):
-	def __init__(self, model):
-		self.model=model
+	def __init__(self, model=None):
+		self.model=model if model is not None else NullModel
 		self.g=None
 
 	@property
 	def fn(self):
-		return 'semantic_network.'+self.model.name+'.graphml'
-
+		name=['semantic_network',self.model.name,'graphml']
+		return '.'.join([x for x in name if x])
 
 	def load(self,giant_component=True):
 		self.g=nx.read_graphml(self.fn)

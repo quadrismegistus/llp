@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import os,codecs,gzip
+import os,codecs,gzip,re
+from collections import Counter
 from llp import tools
 nlp=None
 
@@ -76,10 +77,157 @@ class Text(object):
 	@property
 	def fnfn_xml(self):
 		if hasattr(self,'_fnfn_xml') and self._fnfn_xml: return self._fnfn_xml
-		return os.path.join(self.corpus.path_xml, self.id + self.ext_xml)
+		try:
+			return os.path.join(self.corpus.path_xml, self.id + self.ext_xml)
+		except TypeError:
+			return ''
 
 	@property
-	def fnfn_spacy(self): return os.path.join(self.corpus.path_spacy, self.id + '.bin')
+	def fnfn_spacy(self):
+		return os.path.join(self.corpus.path_spacy, self.id + '.bin')
+
+	@property
+	def fnfn_parsed_spacy(self):
+		path=self.corpus.path_parsed_spacy if hasattr(self.corpus,'path_parsed_spacy') else None
+		if path: return os.path.join(path, self.id + '.txt')
+		return ''
+
+	@property
+	def is_parsed_spacy(self):
+		return (self.fnfn_parsed_spacy and os.path.exists(self.fnfn_parsed_spacy))
+
+	@property
+	def parsed_spacy(self,sep='\t'):
+		#for dx in tools.readgen(self.fnfn_parsed_spacy):
+		#	yield dx
+		with codecs.open(self.fnfn_parsed_spacy,encoding='utf-8') as f:
+			num_cols=None
+			header=None
+			num_cols=None
+			for i,ln in enumerate(f):
+				if header is None:
+					header=ln.strip().split(sep)
+					num_cols=len(header)
+					continue
+				dat=ln.strip().split(sep)
+				if len(dat)<2:
+					yield {'word':'\n'}
+				elif len(dat)<num_cols:
+					continue
+
+				yield dict(zip(header,dat))
+
+	def all_tokens(self):
+		words=[]
+		for ln in self.txt.split('\n'):
+			for w in ln.split(' '):
+				a,b,c=tools.gleanPunc2(w)
+				if a: words+=[a]
+				words+=[b]
+				if c: words+=[c]
+				words+=[' ']
+			words+=['\n']
+		return words
+
+
+	def fast_counts_from_fn(self):
+		from future_builtins import map
+		from itertools import chain
+		with codecs.open(path,encoding='utf-8',errors='ignore') as f:
+			return Counter(chain.from_iterable(map(tokenize_fast, self.fnfn_txt)))
+
+	def fast_tokens(self):
+		for ln in self.lines_txt():
+			for w in tokenize_fast(ln):
+				yield w
+
+	def fast_counts(self):
+		return Counter(self.fast_tokens())
+
+	def html(self,word2fields={},bad_words={'[','Footnote'},bad_strs={'Kb'},fn_model_result=None,fn_model_coeffs=None):
+		if self.is_parsed_spacy:
+			return self.html_spacy(word2fields=word2fields,bad_words=bad_words,bad_strs=bad_strs,fn_model_result=fn_model_result,fn_model_coeffs=fn_model_coeffs)
+		else:
+			tags=[]
+			#words=self.fast_tokens()
+			#fields=' '.join(['field_'+field.replace('.','_') for field in word2fields.get(w,[])])
+			for word in self.all_tokens():
+				word=word.replace('\n','<br/>')
+				w=word.lower()
+				fields=' '.join(['field_'+field.replace('.','_') for field in word2fields.get(w,[])])
+				if fields:
+					tag=u'<span class="{fields}">{word}</span>'.format(fields=fields, word=word)
+				else:
+					tag=word
+				tags+=[tag]
+			return '\n'.join(tags)
+
+
+	def html_spacy(self,word2fields={},bad_words={'[','Footnote'},bad_strs={'Kb'},fn_model_result=None,fn_model_coeffs=None):
+		import pandas as pd
+		tags=['<p>']
+		para=None
+		dfr=None if not fn_model_result else pd.read_csv(fn_model_result,sep='\t',encoding='utf-8').set_index('_i')
+		dfc=None if not fn_model_coeffs else pd.read_csv(fn_model_coeffs,sep='\t',encoding='utf-8').set_index('feat')
+
+		#print dfr.index
+
+		for dx in self.parsed_spacy:
+			try:
+				#print [dx['word']]
+				word=dx['word'].replace('\n','<br/>')
+			except KeyError:
+				continue
+			"""if word=='Footnote':
+				# crap!
+				tags.pop()
+				continue
+			if 'Kb' in word: # hack!!!
+				tags.pop()
+				word=word.split(']')[-1]
+				if 'Kb' in word:
+					continue
+			"""
+
+			_i=int(dx.get('_i',-1))
+			w=word.lower()
+			classes=[]
+			classes+=['field_'+field.replace('.','_') for field in word2fields.get(w,[])]
+			if para!=dx.get('para',para):
+				para=dx.get('para',para)
+				tags+=['</p><p>']
+
+			if dx.get('pos'): classes+=['pos_'+dx.get('pos')]
+			if dx.get('dep'): classes+=['dep_'+dx.get('dep')]
+
+			#print _i,w,_i in dfr.index,w in dfc.index,dx
+			if dfr is not None and _i and _i in dfr.index:
+				dfrx=dfr.loc[_i].to_dict()
+				for kk,vv in dfrx.items():
+					if not type(vv) in {str,unicode}:
+						vv=str(round(vv,1))
+					classes+=[kk+'_'+vv]
+
+				if dfrx['pred'] and dfrx['true']:
+					classes+=['correct_'+str(dfrx['pred']==dfrx['true'])]
+
+			feat='w_'+w
+
+			if w and dfc is not None and feat in dfc.index:
+				dfcx=dfc.loc[feat].to_dict()
+				for kk,vv in dfcx.items():
+					if 'Unnamed' in kk: continue
+					classes+=[kk+'_'+str(round(vv,1))]
+
+			if classes:
+				classes = [c.replace('.','_') for c in classes]
+				tag=u'<span id="i_{i}" class="span_word {classes}" title="{classes}">{word}</span>'.format(i=_i, classes=' '.join(classes), word=word)
+			else:
+				tag=word
+			tags+=[tag]
+		tags+=['</p>']
+		return u'\n'.join(tags)
+
 
 	@property
 	def genre(self): return self.meta.get('genre','')
@@ -142,6 +290,14 @@ class Text(object):
 			return 0
 
 	@property
+	def year_author_is_30(self):
+		try:
+			dob=int(self.author_dates[0])
+			return dob+30
+		except (ValueError,TypeError,KeyError) as e:
+			return 0
+
+	@property
 	def title(self): return unicode(self.meta['title'])
 
 	@property
@@ -163,9 +319,15 @@ class Text(object):
 		return get_author_dates(self.author)
 
 	@property
-	def author_dates(self):
-		if not hasattr(self,'_author_dates'): self._author_dates=get_author_dates(self.author)
-		return self._author_dates
+	def author_dates(self,keys=['author','author_dob','a1']):
+		if not hasattr(self,'_author_dates'):
+			for k in keys:
+				result = get_author_dates(self.meta[k])
+				if len(result)>1 and result[0]:
+					self._author_dates=result
+					return result
+		else:
+			return self._author_dates
 
 
 
@@ -218,7 +380,7 @@ class Text(object):
 	@property
 	def txt(self):
 		return self.text
-	
+
 	@property
 	def text(self):
 		return self.text_plain()
@@ -436,14 +598,18 @@ class Text(object):
 					yield line
 
 	def lines_txt(self):
-		if self.fnfn_txt.endswith('.gz'):
-			with gzip.open(self.fnfn_txt,'rb') as f:
-				for line in f:
-					yield line.decode('utf-8')
+		if os.path.exists(self.fnfn_txt):
+			if self.fnfn_txt.endswith('.gz'):
+				with gzip.open(self.fnfn_txt,'rb') as f:
+					for line in f:
+						yield line.decode('utf-8')
+			else:
+				with codecs.open(self.fnfn_txt,'r','utf-8') as f:
+					for line in f:
+						yield line
 		else:
-			with codecs.open(self.fnfn_txt,'r','utf-8') as f:
-				for line in f:
-					yield line
+			for ln in self.txt.split('\n'):
+				yield ln
 
 
 	def save_plain_text(self,txt=None,compress=True):
@@ -691,3 +857,6 @@ def get_author_dates(author):
 	else:
 		return tuple([int(x) for x in dates[:2]])
 	return (None,None)
+
+def tokenize_fast(line):
+	return re.findall("[A-Z]{2,}(?![a-z])|[A-Z][a-z]+(?=[A-Z])|[\'\w\-]+",line.lower())

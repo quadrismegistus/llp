@@ -1,6 +1,7 @@
 
 from llp.corpus import Corpus
 from llp.text import Text
+from llp import tools
 import os
 
 class Spectator(Corpus):
@@ -12,3 +13,14 @@ class Spectator(Corpus):
 	def __init__(self):
 		super(Spectator,self).__init__('Spectator',path_txt=self.PATH_TXT,path_xml=self.PATH_XML,path_metadata=self.PATH_METADATA)
 		self.path = os.path.dirname(__file__)
+
+	def gen(self):
+		## gen metadata
+		meta_ld=[]
+		for idx in sorted(self.get_text_ids(from_files=True)):
+			odx={}
+			odx['periodical'],odx['number'],odx['date'],odx['author']=idx.split('.')
+			odx['year']=odx['date'][:4]
+			odx['title']=''
+			meta_ld+=[odx]
+		tools.write(self.path_metadata, meta_ld)

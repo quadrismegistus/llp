@@ -11,7 +11,7 @@ SPELLING_VARIANT_PATH=os.path.join(ROOT,'data/spelling_variants_from_morphadorne
 
 ### FUNCTIONS
 
-from corpus import load_corpus
+from corpus import load_corpus, corpora
 
 
 ## Spelling

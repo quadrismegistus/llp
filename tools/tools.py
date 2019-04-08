@@ -7,6 +7,10 @@ config = dict([(k.upper(),v) for k,v in config['Default'].items()])
 
 ENGLISH=None
 
+import sys
+import csv
+#csv.field_size_limit(sys.maxsize)
+
 def get_stopwords(include_rank=None):
 	STOPWORDS_PATH = config.get('PATH_TO_ENGLISH_STOPWORDS')
 	if not STOPWORDS_PATH: raise Exception('!! PATH_TO_ENGLISH_STOPWORDS not set in config.txt')
@@ -108,27 +112,53 @@ def worddb(abs_key = 'Complex Substance (Locke) <> Mixed Modes (Locke)_max',conc
 def read_ld(fn,keymap={},toprint=True):
 	if fn.endswith('.xls') or fn.endswith('.xlsx'):
 		return xls2ld(fn,keymap=keymap)
-	elif fn.endswith('.csv'):
+	#elif fn.endswith('.csv'):
+		#return DictReader
 		#return tsv2ld(fn,tsep=',',keymap=keymap)
-		tsep=','
-		import csv
-		with codecs.open(fn,encoding='utf-8') as f:
-			return list(csv.DictReader(f))
-	else:
-		tsep='\t'
+		#tsep=','
+		#with codecs.open(fn,encoding='utf-8') as f:
+		#	return list(csv.DictReader(f))
+	#else:
+	#	tsep='\t'
 
-	return list(readgen(fn,tsep=tsep,as_dict=True,toprint=toprint))
-		#return tsv2ld(fn,keymap=keymap)
+	return list(readgen(fn,as_dict=True,toprint=toprint))
 
+
+def writegen_jsonl(fnfn,generator,args=[],kwargs={}):
+	import jsonlines
+	with jsonlines.open(fnfn,'w') as writer:
+		for i,dx in enumerate(generator(*args,**kwargs)):
+			writer.write(dx)
+	print '>> saved:',fnfn
+
+def readgen_jsonl(fnfn):
+	import jsonlines
+	with jsonlines.open(fnfn) as reader:
+		for dx in reader:
+			yield dx
 
 
 def writegen(fnfn,generator,header=None,args=[],kwargs={}):
-	of = codecs.open(fnfn,'w',encoding='utf-8')
-	for i,dx in enumerate(generator(*args,**kwargs)):
-		if not header: header=sorted(dx.keys())
-		if not i: of.write('\t'.join(header) + '\n')
-		of.write('\t'.join([unicode(dx.get(h,'')) for h in header]) + '\n')
+	import codecs,csv
+	if 'jsonl' in fnfn.split('.'): return writegen_jsonl(fnfn,generator,args=args,kwargs=kwargs)
+	iterator=generator(*args,**kwargs)
+	first=iterator.next()
+	if not header: header=sorted(first.keys())
+	with open(fnfn, 'w') as csvfile:
+		writer = csv.DictWriter(csvfile,fieldnames=header,delimiter='\t')
+		writer.writeheader()
+		for i,dx in enumerate(iterator):
+			writer.writerow(dx)
+	print '>> saved:',fnfn
 
+def writegen_orig(fnfn,generator,header=None,args=[],kwargs={}):
+	if 'jsonl' in fnfn.split('.'): return writegen_jsonl(fnfn,generator,args=args,kwargs=kwargs)
+	with codecs.open(fnfn,'w',encoding='utf-8') as of:
+		for i,dx in enumerate(generator()):
+			if not header: header=sorted(dx.keys())
+			if not i: of.write('\t'.join(header) + '\n')
+			of.write('\t'.join([unicode(dx.get(h,'')) for h in header]) + '\n')
+	print '>> saved:',fnfn
 
 def writegengen(fnfn,generator,header=None,save=True):
 	if save: of = codecs.open(fnfn,'w',encoding='utf-8')
@@ -139,40 +169,64 @@ def writegengen(fnfn,generator,header=None,save=True):
 		if save: of.write('\t'.join([unicode(dx.get(h,'')) for h in header]) + '\n')
 		yield dx
 
+def readgen_csv(fnfn,sep='\t',encoding='utf-8',errors='ignore'):
+	from xopen import xopen
+	with xopen(fnfn) as f:
+		reader = csv.DictReader(f,delimiter=sep,quoting=csv.QUOTE_NONE)
+		for dx in reader:
+			#for k,v in dx.items():
+			#	if type(v)==str:
+			#		dx[k]=v.decode(encoding=encoding, errors=errors)
+			yield dx
+
 def readgen(fnfn,header=None,tsep='\t',keymap={},keymap_all=unicode,encoding='utf-8',as_list=False,as_tuples=False,as_dict=True,toprint=True):
-	if tsep=='\t' and toprint:
-		print '>> streaming as tsv:',fnfn
-	elif tsep==',' and toprint:
-		print '>> streaming as csv:',fnfn
-	import time
-	now=time.time()
-	header=None
-	if fnfn.endswith('.gz'):
-		import gzip
-		of=gzip.open(fnfn)
-	#of = codecs.open(fnfn,encoding=encoding)
+	if 'jsonl' in fnfn.split('.'):
+		for dx in readgen_jsonl(fnfn):
+			yield dx
 	else:
-		of=open(fnfn)
+		import time
+		now=time.time()
 
-	for line in of:
-		line=line.decode(encoding=encoding)[:-1]
-		if not header:
-			header=line.split(tsep)
-			continue
+		if tsep=='\t' and toprint:
+			print '>> streaming as tsv:',fnfn
+		elif tsep==',' and toprint:
+			print '>> streaming as csv:',fnfn
 
-		r=data=line.split(tsep)
-		if as_list:
+		for dx in readgen_csv(fnfn):
+			yield dx
+
+		nownow=time.time()
+		if toprint: print '   done ['+str(round(nownow-now,1))+' seconds]'
+
+		"""
+
+		if fnfn.endswith('.gz'):
+			import gzip
+			of=gzip.open(fnfn)
+		#of = codecs.open(fnfn,encoding=encoding)
+		else:
+			of=open(fnfn)
+
+		for line in of:
+			line=line.decode(encoding=encoding).strip() #.replace('\r\n','').replace('\r')
+			if not header:
+				header=line.split(tsep)
+				continue
+
+			r=data=line.split(tsep)
+			if as_list:
+				yield r
+				continue
+
+			if as_tuples or as_dict:
+				r=tuples=zip(header,data)
+			if as_dict:
+				r=d=dict(tuples)
 			yield r
-			continue
-
-		if as_tuples or as_dict:
-			r=tuples=zip(header,data)
-		if as_dict:
-			r=d=dict(tuples)
-		yield r
-	of.close()
-	nownow=time.time()
-	if toprint: print '   done ['+str(round(nownow-now,1))+' seconds]'
+		of.close()
+		nownow=time.time()
+		if toprint: print '   done ['+str(round(nownow-now,1))+' seconds]'
+		"""
 
 def header(fnfn,tsep='\t',encoding='utf-8'):
 	header=[]
@@ -954,3 +1008,7 @@ def passages(text,phrases=[],window=200,indices=None,ignorecase=True,marker='***
 				yield dx
 
 write = write2
+
+
+def splitkeepsep(s, sep):
+    return reduce(lambda acc, elem: acc[:-1] + [acc[-1] + elem] if elem == sep else acc + [elem], re.split("(%s)" % re.escape(sep), s), [])

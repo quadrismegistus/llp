@@ -77,7 +77,7 @@ def tsne(datadf,df_dist=None,n_components=2,resultdf=None):
     for k,v in newcols.items(): resultdf[k]=v
     return resultdf
 
-def analyze_as_dist(datadf,df_dist=None,n_kmeans=5):
+def analyze_as_dist(datadf,df_dist=None,n_kmeans=5, do_tsne=True):
     from llp.tools import now
 
     if df_dist is None:
@@ -93,7 +93,8 @@ def analyze_as_dist(datadf,df_dist=None,n_kmeans=5):
     print '>> regressions(datadf)',now()
     resultdf=regressions(datadf,resultdf=resultdf)
 
-    print '>> tsne(datadf)',now()
-    resultdf=tsne(datadf,df_dist=df_dist,resultdf=resultdf)
+    if do_tsne:
+        print '>> tsne(datadf)',now()
+        resultdf=tsne(datadf,df_dist=df_dist,resultdf=resultdf)
 
     return resultdf
