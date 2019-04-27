@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 ### TEXT CLASS
 from llp.text import Text
 

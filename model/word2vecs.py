@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from __future__ import print_function
 import os,gensim,logging,time,numpy as np,random,pystats
 from llp.model import Model
 from llp.model.word2vec import Word2Vec,KEYWORDS
@@ -9,6 +11,9 @@ from collections import defaultdict,Counter
 import codecs
 #from pathos.multiprocessing import ProcessingPool as Pool
 import multiprocessing as mp
+import six
+from six.moves import range
+from six.moves import zip
 
 TOP2000=dict(n=2000,only_pos=None,pos_regex=False,remove_stopwords=False,only_abstract=None)
 TOP5000=dict(n=5000,only_pos=None,pos_regex=False,remove_stopwords=False,only_abstract=None)
@@ -68,7 +73,7 @@ class Word2Vecs(Model):
 
 	def mfw(self,use_first_model=False,use_last_model=True,intersection=True,**attrs):
 		mfw_d=self.mfw_d
-		for k,v in attrs.items(): mfw_d[k]=v
+		for k,v in list(attrs.items()): mfw_d[k]=v
 		mfw=list(self.corpus.mfw_simple(**mfw_d))
 		if mfw: return mfw
 
@@ -111,7 +116,7 @@ class Word2Vecs(Model):
 		for model in self.models:
 			ofnfn=os.path.join(odir,model.fn)
 			if not overwrite and os.path.exists(ofnfn):
-				print '>> already a model in directory "{0}" named "{1}" and overwrite set to False. skipping...'.format(odir,model.fn)
+				print('>> already a model in directory "{0}" named "{1}" and overwrite set to False. skipping...'.format(odir,model.fn))
 				continue
 
 			model.load()
@@ -131,7 +136,7 @@ class Word2Vecs(Model):
 		words=None
 		if use_mfw:
 			words=self.mfw(**mfw_d)
-			print 'Using MFW: # words:',len(words),words[:3],'...'
+			print('Using MFW: # words:',len(words),words[:3],'...')
 
 		for m1,m2 in tools.bigrams(self.models):
 			m1.load()
@@ -143,7 +148,7 @@ class Word2Vecs(Model):
 	def stats(self,dist=True):
 		for model in self.models:
 			dist,dist_words=model.dist()
-			print model, np.median(dist)
+			print(model, np.median(dist))
 
 
 	def model_words(self, mp=True, **kwargs):
@@ -166,7 +171,7 @@ class Word2Vecs(Model):
 			if not fn.startswith('data.word2vec.words.'): continue
 			fnfn1=os.path.join(idir,fn)
 			fnfn2=fnfn1.replace('.txt','.linreg-results.txt').replace('.txt.gz','.txt')
-			print '>> consolidating:',fnfn1,fnfn2
+			print('>> consolidating:',fnfn1,fnfn2)
 			ld1=tools.tsv2ld(fnfn1)
 			ld2=tools.tsv2ld(fnfn2)
 
@@ -188,10 +193,10 @@ class Word2Vecs(Model):
 
 		word2ld=tools.ld2dld(old1,'word')
 		old3=[]
-		for word,wld in word2ld.items():
+		for word,wld in list(word2ld.items()):
 			period2ld=tools.ld2dld(wld,'model_name_2')
 			#wld.sort(key=lambda _d: _d['model_name_2'])
-			vecs=[k for k in wld[0].keys() if '<>' in k]
+			vecs=[k for k in list(wld[0].keys()) if '<>' in k]
 			for vec in vecs:
 				try:
 					Y = [np.mean([d[vec] for d in period2ld[period]]) for period in sorted(period2ld)]
@@ -249,11 +254,11 @@ class Word2Vecs(Model):
 		models = self.models if not sample_per_period else self.models_sample(sample_per_period)
 
 		for model in models:
-			print '>>',model.name
+			print('>>',model.name)
 			dist=model.load_dist(return_gen=True)
 			if not dist: continue
 			name=model.name
-			d1=dist.next()
+			d1=next(dist)
 			name2words[name]=set(d1.keys())
 			dist=model.load_dist(return_gen=True)
 			name2model[name]=model
@@ -261,16 +266,16 @@ class Word2Vecs(Model):
 
 
 		## Prune
-		words=set.intersection(*name2words.values())
+		words=set.intersection(*list(name2words.values()))
 		for name,dist in sorted(name2dist.items()):
-			print '>>',name,'...'
+			print('>>',name,'...')
 			#dist=[d for d in dist if d['rownamecol'] in words]
 			rows=[]
 			for di,d in enumerate(dist):
 
 				if not d['rownamecol'] in words: continue
 
-				for k in d.keys():
+				for k in list(d.keys()):
 					if not k in words:
 						del d[k]
 				array=np.array([d[k] for k in sorted(d.keys()) if not k in ['rownamecol']])
@@ -278,7 +283,7 @@ class Word2Vecs(Model):
 					array=rankdata(array)
 
 				#if norm: array=pystats.zfy(array)
-				print name, di, array[:4],'...'
+				print(name, di, array[:4],'...')
 				rows+=[array]
 
 			M=np.array(rows)
@@ -323,7 +328,7 @@ class Word2Vecs(Model):
 
 		def do_model_get_ranks(model):
 			model.load()
-			r=model.word2index.items()
+			r=list(model.word2index.items())
 			model.unload()
 			return r
 
@@ -339,7 +344,7 @@ class Word2Vecs(Model):
 		with codecs.open(ofn,'w',encoding='utf-8') as of:
 			for word in sorted(word2rank,key = lambda w: word2rank[w]):
 				of.write(word+'\n')
-		print '>> saved:',ofn
+		print('>> saved:',ofn)
 
 
 
@@ -348,7 +353,7 @@ class Word2Vecs(Model):
 		models = self.models if not periods else [m for m in self.models if m.period in periods]
 		models = models if not num_runs else [m for m in models if m.run_num<=num_runs]
 		models = [m for m in models if m.exists]
-		print '>> MODELS:',[m.name for m in models]
+		print('>> MODELS:',[m.name for m in models])
 		#return
 		periods=set(periods) if periods else set(self.periods)
 		special = KEYWORDS if not special else special
@@ -359,7 +364,7 @@ class Word2Vecs(Model):
 				if not x in wordset:
 					words+=[x]
 
-		print ">> getting ranks for {} words, where ranks are calculated against {} words...".format(len(special), len(words))
+		print(">> getting ranks for {} words, where ranks are calculated against {} words...".format(len(special), len(words)))
 		#print words
 		#return
 
@@ -397,7 +402,7 @@ class Word2Vecs(Model):
 			numwordpairs=len(wordpair2period2ranks)
 			for i,wordpair in enumerate(wordpair2period2ranks):
 				if not i%100:
-					print '>>',i,numwordpairs,'...'
+					print('>>',i,numwordpairs,'...')
 				X,Y=[],[]
 				for period in sorted(wordpair2period2ranks[wordpair]):
 					x=int(period.split('-')[0])
@@ -461,8 +466,8 @@ class Word2Vecs(Model):
 
 						## Major stats
 						odx={'model1':m1.name, 'model2':m2.name, 'word':word, 'cosine_similarity':cos}
-						for k,v in m1.named.items(): odx[k+'_1']=v
-						for k,v in m2.named.items(): odx[k+'_2']=v
+						for k,v in list(m1.named.items()): odx[k+'_1']=v
+						for k,v in list(m2.named.items()): odx[k+'_2']=v
 						odx['model_rank_1'],odx['model_count_1']=word1stat[word]
 						odx['model_rank_2'],odx['model_count_2']=word2stat[word]
 						neighborhood1 = [w for w,c in m1.similar(word,neighborhood_size)]
@@ -483,8 +488,8 @@ class Word2Vecs(Model):
 
 						## Vector stats on abstract vectors (optional)
 						vectors = set(vectord1.keys()) & set(vectord2.keys())
-						for k,v in m1.cosine_word(word,vectord1).items(): odx['vec_'+k+'_1']=v
-						for k,v in m2.cosine_word(word,vectord2).items(): odx['vec_'+k+'_2']=v
+						for k,v in list(m1.cosine_word(word,vectord1).items()): odx['vec_'+k+'_1']=v
+						for k,v in list(m2.cosine_word(word,vectord2).items()): odx['vec_'+k+'_2']=v
 						for vec in vectors: odx['vec_'+vec+'_2-1']=odx['vec_'+vec+'_2'] - odx['vec_'+vec+'_1']
 
 
@@ -518,7 +523,7 @@ class Word2Vecs(Model):
 					WordMeta[key][k]+=[dx[k]]
 
 			for key in WordMeta:
-				metadx=dict(zip(key_str,key))
+				metadx=dict(list(zip(key_str,key)))
 				metadx['num_records']=len(WordMeta[key]['cosine_similarity'])
 				for k in WordMeta[key]:
 					try:
@@ -586,7 +591,7 @@ class Word2Vecs(Model):
 		#models = [m for m in self.models if m.period=='1790-1799']
 		args = [(m,words,min_count,max_rank) for m in models]
 		results=pool.map(do_meta_dist, args)
-		dists,dists_words=zip(*results)
+		dists,dists_words=list(zip(*results))
 		DIST = np.dstack(dists)
 
 		if apply_median:
@@ -621,7 +626,7 @@ class Word2Vecs(Model):
 	def gen_meta_tsne(self,dist=None,dist_words=None,save=True,n_components=2,k=24,ofn=None):
 		if not dist or not dist_words: dist,dist_words=self.load_meta_dist()
 
-		print len(dist_words)
+		print(len(dist_words))
 
 
 		#from sklearn.manifold import TSNE
@@ -671,7 +676,7 @@ class Word2Vecs(Model):
 	## Rates of change
 	def rate_of_change(self,words=None,topn=100):
 		if not self.aligned:
-			print '>> Rate of Change requires that the word2vec models have been aligned. Run align() first.'
+			print('>> Rate of Change requires that the word2vec models have been aligned. Run align() first.')
 			return
 
 		if not words: words=self.mfw()
@@ -679,7 +684,7 @@ class Word2Vecs(Model):
 
 		def writegen():
 			for i,word in enumerate(words):
-				print '>>',num_words-i,word,'..'
+				print('>>',num_words-i,word,'..')
 				old=[]
 				for i1,m1 in enumerate(self.models):
 					for i2,m2 in enumerate(self.models):
@@ -687,8 +692,8 @@ class Word2Vecs(Model):
 						## jaccard with top N
 						res1=m1.similar(word,topn=topn)
 						res2=m2.similar(word,topn=topn)
-						words1,csim1=zip(*res1)
-						words2,csim2=zip(*res2)
+						words1,csim1=list(zip(*res1))
+						words2,csim2=list(zip(*res2))
 						wordset1=set(words1)
 						wordset2=set(words2)
 						jacc=float(len(wordset1 & wordset2)) / float(len(wordset1 | wordset2))
@@ -722,7 +727,7 @@ class Word2Vecs(Model):
 	## Rates of change
 	def rate_of_change_cosine(self,words=None):
 		if not self.aligned:
-			print '>> Rate of Change requires that the word2vec models have been aligned. Run align() first.'
+			print('>> Rate of Change requires that the word2vec models have been aligned. Run align() first.')
 			return
 
 		if not words: words=self.mfw()
@@ -747,7 +752,7 @@ class Word2Vecs(Model):
 	## Rates of change
 	def rate_of_change_bigrams(self,words=None):
 		if not self.aligned:
-			print '>> Rate of Change requires that the word2vec models have been aligned. Run align() first.'
+			print('>> Rate of Change requires that the word2vec models have been aligned. Run align() first.')
 			return
 
 		if not words: words=self.mfw()
@@ -774,8 +779,9 @@ class Word2Vecs(Model):
 
 
 # words=[],special=[],
-def do_model_rank((model,words,topn,special)):
+def do_model_rank(xxx_todo_changeme):
 	#model.mfw_d['special']=special
+	(model,words,topn,special) = xxx_todo_changeme
 	word2topconn=model.top_connections_by_word(words=words,topn=topn,special=special)
 	old=[]
 
@@ -797,7 +803,8 @@ def do_model_rank((model,words,topn,special)):
 	return old
 
 
-def do_meta_dist((model,words,min_count,max_rank)):
+def do_meta_dist(xxx_todo_changeme1):
+	(model,words,min_count,max_rank) = xxx_todo_changeme1
 	model.load()
 	if min_count: model.limit_by_count(min_count)
 	if max_rank: model.limit_by_rank(max_rank)
@@ -818,7 +825,7 @@ def do_meta_dist((model,words,min_count,max_rank)):
 import gensim
 
 def load_model(model_or_path):
-	if type(model_or_path) in {str,unicode}:
+	if type(model_or_path) in {str,six.text_type}:
 		return gensim.models.KeyedVectors.load_word2vec_format(fnfn)
 	else:
 		return model
@@ -875,8 +882,8 @@ def semantic_displacement(self,models1,models2,ofn='data.semantic_displacement.t
 
 				## Major stats
 				odx={'model1':m1.name, 'model2':m2.name, 'word':word, 'cosine_similarity':cos}
-				for k,v in m1.named.items(): odx[k+'_1']=v
-				for k,v in m2.named.items(): odx[k+'_2']=v
+				for k,v in list(m1.named.items()): odx[k+'_1']=v
+				for k,v in list(m2.named.items()): odx[k+'_2']=v
 				odx['model_rank_1'],odx['model_count_1']=word1stat[word]
 				odx['model_rank_2'],odx['model_count_2']=word2stat[word]
 				neighborhood1 = [w for w,c in m1.similar(word,neighborhood_size)]
@@ -897,8 +904,8 @@ def semantic_displacement(self,models1,models2,ofn='data.semantic_displacement.t
 
 				## Vector stats on abstract vectors (optional)
 				vectors = set(vectord1.keys()) & set(vectord2.keys())
-				for k,v in m1.cosine_word(word,vectord1).items(): odx['vec_'+k+'_1']=v
-				for k,v in m2.cosine_word(word,vectord2).items(): odx['vec_'+k+'_2']=v
+				for k,v in list(m1.cosine_word(word,vectord1).items()): odx['vec_'+k+'_1']=v
+				for k,v in list(m2.cosine_word(word,vectord2).items()): odx['vec_'+k+'_2']=v
 				for vec in vectors: odx['vec_'+vec+'_2-1']=odx['vec_'+vec+'_2'] - odx['vec_'+vec+'_1']
 
 
@@ -932,7 +939,7 @@ def semantic_displacement(self,models1,models2,ofn='data.semantic_displacement.t
 				WordMeta[key][k]+=[dx[k]]
 
 		for key in WordMeta:
-			metadx=dict(zip(key_str,key))
+			metadx=dict(list(zip(key_str,key)))
 			metadx['num_records']=len(WordMeta[key]['cosine_similarity'])
 			for k in WordMeta[key]:
 				try:

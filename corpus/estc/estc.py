@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from __future__ import print_function
 # -*- coding: utf-8 -*-
 
 import codecs,json,re
@@ -29,10 +31,10 @@ class TextESTC(Text):
 		codes=[]
 		jsonx=self.json
 		for fieldd in jsonx['fields']:
-			for field_code,field_value in fieldd.items():
+			for field_code,field_value in list(fieldd.items()):
 				if type(field_value)==dict and 'subfields' in field_value:
 					for subfieldd in field_value['subfields']:
-						for subfield_code,subfield_value in subfieldd.items():
+						for subfield_code,subfield_value in list(subfieldd.items()):
 							codes+=[(field_code+'_'+subfield_code, subfield_value)]
 				else:
 					codes+=[(field_code,field_value)]
@@ -114,7 +116,7 @@ class TextESTC(Text):
 		md['form']=coded['655_a']
 
 		# stringify
-		for k,v in md.items():
+		for k,v in list(md.items()):
 			if type(v)==list:
 				md[k]=self.META_SEP.join(v)
 
@@ -175,7 +177,7 @@ class ESTC(Corpus):
 		self.path = os.path.dirname(__file__)
 
 	def save_metadata(self):
-		print '>> generating metadata...'
+		print('>> generating metadata...')
 		texts = self.texts()
 		num_texts = len(texts)
 		estc_ids_in_ecco = set(open('/Users/ryan/DH/18C/titles/estc/estc_ids_in_ecco.txt').read().split())
@@ -187,7 +189,7 @@ class ESTC(Corpus):
 
 		def writegen():
 			for i,t in enumerate(self.texts()):
-				if not i%1000: print i
+				if not i%1000: print(i)
 				yield meta(t)
 
 		tools.writegen('corpus-metadata.'+self.name+'.txt', writegen)
@@ -197,7 +199,7 @@ class ESTC(Corpus):
 		estc_ids_in_ecco = set(open('/Users/ryan/DH/18C/titles/estc/estc_ids_in_ecco.txt').read().split())
 		for i,t in enumerate(self.texts()):
 			#if not t.estcid in estc_ids_in_ecco: continue
-			if not i%1000: print '>>',i,'...'
+			if not i%1000: print('>>',i,'...')
 
 
 			dx={'year':year}
@@ -207,7 +209,7 @@ class ESTC(Corpus):
 		estc_ids_in_ecco = set(open('/Users/ryan/DH/18C/titles/estc/estc_ids_in_ecco.txt').read().split())
 		for i,t in enumerate(self.texts()):
 			#if not t.estcid in estc_ids_in_ecco: continue
-			if not i%1000: print '>>',i,'...'
+			if not i%1000: print('>>',i,'...')
 			codes = t.codes
 
 			code8=[v for c,v in codes if c=='008'][0]
@@ -230,7 +232,7 @@ class ESTC(Corpus):
 				if c<'6': continue
 				cdict[c]+=[tools.noPunc(v)]
 
-			for code,values in cdict.items():
+			for code,values in list(cdict.items()):
 				value = ' | '.join(values)
 				if not value in code2freq[code]: code2freq[code][value]=0
 				code2freq[code][value]+=1

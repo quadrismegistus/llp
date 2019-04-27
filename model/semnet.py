@@ -1,7 +1,11 @@
+from __future__ import absolute_import
+from __future__ import print_function
 from llp.model import Model,NullModel
 import networkx as nx
 import numpy as np
 from llp import tools
+import six
+from six.moves import zip
 
 # Semantic Networks
 
@@ -54,22 +58,22 @@ class SemanticNetwork(Model):
 
 		g=nx.Graph()
 		num_words=len(words)
-		print '>> generating graph for',num_words,'words...'
+		print('>> generating graph for',num_words,'words...')
 		for w in words: g.add_node(w)
 
 		if num_nearest_neighbors:
-			print '>> generating by using num_nearest_neighbors =',num_nearest_neighbors
+			print('>> generating by using num_nearest_neighbors =',num_nearest_neighbors)
 			for word,neighbors in self.model.nearest_neighbors(words,n=num_nearest_neighbors,allow_other_words=allow_other_words):
 				for neighbor,val in neighbors:
 					g.add_edge(word,neighbor,weight=float(val))
 		else:
 			if num_edge_factor:
-				print '>> generating by using num_edge_factor =',num_edge_factor
+				print('>> generating by using num_edge_factor =',num_edge_factor)
 				num_edges=num_words * num_edge_factor
 
-			print '>> gathering top connections...'
+			print('>> gathering top connections...')
 			gen=self.model.top_connections(words,n=num_edges if num_edges else None)
-			print '>> done.'
+			print('>> done.')
 			for i,(a,b,w) in enumerate(gen):
 				if cosine_cut:
 					if w<cosine_cut:
@@ -78,7 +82,7 @@ class SemanticNetwork(Model):
 
 				if min_num_connected_factor:
 					num_in_biggest_component = len(sorted(nx.connected_components(g), key = len, reverse=True)[0])
-					print '>>',i,num_in_biggest_component,a,b,w
+					print('>>',i,num_in_biggest_component,a,b,w)
 					if num_in_biggest_component >= num_words * min_num_connected_factor: break
 
 
@@ -86,14 +90,14 @@ class SemanticNetwork(Model):
 			g=nx.k_core(g,k_core)
 
 		if giant_component:
-			print '>> reducing to giant component...'
+			print('>> reducing to giant component...')
 			g=sorted(nx.connected_component_subgraphs(g), key = len, reverse=True)[0]
 		#	g=nx.connected_component_subgraphs(g)[0]
 
 		## add attrs
 		for word in g.nodes():
-			for k,v in word2d.get(word,{}).items():
-				if type(v) in [int,str,float,unicode]:
+			for k,v in list(word2d.get(word,{}).items()):
+				if type(v) in [int,str,float,six.text_type]:
 					g.node[word][k]=v
 			if 'pos' in g.node[word]:
 				g.node[word]['pos_simple']=g.node[word]['pos'][0]
@@ -127,7 +131,7 @@ class SemanticNetwork(Model):
 			vals = flatten(dist,dist_words)
 			vals.sort()
 			dist_cut = vals[Ne]
-			print N,Ne,dist_cut
+			print(N,Ne,dist_cut)
 		elif cosine_cut:
 			dist_cut = 1-cosine_cut
 		else:
@@ -152,21 +156,21 @@ class SemanticNetwork(Model):
 	def save(self,store_attrs=False):
 		import networkx as nx
 		g=self.g
-		print '>> saving graph of',g.order(),'nodes and',g.size(),'edges ...'
+		print('>> saving graph of',g.order(),'nodes and',g.size(),'edges ...')
 		if store_attrs:
-			for node,noded in self.node2d.items():
+			for node,noded in list(self.node2d.items()):
 				if g.has_node(node):
-					for k,v in noded.items():
+					for k,v in list(noded.items()):
 						g.node[node][k]=v
 		nx.write_graphml(g,self.fn)
 
 	def gen_edge_betweenness(self):
-		for (a,b),v in nx.edge_betweenness_centrality(self.g,weight='weight').items():
+		for (a,b),v in list(nx.edge_betweenness_centrality(self.g,weight='weight').items()):
 			self.g.edge[a][b]['edge_betweenness_centrality']=v
 
 	def analyze(self,save=True,wordkey='word'):
 		net=self.g
-		print '>> analyzing graph of',net.order(),'nodes and',net.size(),'edges ...'
+		print('>> analyzing graph of',net.order(),'nodes and',net.size(),'edges ...')
 		statd = {}
 		statd['centrality_degree']=nx.degree_centrality(net)
 		statd['centrality_information']=nx.current_flow_closeness_centrality(net)
@@ -177,13 +181,13 @@ class SemanticNetwork(Model):
 		statd['centrality_degree']=nx.degree_centrality(net)
 		statd['clustering_coefficient']=nx.clustering(net)
 		statd['eccentricity']=nx.eccentricity(net)
-		print '>> done with analysis.'
+		print('>> done with analysis.')
 
 		old=[]
 		for node in net.nodes():
 			dx={'model':self.model.name, wordkey:node, 'neighbors':', '.join(sorted(list(nx.all_neighbors(net,node))))}
 			#for k,v in self.node2d.get(node,{}).items(): dx[k]=v
-			for statname,node2stat in statd.items():
+			for statname,node2stat in list(statd.items()):
 				dx[statname]=node2stat[node]
 			old+=[dx]
 
@@ -215,7 +219,7 @@ class SemanticNetwork(Model):
 				zstat2node2val[k][node]=d[k+'_z']
 
 		old=[]
-		for partition_i,(partition_id,pld) in enumerate(sorted(pytxt.ld2dld(ld,'partition_id').items(),key=lambda _tup: len(_tup[1]), reverse=True)):
+		for partition_i,(partition_id,pld) in enumerate(sorted(list(pytxt.ld2dld(ld,'partition_id').items()),key=lambda _tup: len(_tup[1]), reverse=True)):
 
 
 			odx={}
@@ -227,8 +231,8 @@ class SemanticNetwork(Model):
 			nodes_within_part = [d['word'] for d in pld]
 			nodes_within_part_set = set(nodes_within_part)
 			degree_within_part = [g.degree(node) for node in nodes_within_part]
-			num_edges_within_part=[len([x for x in self.g.edge[node].keys() if x in nodes_within_part_set]) for node in nodes_within_part]
-			num_edges_without_part=[len([x for x in self.g.edge[node].keys() if not x in nodes_within_part_set]) for node in nodes_within_part]
+			num_edges_within_part=[len([x for x in list(self.g.edge[node].keys()) if x in nodes_within_part_set]) for node in nodes_within_part]
+			num_edges_without_part=[len([x for x in list(self.g.edge[node].keys()) if not x in nodes_within_part_set]) for node in nodes_within_part]
 			num_edges_diff = [x-y for x,y in zip(num_edges_within_part,num_edges_without_part)]
 			#odx['words_by_degree_within_cluster'] = ', '.join([w+' ('+str(e)+')' for e,w in sorted(zip(num_edges_within_part,nodes_within_part),reverse=True)[:nw]])
 
@@ -293,7 +297,7 @@ class SemanticNetwork(Model):
 		edge2bridges={}
 		cedge2numpaths={}
 		for i,(cluster1,cluster2) in enumerate(sorted(M.edges())):
-			print '>>',i+1,num_cedges,cluster1,cluster2,'...'
+			print('>>',i+1,num_cedges,cluster1,cluster2,'...')
 			cid1,cid2=M.node[cluster1]['ID'],M.node[cluster2]['ID']
 			words_cluster1 = [d['word'] for d in id2ld[cid1]]
 			words_cluster2 = [d['word'] for d in id2ld[cid2]]
@@ -325,9 +329,9 @@ class SemanticNetwork(Model):
 
 			betweend=pytxt.toks2freq(betweens)
 			betweend_edges=pytxt.toks2freq(betweens_edges)
-			top_between = [k for k,v in sorted(betweend.items(),key=lambda _tup: -_tup[1])[:n_between]]
-			top_between_edges = [k[0]+'-'+k[1] for k,v in sorted(betweend_edges.items(),key=lambda _tup: -_tup[1])[:n_between]]
-			print cluster1,cluster2,top_between
+			top_between = [k for k,v in sorted(list(betweend.items()),key=lambda _tup: -_tup[1])[:n_between]]
+			top_between_edges = [k[0]+'-'+k[1] for k,v in sorted(list(betweend_edges.items()),key=lambda _tup: -_tup[1])[:n_between]]
+			print(cluster1,cluster2,top_between)
 
 			"""
 			for word in top_between:
@@ -355,8 +359,8 @@ class SemanticNetwork(Model):
 
 		## Collect global edge/node stats
 		ld_words,ld_edges=[],[]
-		word_numbridges = float(sum([len(v) for v in word2bridges.values()]))
-		edge_numbridges = float(sum([len(v) for v in edge2bridges.values()]))
+		word_numbridges = float(sum([len(v) for v in list(word2bridges.values())]))
+		edge_numbridges = float(sum([len(v) for v in list(edge2bridges.values())]))
 		for i,word in enumerate(sorted(word2bridges,key=lambda _k: len(word2bridges[_k]),reverse=True)):
 			odx={'word':word, 'rank':i+1}
 			odx['num_paths']=len(word2bridges[word])
@@ -367,7 +371,7 @@ class SemanticNetwork(Model):
 				bridged[cedge] = bridged[cedge] / cedge2numpaths[cedge]
 
 			odx['bridges']=''
-			for bridge,count in sorted(bridged.items(),key=lambda _tup: -_tup[1]):
+			for bridge,count in sorted(list(bridged.items()),key=lambda _tup: -_tup[1]):
 				odx['bridges']+='{0}-{1}: {2}%\n'.format(bridge[0],bridge[1],round(count*100,1))
 			ld_words+=[odx]
 
@@ -378,7 +382,7 @@ class SemanticNetwork(Model):
 
 			bridged = pytxt.toks2freq(edge2bridges[edge])
 			odx['bridges']=''
-			for bridge,count in sorted(bridged.items(),key=lambda _tup: -_tup[1]):
+			for bridge,count in sorted(list(bridged.items()),key=lambda _tup: -_tup[1]):
 				odx['bridges']+='{0}-{1}: {2}\n'.format(bridge[0],bridge[1],count)
 			ld_edges+=[odx]
 
@@ -391,7 +395,7 @@ class SemanticNetwork(Model):
 		return M2
 
 	def remove_clusters_from_graph(self,cluster_ids=['17','9','21']):
-		print '>> removing nodes from graph belonging to clusters:',', '.join(cluster_ids)
+		print('>> removing nodes from graph belonging to clusters:',', '.join(cluster_ids))
 		i=0
 		for d in self.node_ld:
 			if d['partition_id'] in cluster_ids:
@@ -399,15 +403,15 @@ class SemanticNetwork(Model):
 					self.g.remove_node(d['word'])
 					i+=1
 		self.g=sorted(nx.connected_component_subgraphs(self.g), key = len, reverse=True)[0]
-		print '>> removed',i,'nodes from graph'
+		print('>> removed',i,'nodes from graph')
 
 	def betweenness(self,return_paths=False):
 		now=time.time()
-		print '>> starting to find all shortest paths...'
+		print('>> starting to find all shortest paths...')
 		paths=nx.all_pairs_dijkstra_path(self.g)
 		if return_paths: return paths
 		nownow=time.time()
-		print '>> finished finding shortest paths in',round(nownow-now,1),'seconds'
+		print('>> finished finding shortest paths in',round(nownow-now,1),'seconds')
 
 		node2d=pytxt.ld2dd(self.node_ld,'word')
 		cluster2d=pytxt.ld2dd(self.cluster_ld,'ID')
@@ -449,7 +453,7 @@ class SemanticNetwork(Model):
 					xsum = float(sum(x2count[x].values()))
 					for k in x2count[x]:
 						v=x2count[x].get(k,0)
-						odx=dict(dx.items())
+						odx=dict(list(dx.items()))
 						odx['unit_type']=x
 						odx['unit']=k
 						odx['count']=v
@@ -457,11 +461,11 @@ class SemanticNetwork(Model):
 						yield odx
 
 		pytxt.writegen('semnet.betweenness.txt', writegen)
-		for word,graph in word2graph.items():
+		for word,graph in list(word2graph.items()):
 			for node in graph.nodes():
-				for k,v in node2d[node].items():
+				for k,v in list(node2d[node].items()):
 					graph.node[node][k]=v
-				for k,v in cluster2d[node2d[node]['partition_id']].items():
+				for k,v in list(cluster2d[node2d[node]['partition_id']].items()):
 					graph.node[node][k]=v
 			nx.write_graphml(graph, 'semnet_by_betweenness_word/{1}.{0}.graphml'.format(str(graph.order()).zfill(4), word))
 
@@ -483,7 +487,7 @@ class SemanticNetwork(Model):
 			cluster_id2d=pytxt.ld2dd(cluster_ld,'ID')
 			for d in node_ld:
 				idx=str(int(d['partition_id']))
-				for k,v in cluster_id2d[idx].items():
+				for k,v in list(cluster_id2d[idx].items()):
 					if k in bad_keys: continue
 					d[k]=v
 			self._node_ld=node_ld
@@ -507,7 +511,7 @@ class SemanticNetwork(Model):
 		if cluster_vectors:
 			id2cluster=pytxt.ld2dd(self.cluster_ld,'ID')
 			cluster2nodeld=pytxt.ld2dld(node_ld,'partition_id')
-			print cluster2nodeld.keys()
+			print(list(cluster2nodeld.keys()))
 			for id1,id2 in cluster_vectors:
 				vname = id2cluster[str(id2)]['NAME']+' <> '+id2cluster[str(id1)]['NAME']
 				words1 = [d['word'] for d in cluster2nodeld[str(id1)]]
@@ -519,7 +523,7 @@ class SemanticNetwork(Model):
 		for d in ld:
 			w=d['word']
 			if w in node2d:
-				for k,v in node2d[w].items():
+				for k,v in list(node2d[w].items()):
 					d[k]=v
 
 		ofn=self.model.fn.replace('word2vec','data.word2vec.words').replace('.txt.gz','.txt')
@@ -531,10 +535,10 @@ class SemanticNetwork(Model):
 
 def do_semantic_network(model,k_core,giant_component=True):
 	import networkx as nx
-	print '>> generating network:',model.name,'...'
+	print('>> generating network:',model.name,'...')
 
 	net=model.semantic_network(save=True, k_core=k_core, giant_component=giant_component)
-	print '>> analyzing graph of',net.order(),'nodes and',net.size(),'edges ...'
+	print('>> analyzing graph of',net.order(),'nodes and',net.size(),'edges ...')
 	statd = {}
 	statd['betweenness_centrality']=nx.betweenness_centrality(net)
 	#statd['eigenvector_centrality']=nx.eigenvector_centrality(net)
@@ -543,7 +547,7 @@ def do_semantic_network(model,k_core,giant_component=True):
 	old=[]
 	for node in net.nodes():
 		dx={'model':model.name, 'word':node, 'neighbors':', '.join(sorted(list(nx.all_neighbors(net,node))))}
-		for statname,node2stat in statd.items():
+		for statname,node2stat in list(statd.items()):
 			dx[statname]=node2stat[node]
 		old+=[dx]
 

@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import os
 from llp.corpus import Corpus
 from llp.text import Text

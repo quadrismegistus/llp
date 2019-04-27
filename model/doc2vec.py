@@ -1,6 +1,10 @@
+from __future__ import absolute_import
+from __future__ import print_function
 from llp.model import Model
 from llp import tools
 from gensim.models.doc2vec import LabeledSentence
+import six
+from six.moves import range
 class SentenceSampler(Model):
 	def __init__(self, fn, num_skips_wanted=True,min_words=50,min_words_in_sent=6,save_key=False, key_fn=None,save_word2vec=False):
 		self.fn=fn
@@ -108,10 +112,10 @@ class Doc2Vec(Word2Vec):
 		cmd=['cd',path_w2v_i,'&&',PATH_TO_WORD2VEC_BINARY, '-train', fname_w2v_i, '-output', fn_w2v_o, '-cbow', '1', '-size', str(num_dimensions), '-window', str(self.skipgram_n), '-negative', '5', '-hs', '1', '-sample', '1e-4', '-threads', '8', '-binary', '1', '-iter', str(num_iter), '-min-count', '1', '-sentence-vectors', '1']
 
 		cmdstr=' '.join(cmd)
-		print cmdstr
+		print(cmdstr)
 		os.system(cmdstr)
-		print
-		print '>> saved:',fn_w2v_o
+		print()
+		print('>> saved:',fn_w2v_o)
 
 
 
@@ -195,7 +199,7 @@ class Doc2Vec(Word2Vec):
 				wordvecs=[self.gensim[w.lower()] for w in words if w in self.gensim]
 				words_included+=[w.lower() for w in words]
 				#wordvecs=words
-		elif type(words) in [str,unicode]:
+		elif type(words) in [str,six.text_type]:
 			if infer_vector:
 				wordvecs=[self.gensim.infer_vector(words)]
 			else:
@@ -297,14 +301,14 @@ def getdoc(docid):
 	line=linecache.getline('sentences.ECCO-TCP.key3.txt',docid)
 	sentids = [int(x) for x in line.split('\t')[1].split()]
 	words = line.split('\t')[2].strip().split()
-	print sentids
+	print(sentids)
 
 	Line=[]
 	for x in sentids:
 		line=eval(linecache.getline('sentences.ECCO-TCP.txt',x))
 		Line+=line
 
-	print tools.toks2str(Line)
+	print(tools.toks2str(Line))
 
 
 def word2doc(m,word,nummax=10):
@@ -315,9 +319,9 @@ def word2doc(m,word,nummax=10):
 			if num>nummax: break
 
 			idx=int(x.split('_')[1])
-			print x,y
+			print(x,y)
 			getdoc(idx)
-			print
+			print()
 
 
 
@@ -395,12 +399,12 @@ def parse_math_str(input_string,variables={}):
 		elif op == "E":
 			return math.e
 		elif re.search('^[a-zA-Z][a-zA-Z0-9_]*$',op):
-			if variables.has_key(op):
+			if op in variables:
 				return variables[op]
 			else:
 				return 0
 		elif re.search('^[-+]?[0-9]+$',op):
-			return long( op )
+			return int( op )
 		else:
 			return float( op )
 
@@ -412,13 +416,13 @@ def parse_math_str(input_string,variables={}):
 		# try parsing the input string
 		try:
 			L=pattern.parseString( input_string )
-		except ParseException,err:
+		except ParseException as err:
 			L=['Parse Failure',input_string]
 
 		# show result of parsing the input string
-		if debug_flag: print input_string, "->", L
+		if debug_flag: print(input_string, "->", L)
 		if len(L)==0 or L[0] != 'Parse Failure':
-			if debug_flag: print "exprStack=", exprStack
+			if debug_flag: print("exprStack=", exprStack)
 
 			# calculate result , store a copy in ans , display the result to user
 			result=evaluateStack(exprStack)
@@ -427,12 +431,12 @@ def parse_math_str(input_string,variables={}):
 			return result
 
 			# Assign result to a variable if required
-			if debug_flag: print "var=",varStack
+			if debug_flag: print("var=",varStack)
 			if len(varStack)==1:
 				variables[varStack.pop()]=result
-			if debug_flag: print "variables=",variables
+			if debug_flag: print("variables=",variables)
 		else:
-			print 'Parse Failure'
-			print err.line
-			print " "*(err.column-1) + "^"
-			print err
+			print('Parse Failure')
+			print(err.line)
+			print(" "*(err.column-1) + "^")
+			print(err)

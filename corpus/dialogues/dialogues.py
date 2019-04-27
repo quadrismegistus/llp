@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 # -*- coding: utf-8 -*-
 
 
@@ -31,7 +32,7 @@ class TextEnglishDialogues(Text):
 				"""
 				if tag.name in bad_tags: continue
 				md[tag.name]=tag.text
-				for k,v in tag.attrs.items():
+				for k,v in list(tag.attrs.items()):
 					md[tag.name+'_'+k]=v
 
 			except AttributeError:

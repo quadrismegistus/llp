@@ -1,14 +1,16 @@
+from __future__ import absolute_import
+from __future__ import print_function
 # -*- coding: utf-8 -*-
 
 ### TEXT CLASSES
 
 import os,codecs
+import llp
 from llp import tools
 
 from llp.text import Text
-from llp.text.tcp import TextTCP,TextSectionTCP
-#import llp
-#llp.ENGLISH=llp.load_english()
+from llp.corpus.tcp import TextTCP,TextSectionTCP
+
 
 class TextECCO(Text):
 	@property
@@ -57,7 +59,7 @@ class TextECCO_TCP(TextTCP):
 	@property
 	def meta_by_file(self):
 		if not hasattr(self,'_meta'):
-			fnfn=os.path.join(self.path_header,self.id+'.hdr')
+			fnfn=self.path_header
 			mtxt=codecs.open(fnfn,encoding='utf-8').read()
 			md=self.extract_metadata(mtxt)
 			md['fnfn_xml']=self.fnfn
@@ -90,6 +92,9 @@ class TextECCO_LitLang(Text):
 		return self._meta
 
 	def extract_metadata(self,mtxt,word_stats=True):
+		if not llp.ENGLISH:
+			llp.ENGLISH=llp.load_english()
+
 		md={}
 		## IDs
 		import bs4
@@ -137,7 +142,7 @@ class TextECCO_LitLang(Text):
 			with gzip.open(self.fnfn, 'rb') as f:
 				file_content = f.read()
 		except IOError:
-			print "!! Error on gzip for file id",self.id
+			print("!! Error on gzip for file id",self.id)
 			return ''
 		return file_content
 
@@ -163,7 +168,7 @@ class TextECCO_LitLang(Text):
 			with gzip.open(self.fnfn_txt,'rb') as f:
 				txt=f.read().decode('utf-8')
 		except:
-			print "!! ERROR: could not decompress:",self.id
+			print("!! ERROR: could not decompress:",self.id)
 			return ''
 		return txt
 
@@ -171,7 +176,7 @@ class TextECCO_LitLang(Text):
 	def text_plain(self, OK_word=['wd'], OK_page=['bodyPage'], remove_catchwords=True, return_lists=False, save_when_gen=True):
 		cache=self.text_plain_from_file
 		if cache:
-			print '>>',self.fnfn_txt,'from cache'
+			print('>>',self.fnfn_txt,'from cache')
 			return cache
 
 		from llp.text import clean_text
@@ -185,7 +190,7 @@ class TextECCO_LitLang(Text):
 			-- I've decided not to include them, but you can add them by adding it to the OK_page list
 		"""
 
-		print '>>', self.fnfn
+		print('>>', self.fnfn)
 
 		txt=[]
 		dom = self.dom
@@ -350,7 +355,7 @@ class ECCO_LitLang(Corpus):
 	# 	return self._texts
 
 	def save_metadata(self):
-		print '>> generating metadata...'
+		print('>> generating metadata...')
 		texts = self.texts()
 		num_texts = len(texts)
 

@@ -1,9 +1,10 @@
+from __future__ import absolute_import
 FIELDS=None
 
 def get_worddb_fields():
 	global FIELDS
 	if FIELDS: return FIELDS
-	from tools import worddb
+	from .tools import worddb
 	wdb=worddb()
 
 	fd={}
@@ -27,7 +28,7 @@ def measure_fields(word_counts,fields={},only_fields=None):
 	word_types=set(word_counts.keys())
 
 	cd={}
-	for fieldname,fieldwords in fields.items():
+	for fieldname,fieldwords in list(fields.items()):
 		count=0
 		if only_fields and not fieldname in only_fields: continue
 		for matching_word in fieldwords & word_types:
@@ -46,7 +47,7 @@ def get_fields(fnfn='/Users/ryan/DH/Dissertation/abstraction/words/data.fields.t
 
 	word2fields = get_word2fields(only_fields=only_fields) if not word2fields else word2fields
 
-	for word,fields in word2fields.items():
+	for word,fields in list(word2fields.items()):
 		for f in fields:
 			field2words[f]|={word}
 

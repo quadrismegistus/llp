@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 # -*- coding: utf-8 -*-
 
 from llp.corpus import Corpus
@@ -55,7 +56,7 @@ class MarkMark(Corpus):
 				text_text_path = os.path.join(text_path,text_fn)
 
 				text_meta = get_meta(text_meta_path) if os.path.exists(text_meta_path) else {}
-				metadx = dict(author_meta.items() + text_meta.items())
+				metadx = dict(list(author_meta.items()) + list(text_meta.items()))
 				metadx ['id'] = text_id = text_path.replace(rootdir,'').replace('/','.').replace(' ','_')
 				meta_ld+=[metadx]
 
@@ -87,7 +88,7 @@ def get_meta(fn,rename_d = {'name_full':'author'}):
 			if '=' in ln:
 				a,b=ln.strip().split('=',1)
 				odx[a]=b
-	for k,v in rename_d.items():
+	for k,v in list(rename_d.items()):
 		if k in odx:
 			odx[v]=odx[k]
 			del odx[k]

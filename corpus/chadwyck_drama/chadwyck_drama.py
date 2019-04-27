@@ -1,9 +1,12 @@
+from __future__ import absolute_import
+from __future__ import print_function
 # -*- coding: utf-8 -*-
 
 import codecs,os
 from llp import tools
 from llp.text import Text
 from llp.corpus import Corpus
+import six
 
 
 
@@ -82,10 +85,10 @@ class TextChadwyckDrama(Text):
 
 		if not self.exists: return ''
 		if os.path.exists(self.fnfn_txt):
-			print '>> text_plain from stored text file:',self.fnfn_txt
+			print('>> text_plain from stored text file:',self.fnfn_txt)
 			return tools.read(self.fnfn_txt)
 
-		print '>> text_plain from stored XML file...'
+		print('>> text_plain from stored XML file...')
 
 		txt=[]
 		dom = self.dom
@@ -97,7 +100,7 @@ class TextChadwyckDrama(Text):
 			txt+=[speech.text.strip()]
 
 		txt='\n\n'.join(txt).replace(u'∣','').strip()
-		for k,v in REPLACEMENTS.items():
+		for k,v in list(REPLACEMENTS.items()):
 			txt=txt.replace(k,v)
 		return txt
 
@@ -157,17 +160,18 @@ class ChadwyckDrama(Corpus):
 
 ## FUNCTIONS
 
-def save_plays_from_raw_author_folder((author_fnfn, opath), use_bs4=False):
+def save_plays_from_raw_author_folder(xxx_todo_changeme, use_bs4=False):
+	(author_fnfn, opath) = xxx_todo_changeme
 	import bs4,codecs
 	author_fn=os.path.split(author_fnfn)[-1]
 	author_id = author_fn.split('.')[0]
 	opath = os.path.join(opath, author_id)
 	if not os.path.exists(opath): os.makedirs(opath)
 
-	print '>>',opath,'...'
+	print('>>',opath,'...')
 	with codecs.open(author_fnfn,encoding='latin1') as f:
 		txt=f.read()
-		txt=unicode(txt.replace('\r\n','\n').replace('\r','\n'))
+		txt=six.text_type(txt.replace('\r\n','\n').replace('\r','\n'))
 		if use_bs4:
 			dom = bs4.BeautifulSoup(txt,'lxml')
 			for poem_i,poem in enumerate(dom('poem')):
@@ -176,7 +180,7 @@ def save_plays_from_raw_author_folder((author_fnfn, opath), use_bs4=False):
 				if not ids: continue
 				idx=ids[0].text
 				if not idx: continue
-				poem_xml_str = unicode(poem)
+				poem_xml_str = six.text_type(poem)
 
 				ofnfn = os.path.join(opath, idx+'.xml')
 				with codecs.open(ofnfn,'w',encoding='utf-8') as of:
@@ -203,4 +207,4 @@ def save_plays_from_raw_author_folder((author_fnfn, opath), use_bs4=False):
 				ofnfn = os.path.join(opath, idx+'.xml')
 				with codecs.open(ofnfn,'w',encoding='utf-8') as of:
 					of.write(poem_xml_str)
-					print '>> saved:',ofnfn
+					print('>> saved:',ofnfn)

@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from __future__ import print_function
 # -*- coding: utf-8 -*-
 
 from llp.corpus import Corpus
@@ -73,9 +75,9 @@ class Long18C(Corpus):
 				newfnfn=os.path.join(model_odir,newfn)
 				newfnfn_vocab=newfnfn.replace('.txt.gz','.vocab.txt')
 
-				print newfnfn,'-->',fnfn
-				print newfnfn_vocab,'-->',fnfn_vocab
-				print
+				print(newfnfn,'-->',fnfn)
+				print(newfnfn_vocab,'-->',fnfn_vocab)
+				print()
 				#continue
 
 
@@ -100,9 +102,9 @@ class Long18C(Corpus):
 				newfnfn=os.path.join(model_odir,newfn)
 				newfnfn_vocab=newfnfn.replace('.txt.gz','.vocab.txt')
 
-				print newfnfn,'-->',fnfn
-				print newfnfn_vocab,'-->',fnfn_vocab
-				print
+				print(newfnfn,'-->',fnfn)
+				print(newfnfn_vocab,'-->',fnfn_vocab)
+				print()
 				#continue
 
 				#"""

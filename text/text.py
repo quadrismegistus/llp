@@ -1,8 +1,13 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+from __future__ import print_function
 
 import os,codecs,gzip,re
 from collections import Counter
 from llp import tools
+from six.moves import map
+import six
+from six.moves import zip
 nlp=None
 
 
@@ -115,7 +120,7 @@ class Text(object):
 				elif len(dat)<num_cols:
 					continue
 
-				yield dict(zip(header,dat))
+				yield dict(list(zip(header,dat)))
 
 	def all_tokens(self):
 		words=[]
@@ -134,7 +139,7 @@ class Text(object):
 		from future_builtins import map
 		from itertools import chain
 		with codecs.open(path,encoding='utf-8',errors='ignore') as f:
-			return Counter(chain.from_iterable(map(tokenize_fast, self.fnfn_txt)))
+			return Counter(chain.from_iterable(list(map(tokenize_fast, self.fnfn_txt))))
 
 	def fast_tokens(self):
 		for ln in self.lines_txt():
@@ -203,8 +208,8 @@ class Text(object):
 			#print _i,w,_i in dfr.index,w in dfc.index,dx
 			if dfr is not None and _i and _i in dfr.index:
 				dfrx=dfr.loc[_i].to_dict()
-				for kk,vv in dfrx.items():
-					if not type(vv) in {str,unicode}:
+				for kk,vv in list(dfrx.items()):
+					if not type(vv) in {str,six.text_type}:
 						vv=str(round(vv,1))
 					classes+=[kk+'_'+vv]
 
@@ -215,7 +220,7 @@ class Text(object):
 
 			if w and dfc is not None and feat in dfc.index:
 				dfcx=dfc.loc[feat].to_dict()
-				for kk,vv in dfcx.items():
+				for kk,vv in list(dfcx.items()):
 					if 'Unnamed' in kk: continue
 					classes+=[kk+'_'+str(round(vv,1))]
 
@@ -298,7 +303,7 @@ class Text(object):
 			return 0
 
 	@property
-	def title(self): return unicode(self.meta['title'])
+	def title(self): return six.text_type(self.meta['title'])
 
 	@property
 	def decade(self): return int(self.year)/10*10
@@ -349,7 +354,7 @@ class Text(object):
 		import spacy
 		global nlp
 		if not nlp:
-			print '>> loading spacy...'
+			print('>> loading spacy...')
 			nlp = spacy.load(model_name)
 
 		doc=None
@@ -362,7 +367,7 @@ class Text(object):
 					doc = Doc(nlp.vocab)
 					doc.from_bytes(byte_string)
 			except UnicodeDecodeError:
-				print "!! UNICODE ERROR:",self.fnfn_spacy
+				print("!! UNICODE ERROR:",self.fnfn_spacy)
 		#else:
 
 		if not doc:
@@ -424,7 +429,7 @@ class Text(object):
 		for line in self.lines_xml():
 			if '<'+doc_tag+'>' in line:
 				docnum+=1
-				print '>>',self.id,docnum,'...'
+				print('>>',self.id,docnum,'...')
 				newfn=self.fnfn_xml.replace('_xml_','_xml_split_').replace(self.ext_xml,'.'+str(docnum).zfill(2)+self.ext_xml)
 				if not os.path.exists(os.path.split(newfn)[0]): os.makedirs(os.path.split(newfn)[0])
 				#if os.path.exists(newfn): continue
@@ -460,9 +465,9 @@ class Text(object):
 		## No spacy for now
 		#if not os.path.exists(self.fnfn_spacy):
 		if not pos_tag:
-			tuples = [(tools.noPunc(unicode(tok).strip().lower()),'') for tok in self.tokens_plain]
+			tuples = [(tools.noPunc(six.text_type(tok).strip().lower()),'') for tok in self.tokens_plain]
 		else:
-			tuples = [ (tools.noPunc(unicode(tok).strip().lower()), tok.tag_) for tok in self.spacy ]
+			tuples = [ (tools.noPunc(six.text_type(tok).strip().lower()), tok.tag_) for tok in self.spacy ]
 			tuples = [(a,b) for a,b in tuples if a]
 		tuples = [(a,b) for a,b in tuples if a]
 		return tuples
@@ -532,12 +537,12 @@ class Text(object):
 		with codecs.open(fnfn,encoding='utf-8') as f:
 			dx={}
 			try:
-				for k,v in json.load(f).items():
+				for k,v in list(json.load(f).items()):
 					k2=tools.noPunc(k)
 					if not k2 in dx: dx[k2]=0
 					dx[k2]+=v
 			except ValueError:
-				print "!? JSON LOADING FAILED ON TEXT:",self.id
+				print("!? JSON LOADING FAILED ON TEXT:",self.id)
 				return {}
 
 			return dx
@@ -562,7 +567,7 @@ class Text(object):
 
 		if modernize_spelling and self.year<modernize_spelling_before:
 			dx2={}
-			for k,v in dx.items():
+			for k,v in list(dx.items()):
 				k2=self.corpus.modernize_spelling(k).lower()
 				dx2[k2]=v
 			dx=dx2
@@ -582,7 +587,7 @@ class Text(object):
 		for dx in passages:
 			dx['id']=self.id
 			dx['corpus']=self.corpus.name
-			for k,v in self.meta.items(): dx[k]=v
+			for k,v in list(self.meta.items()): dx[k]=v
 		toc=time.clock()
 		#print '\tdone loading passages(I/O)... ('+str(toc-tic)+' seconds)'
 		return passages
@@ -628,7 +633,7 @@ class Text(object):
 			import gzip
 			with gzip.open(fnfn_txt,'wb') as f:
 				f.write(txt.encode('utf-8'))
-			print '>> saved:',fnfn_txt
+			print('>> saved:',fnfn_txt)
 
 
 
@@ -705,7 +710,7 @@ REPLACEMENTS={
 
 import bleach
 def clean_text(txt,replacements=REPLACEMENTS):
-	for k,v in replacements.items():
+	for k,v in list(replacements.items()):
 		txt=txt.replace(k,v)
 	return bleach.clean(txt,strip=True)
 
@@ -734,7 +739,7 @@ class TextMeta(Text):
 		if not hasattr(self,'_meta'):
 			self._meta=md={'corpus':self.corpus.name}
 			for t in reversed(self.texts):
-				for k,v in t.meta.items():
+				for k,v in list(t.meta.items()):
 					#if k in md and md[k]:
 					#	k=k+'_'+t.__class__.__name__.replace('Text','').lower()
 					md[k]=v
@@ -815,7 +820,7 @@ class TextSection(Text):
 			md=self._meta={}
 		else:
 			md=self._meta
-		for k,v in self.parent.meta.items():
+		for k,v in list(self.parent.meta.items()):
 			if not k in md or not md[k]:
 				md[k]=v
 		#for k,v in self.load_metadata().items(): md[k]=v
@@ -833,7 +838,7 @@ def text_plain_from_xml(xml, OK={'p','l'}, BAD=[], body_tag='text'):
 	import bs4
 
 	## get dom
-	dom = bs4.BeautifulSoup(xml,'lxml') if type(xml) in [str,unicode] else xml
+	dom = bs4.BeautifulSoup(xml,'lxml') if type(xml) in [str,six.text_type] else xml
 	txt=[]
 	## remove bad tags
 	for tag in BAD:

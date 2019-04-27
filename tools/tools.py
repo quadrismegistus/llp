@@ -1,9 +1,15 @@
+from __future__ import absolute_import
+from __future__ import print_function
 import codecs,configparser,os,re
+import six
+from six.moves import range
+from six.moves import zip
+from functools import reduce
 LIT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 CONFIG_PATH = os.path.join(LIT_ROOT,'config.txt')
 config = configparser.ConfigParser()
 config.read(CONFIG_PATH)
-config = dict([(k.upper(),v) for k,v in config['Default'].items()])
+config = dict([(k.upper(),v) for k,v in list(config['Default'].items())])
 
 ENGLISH=None
 
@@ -25,7 +31,7 @@ def get_english_wordlist():
 	ENG_PATH = config.get('PATH_TO_ENGLISH_WORDLIST')
 	if not ENG_PATH: raise Exception('!! PATH_TO_ENGLISH_WORDLIST not set in config.txt')
 	if not ENG_PATH.startswith(os.path.sep): ENG_PATH=os.path.join(LIT_ROOT,ENG_PATH)
-	print 'loading english from %s' % ENG_PATH
+	print('loading english from %s' % ENG_PATH)
 	return set(codecs.open(ENG_PATH,encoding='utf-8').read().strip().split('\n'))
 
 def get_spelling_modernizer():
@@ -33,7 +39,7 @@ def get_spelling_modernizer():
 	if not SPELLING_MODERNIZER_PATH: raise Exception('!! PATH_TO_ENGLISH_SPELLING_MODERNIZER not set in config.txt')
 	if not SPELLING_MODERNIZER_PATH.startswith(os.path.sep): SPELLING_MODERNIZER_PATH=os.path.join(LIT_ROOT,SPELLING_MODERNIZER_PATH)
 
-	print '>> getting spelling modernizer from %s...' % SPELLING_MODERNIZER_PATH
+	print('>> getting spelling modernizer from %s...' % SPELLING_MODERNIZER_PATH)
 	d={}
 	with codecs.open(SPELLING_MODERNIZER_PATH,encoding='utf-8') as f:
 		for ln in f:
@@ -49,7 +55,7 @@ def get_spelling_modernizer():
 
 def measure_ocr_accuracy(txt_or_tokens):
 	global ENGLISH
-	if type(txt_or_tokens) in [str,unicode]:
+	if type(txt_or_tokens) in [str,six.text_type]:
 		tokens=tokenize(txt_or_tokens)
 	elif type(txt_or_tokens) in [tuple,list]:
 		tokens=list(txt_or_tokens)
@@ -71,7 +77,7 @@ def tokenize(txt):
 
 def find_nth_character(str1, substr, n):
 	pos = -1
-	for x in xrange(n):
+	for x in range(n):
 		pos = str1.find(substr, pos+1)
 		if pos == -1:
 			return None
@@ -129,7 +135,7 @@ def writegen_jsonl(fnfn,generator,args=[],kwargs={}):
 	with jsonlines.open(fnfn,'w') as writer:
 		for i,dx in enumerate(generator(*args,**kwargs)):
 			writer.write(dx)
-	print '>> saved:',fnfn
+	print('>> saved:',fnfn)
 
 def readgen_jsonl(fnfn):
 	import jsonlines
@@ -142,14 +148,17 @@ def writegen(fnfn,generator,header=None,args=[],kwargs={}):
 	import codecs,csv
 	if 'jsonl' in fnfn.split('.'): return writegen_jsonl(fnfn,generator,args=args,kwargs=kwargs)
 	iterator=generator(*args,**kwargs)
-	first=iterator.next()
+	first=next(iterator)
 	if not header: header=sorted(first.keys())
 	with open(fnfn, 'w') as csvfile:
 		writer = csv.DictWriter(csvfile,fieldnames=header,delimiter='\t')
 		writer.writeheader()
 		for i,dx in enumerate(iterator):
+			for k,v in dx.items():
+				if type(v) in [unicode]:
+					dx[k]=v.encode('utf-8')
 			writer.writerow(dx)
-	print '>> saved:',fnfn
+	print('>> saved:',fnfn)
 
 def writegen_orig(fnfn,generator,header=None,args=[],kwargs={}):
 	if 'jsonl' in fnfn.split('.'): return writegen_jsonl(fnfn,generator,args=args,kwargs=kwargs)
@@ -157,8 +166,8 @@ def writegen_orig(fnfn,generator,header=None,args=[],kwargs={}):
 		for i,dx in enumerate(generator()):
 			if not header: header=sorted(dx.keys())
 			if not i: of.write('\t'.join(header) + '\n')
-			of.write('\t'.join([unicode(dx.get(h,'')) for h in header]) + '\n')
-	print '>> saved:',fnfn
+			of.write('\t'.join([six.text_type(dx.get(h,'')) for h in header]) + '\n')
+	print('>> saved:',fnfn)
 
 def writegengen(fnfn,generator,header=None,save=True):
 	if save: of = codecs.open(fnfn,'w',encoding='utf-8')
@@ -166,7 +175,7 @@ def writegengen(fnfn,generator,header=None,save=True):
 		if not header:
 			header=sorted(dx.keys())
 			if save: of.write('\t'.join(header) + '\n')
-		if save: of.write('\t'.join([unicode(dx.get(h,'')) for h in header]) + '\n')
+		if save: of.write('\t'.join([six.text_type(dx.get(h,'')) for h in header]) + '\n')
 		yield dx
 
 def readgen_csv(fnfn,sep='\t',encoding='utf-8',errors='ignore'):
@@ -179,7 +188,7 @@ def readgen_csv(fnfn,sep='\t',encoding='utf-8',errors='ignore'):
 			#		dx[k]=v.decode(encoding=encoding, errors=errors)
 			yield dx
 
-def readgen(fnfn,header=None,tsep='\t',keymap={},keymap_all=unicode,encoding='utf-8',as_list=False,as_tuples=False,as_dict=True,toprint=True):
+def readgen(fnfn,header=None,tsep='\t',keymap={},keymap_all=six.text_type,encoding='utf-8',as_list=False,as_tuples=False,as_dict=True,toprint=True):
 	if 'jsonl' in fnfn.split('.'):
 		for dx in readgen_jsonl(fnfn):
 			yield dx
@@ -188,15 +197,15 @@ def readgen(fnfn,header=None,tsep='\t',keymap={},keymap_all=unicode,encoding='ut
 		now=time.time()
 
 		if tsep=='\t' and toprint:
-			print '>> streaming as tsv:',fnfn
+			print('>> streaming as tsv:',fnfn)
 		elif tsep==',' and toprint:
-			print '>> streaming as csv:',fnfn
+			print('>> streaming as csv:',fnfn)
 
 		for dx in readgen_csv(fnfn):
 			yield dx
 
 		nownow=time.time()
-		if toprint: print '   done ['+str(round(nownow-now,1))+' seconds]'
+		if toprint: print('   done ['+str(round(nownow-now,1))+' seconds]')
 
 		"""
 
@@ -255,9 +264,9 @@ def read(fnfn,to_unicode=True):
 				if to_unicode: x=x.decode('utf-8')
 				return x
 		except IOError as e:
-			print "!! error:",e,
-			print "!! opening:",fnfn
-			print
+			print("!! error:",e, end=' ')
+			print("!! opening:",fnfn)
+			print()
 			return ''
 
 	elif fnfn.endswith('.txt'):
@@ -285,10 +294,10 @@ def sizeof_fmt(num, suffix='B'):
 
 
 
-def xls2ld(fn,header=[],sheetname=True,keymap={},keymap_all=unicode):
+def xls2ld(fn,header=[],sheetname=True,keymap={},keymap_all=six.text_type):
 	import time
 	now=time.time()
-	print '>> reading as xls:',fn
+	print('>> reading as xls:',fn)
 	import xlrd
 	if '*' in keymap: keymap_all=keymap['*']
 	headerset=True if len(header) else False
@@ -309,20 +318,20 @@ def xls2ld(fn,header=[],sheetname=True,keymap={},keymap_all=unicode):
 					#print '??',value,type(value),key
 					if keymap_all:
 						func=keymap_all
-						if func in [str,unicode] and type(value) in [float]:
+						if func in [str,six.text_type] and type(value) in [float]:
 							if value == int(value): value=int(value)
 						d[key]=keymap_all(value)
 					elif keymap and key in keymap:
 						func=keymap[key]
-						if func in [str,unicode] and type(value) in [float]:
+						if func in [str,six.text_type] and type(value) in [float]:
 							if value == int(value): value=int(value)
 						d[key]=keymap[key](value)
 					else:
 						d[key]=value
 					#print key,value,y,header.index(key),row[header.index(key)]
 				except Exception as e:
-					print '!! ERROR:',e
-					print '!! on key =',key,'& value =',value, type(value)
+					print('!! ERROR:',e)
+					print('!! on key =',key,'& value =',value, type(value))
 					#print "!! "+key+" not found in "+str(sheet)
 					#d[key]=''
 					pass
@@ -343,7 +352,7 @@ def xls2ld(fn,header=[],sheetname=True,keymap={},keymap_all=unicode):
 		ld.extend(_boot_xls_sheet(sheet,header=header if headerset else []))
 
 	nownow=time.time()
-	print '>> done ['+str(round(nownow-now,1))+' seconds]'
+	print('>> done ['+str(round(nownow-now,1))+' seconds]')
 
 	return ld
 
@@ -355,9 +364,9 @@ def levenshtein(s1, s2):
 	l1 = len(s1)
 	l2 = len(s2)
 
-	matrix = [range(l1 + 1)] * (l2 + 1)
+	matrix = [list(range(l1 + 1))] * (l2 + 1)
 	for zz in range(l2 + 1):
-		matrix[zz] = range(zz,zz + l1 + 1)
+		matrix[zz] = list(range(zz,zz + l1 + 1))
 	for zz in range(0,l2):
 		for sz in range(0,l1):
 			if s1[sz] == s2[zz]:
@@ -385,8 +394,8 @@ def xlsx2ld(fn,header=[],numsheets=1):
 					value=float(value)/0
 				except:
 					value=value
-					if not isinstance(value, unicode):
-						value=unicode(value)
+					if not isinstance(value, six.text_type):
+						value=six.text_type(value)
 				values.append(value)
 			if not rownum and not len(header):
 				header=values
@@ -404,7 +413,7 @@ def dl2ld(dl,kcol='group'):
 	return ld
 
 def ld2dl(ld):
-	keys = ld[0].keys()
+	keys = list(ld[0].keys())
 	dl={}
 	for k in keys:
 		dl[k] = [d[k] for d in ld]
@@ -436,7 +445,7 @@ def goog2tsv(googsrc):
 			header=rowdat
 			#print ">> HEADER:",header
 			continue
-		odx=dict(zip(header,rowdat))
+		odx=dict(list(zip(header,rowdat)))
 		old+=[odx]
 	return old
 
@@ -445,13 +454,13 @@ def tsv2ld(fn,tsep='\t',nsep='\n',u=True,header=[],keymap={},zero='',removeEmpti
 	import time
 	now=time.time()
 	if tsep=='\t':
-		print '>> reading as tsv:',fn
+		print('>> reading as tsv:',fn)
 	elif tsep==',':
-		print '>> reading as csv:',fn
+		print('>> reading as csv:',fn)
 
 	import os
 	if fn.startswith('http'):
-		print '>> reading webpage...'
+		print('>> reading webpage...')
 		import urllib
 		f=urllib.urlopen(fn)
 		t=f.read()
@@ -510,7 +519,7 @@ def tsv2ld(fn,tsep='\t',nsep='\n',u=True,header=[],keymap={},zero='',removeEmpti
 				except ValueError:
 					v=v
 
-			if type(v) in [str,unicode] and not v:
+			if type(v) in [str,six.text_type] and not v:
 				if zero=='' and removeEmpties:
 					continue
 				else:
@@ -520,7 +529,7 @@ def tsv2ld(fn,tsep='\t',nsep='\n',u=True,header=[],keymap={},zero='',removeEmpti
 			listdict.append(edict)
 
 	nownow=time.time()
-	print '>> done ['+str(round(nownow-now,1))+' seconds]'
+	print('>> done ['+str(round(nownow-now,1))+' seconds]')
 
 	return listdict
 
@@ -557,7 +566,7 @@ def ld2ll(ld,zero='',tostr=False,uni=True):
 		for k in keys:
 			v=d.get(k,zero)
 			if tostr:
-				v=unicode(v) if uni else str(v)
+				v=six.text_type(v) if uni else str(v)
 			l+=[v]
 		o+=[l]
 	return o
@@ -568,9 +577,9 @@ def write_ld(fn,ld,zero='',timestamp=None):
 
 def dd2ld(dd,rownamecol='rownamecol'):
 	if not rownamecol:
-		return [ (dict(v.items())) for k,v in dd.items() ]
+		return [ (dict(list(v.items()))) for k,v in list(dd.items()) ]
 	else:
-		return [ (dict(v.items() + [(rownamecol,k)])) for k,v in dd.items() ]
+		return [ (dict(list(v.items()) + [(rownamecol,k)])) for k,v in list(dd.items()) ]
 
 def dld2ld(dld,key='rownamecol'):
 	ld=[]
@@ -586,9 +595,9 @@ def ld_resample(ld,key='rownamecol',n=None):
 	minlen_actually=min([len(dld[k]) for k in dld])
 	minlen=minlen_actually if not n or n>minlen_actually else n
 	ld2=[]
-	print '>> resampling to minimum length of:',minlen
+	print('>> resampling to minimum length of:',minlen)
 	for k in sorted(dld):
-		print '>>',k,len(dld[k]),'-->',minlen
+		print('>>',k,len(dld[k]),'-->',minlen)
 		ld2+=random.sample(dld[k],minlen)
 	return ld2
 
@@ -609,14 +618,14 @@ def ld2dd(ld,rownamecol='rownamecol'):
 def datatype(data,depth=0,v=False):
 	def echo(dt):
 		if not v: return
-		for n in range(depth): print "\t",
-		print '['+dt[0]+']'+dt[1:],
+		for n in range(depth): print("\t", end=' ')
+		print('['+dt[0]+']'+dt[1:], end=' ')
 		try:
-			print "[{0} records]".format(len(data),dt)
+			print("[{0} records]".format(len(data),dt))
 		except:
-			print
+			print()
 
-	if type(data) in [str,unicode]:
+	if type(data) in [str,six.text_type]:
 		echo('string')
 		return 's'
 	elif type(data) in [float,int]:
@@ -633,7 +642,7 @@ def datatype(data,depth=0,v=False):
 		if not len(data):
 			return 'd'
 		else:
-			return 'd'+datatype(data.values()[0],depth=depth+1,v=v)
+			return 'd'+datatype(list(data.values())[0],depth=depth+1,v=v)
 	else:
 		#print "WHAT TYPE OF DATA IS THIS:"
 		#print data
@@ -654,7 +663,7 @@ def limcols(ld,limcol=255):
 			if d[k]:
 				keyd[k]+=1
 
-	cols=set(sorted(keyd.keys(), key=lambda _k: (-keyd[_k],_k))[:limcol])
+	cols=set(sorted(list(keyd.keys()), key=lambda _k: (-keyd[_k],_k))[:limcol])
 
 	for d in ld:
 		dkeys=set(d.keys())
@@ -665,7 +674,7 @@ def limcols(ld,limcol=255):
 
 def ld2str(ld,**data):
 	if data['limcol']:
-		print ">> limiting columns"
+		print(">> limiting columns")
 		limcol=data['limcol']
 		ld=limcols(ld,limcol)
 	if 'limcol' in data:
@@ -674,26 +683,26 @@ def ld2str(ld,**data):
 
 def d2ll(d):
 	try:
-		return [[k,v] for k,v in sorted(d.items(),key=lambda lt: -lt[1])]
+		return [[k,v] for k,v in sorted(list(d.items()),key=lambda lt: -lt[1])]
 	except:
-		return [[k,v] for k,v in d.items()]
+		return [[k,v] for k,v in list(d.items())]
 
 def d2str(d,uni=True):
 	return ll2str(d2ll(d),uni=uni)
 
 def strmake(x,uni=True):
-	if uni and type(x) in [unicode]:
+	if uni and type(x) in [six.text_type]:
 		return x
 	elif uni and type(x) in [str]:
 		return x.decode('utf-8',errors='replace')
 	elif uni:
-		return unicode(x)
+		return six.text_type(x)
 	elif not uni and type(x) in [str]:
 		return x
-	elif not uni and type(x) in [unicode]:
+	elif not uni and type(x) in [six.text_type]:
 		return x.encode('utf-8',errors='replace')
 
-	print [x],type(x)
+	print([x],type(x))
 	return str(x)
 
 
@@ -731,7 +740,7 @@ def write_ld2(fn,gen1,gen2,uni=True,badkeys=[]):
 		data=[d.get(key,'') for key in keys]
 		of.write('\t'.join([strmake(x) for x in data]) + '\n')
 	of.close()
-	print ">> saved:",fn
+	print(">> saved:",fn)
 
 
 def write2(fn,data,uni=True,join_cell=u'\t',join_line=u'\n',limcol=None,toprint=True):
@@ -763,7 +772,7 @@ def write2(fn,data,uni=True,join_cell=u'\t',join_line=u'\n',limcol=None,toprint=
 	of = codecs.open(fn,'w',encoding='utf-8') if True else open(fn,'w')
 	for line in o: of.write(line)
 	of.close()
-	if toprint: print '>> saved:',fn
+	if toprint: print('>> saved:',fn)
 
 def slice(l,num_slices=None,slice_length=None,runts=True,random=False):
 	"""
@@ -835,22 +844,22 @@ def toks2str(tlist,uni=False):
 
 ####
 def print_config(corpus):
-	print
-	print
-	print '[%s]' % corpus.__name__
-	print "name = %s" % corpus.__name__
+	print()
+	print()
+	print('[%s]' % corpus.__name__)
+	print("name = %s" % corpus.__name__)
 	#print "link = "
 	ppath=''
 	if hasattr(corpus,'PATH_TXT'):
 		ppath=corpus.PATH_TXT
-		print "path_txt = %s" % corpus.PATH_TXT
+		print("path_txt = %s" % corpus.PATH_TXT)
 	if hasattr(corpus,'PATH_XML'):
 		if not ppath: ppath=corpus.PATH_XML
-		print "path_xml = %s" % corpus.PATH_XML
-	if hasattr(corpus,'PATH_METADATA'): print "path_metadata = %s" % corpus.PATH_METADATA
-	print "path_python = %s" % ppath.split('/')[0] + '/' + ppath.split('/')[0] + '.py'
-	print "class_corpus = %s" % corpus.__name__
-	print "class_text = %s" % 'Text'+corpus.__name__
+		print("path_xml = %s" % corpus.PATH_XML)
+	if hasattr(corpus,'PATH_METADATA'): print("path_metadata = %s" % corpus.PATH_METADATA)
+	print("path_python = %s" % ppath.split('/')[0] + '/' + ppath.split('/')[0] + '.py')
+	print("class_corpus = %s" % corpus.__name__)
+	print("class_text = %s" % 'Text'+corpus.__name__)
 
 
 def do_configs(rootdir):
@@ -905,22 +914,22 @@ def modernize_spelling_in_txt(txt,spelling_d):
 ### multiprocessing
 def crunch(objects,function_or_methodname,ismethod=None,nprocs=8,args=[],kwargs={}):
 	import time,random
-	ismethod=type(function_or_methodname) in [str,unicode] if ismethod is None else ismethod
+	ismethod=type(function_or_methodname) in [str,six.text_type] if ismethod is None else ismethod
 
 	def do_preparse(text,args=[],kwargs={}):
 		threadid=os.getpid()
 		time.sleep(random.uniform(0,5))
-		print "[{2}] Starting working on {0} at {1}".format(text if False else 'ObjectX', now(), threadid)
+		print("[{2}] Starting working on {0} at {1}".format(text if False else 'ObjectX', now(), threadid))
 		#print ismethod,function_or_methodname,args,kwargs
 		if ismethod:
 			x=getattr(text,function_or_methodname)(*args,**kwargs)
 		else:
 			x=function_or_methodname(text, *args, **kwargs)
 
-		print "[{2}] Finished working on {0} at {1}".format(text if False else 'ObjectX', now(), threadid)
+		print("[{2}] Finished working on {0} at {1}".format(text if False else 'ObjectX', now(), threadid))
 		return x
 
-	import thread,multiprocessing,os
+	import six.moves._thread,multiprocessing,os
 	from multiprocessing import Process, Pipe
 	from itertools import izip
 
@@ -1012,3 +1021,69 @@ write = write2
 
 def splitkeepsep(s, sep):
     return reduce(lambda acc, elem: acc[:-1] + [acc[-1] + elem] if elem == sep else acc + [elem], re.split("(%s)" % re.escape(sep), s), [])
+
+
+
+
+
+
+
+
+
+
+## Spelling
+V2S = None
+def variant2standard():
+	global V2S
+	if not V2S:
+		V2S = dict((d['variant'],d['standard']) for d in tools.tsv2ld(SPELLING_VARIANT_PATH,header=['variant','standard','']))
+	return V2S
+
+def standard2variant():
+	v2s=variant2standard()
+	d={}
+	for v,s in list(v2s.items()):
+		if not s in d: d[s]=[]
+		d[s]+=[v]
+	return d
+
+
+
+def phrase2variants(phrase):
+	s2v=standard2variant()
+	words = phrase.split()
+	word_opts = [[s]+s2v[s] for s in words]
+	word_combos = list(pystats.product(*word_opts))
+	phrase_combos = [' '.join(x) for x in word_combos]
+	return phrase_combos
+###
+
+
+
+
+ENGLISH = None
+def load_english():
+	global ENGLISH
+	print('>> loading english dictionary...')
+	ENGLISH = set(codecs.open('/Dropbox/LITLAB/TOOLS/english.txt','r','utf-8').read().split('\n'))
+	#ENGLISH = (eng - load_stopwords())
+	return ENGLISH
+
+
+
+
+
+
+
+def yank(text,tag,none=None):
+	if type(tag)==type(''):
+		tag=tagname2tagtup(tag)
+
+	try:
+		return text.split(tag[0])[1].split(tag[1])[0]
+	except IndexError:
+		return none
+
+
+def tagname2tagtup(tagname):
+	return ('<'+tagname+'>','</'+tagname+'>')

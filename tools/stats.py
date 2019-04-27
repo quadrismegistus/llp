@@ -1,8 +1,12 @@
+from __future__ import absolute_import
+from __future__ import print_function
 # from http://localhost:8888/lab/tree/Dissertation%2Fagency%2FSemanticsOfPersonhood.ipynb
 
 import statsmodels.formula.api as smf
 import pandas as pd
 from scipy.stats import pearsonr
+from six.moves import range
+from six.moves import zip
 
 def newpolyfit(X,Y):
     newdf=pd.DataFrame({'X':X, 'Y':Y})
@@ -38,7 +42,7 @@ def kmeans(datadf,df_dist=None,n_kmeans=5,colname='kmeans_cluster',resultdf=None
     model_kclust = KMeans(n_clusters=n_kmeans)
     model_kclust.fit(m_dist)
     labels = model_kclust.labels_
-    word2label = dict(zip(datadf.index, labels))
+    word2label = dict(list(zip(datadf.index, labels)))
     if resultdf is None: resultdf=pd.DataFrame(index=datadf.index)
     resultdf[colname]=[word2label[word] for word in datadf.index]
     return resultdf
@@ -74,27 +78,27 @@ def tsne(datadf,df_dist=None,n_components=2,resultdf=None):
             newcols['tsne_V'+str(ii+1)] += [xx]
 
     if resultdf is None: resultdf=pd.DataFrame(index=datadf.index)
-    for k,v in newcols.items(): resultdf[k]=v
+    for k,v in list(newcols.items()): resultdf[k]=v
     return resultdf
 
 def analyze_as_dist(datadf,df_dist=None,n_kmeans=5, do_tsne=True):
     from llp.tools import now
 
     if df_dist is None:
-        print '>> dist(datadf)',now()
+        print('>> dist(datadf)',now())
         df_dist=dist(datadf)
 
-    print '>> kmeans(datadf)',now()
+    print('>> kmeans(datadf)',now())
     resultdf=kmeans(datadf,n_kmeans=n_kmeans)
 
-    print '>> corr_with_cluster(datadf)',now()
+    print('>> corr_with_cluster(datadf)',now())
     resultdf=corr_with_cluster(datadf,resultdf=resultdf)
 
-    print '>> regressions(datadf)',now()
+    print('>> regressions(datadf)',now())
     resultdf=regressions(datadf,resultdf=resultdf)
 
     if do_tsne:
-        print '>> tsne(datadf)',now()
+        print('>> tsne(datadf)',now())
         resultdf=tsne(datadf,df_dist=df_dist,resultdf=resultdf)
 
     return resultdf

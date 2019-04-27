@@ -1,5 +1,7 @@
+from __future__ import absolute_import
+from __future__ import print_function
 import os,codecs
-import tools
+from . import tools
 
 ROOT = os.path.dirname(os.path.realpath(__file__))
 SPELLING_VARIANT_PATH=os.path.join(ROOT,'data/spelling_variants_from_morphadorner.txt')
@@ -11,7 +13,9 @@ SPELLING_VARIANT_PATH=os.path.join(ROOT,'data/spelling_variants_from_morphadorne
 
 ### FUNCTIONS
 
-from corpus import load_corpus, corpora
+from .corpus import load_corpus, corpora
+
+
 
 
 ## Spelling
@@ -25,7 +29,7 @@ def variant2standard():
 def standard2variant():
 	v2s=variant2standard()
 	d={}
-	for v,s in v2s.items():
+	for v,s in list(v2s.items()):
 		if not s in d: d[s]=[]
 		d[s]+=[v]
 	return d
@@ -47,7 +51,7 @@ def phrase2variants(phrase):
 ENGLISH = None
 def load_english():
 	global ENGLISH
-	print '>> loading english dictionary...'
+	print('>> loading english dictionary...')
 	ENGLISH = set(codecs.open('/Dropbox/LITLAB/TOOLS/english.txt','r','utf-8').read().split('\n'))
 	#ENGLISH = (eng - load_stopwords())
 	return ENGLISH

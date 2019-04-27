@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+from __future__ import print_function
+import six
+from six.moves import zip
 STONES = ['save_txt_from_xml'] # for slingshot
 
 ### TEXT CLASS
@@ -74,7 +78,7 @@ class TextChadwyckPoetry(Text):
 	def text_plain(self, OK=['l','lb'], BAD=['note'], body_tag='poem', line_lim=None, modernize_spelling=True):
 		#if not self.exists: return ''
 		if os.path.exists(self.fnfn_txt):
-			print '>> text_plain from stored text file:',self.fnfn_txt
+			print('>> text_plain from stored text file:',self.fnfn_txt)
 			return tools.read(self.fnfn_txt)
 
 		if self.fnfn_xml and os.path.exists(self.fnfn_xml):
@@ -145,11 +149,11 @@ class ChadwyckPoetry(Corpus):
 			old=[]
 			num=0
 			for i,metadx in enumerate(pool.imap_unordered(meta_by_file, paths)):
-				if not i % 100: print '>>',i,'...'
+				if not i % 100: print('>>',i,'...')
 				old+=[metadx]
 		else:
 			for i,t in enumerate(texts):
-				if not i%10: print '>> processing text #',i,'...'
+				if not i%10: print('>> processing text #',i,'...')
 				metad=meta_by_file(t)
 				old+=[metad]
 
@@ -191,17 +195,18 @@ class ChadwyckPoetrySample(ChadwyckPoetry):
 
 ## FUNCTIONS
 
-def save_poems_from_raw_author_folder((author_fnfn, opath), use_bs4=False):
+def save_poems_from_raw_author_folder(xxx_todo_changeme, use_bs4=False):
+	(author_fnfn, opath) = xxx_todo_changeme
 	import bs4
 	author_fn=os.path.split(author_fnfn)[-1]
 	author_id = author_fn.split('.')[0]
 	opath = os.path.join(opath, author_id)
 	if not os.path.exists(opath): os.makedirs(opath)
 
-	print '>>',opath,'...'
+	print('>>',opath,'...')
 	with codecs.open(author_fnfn,encoding='latin1') as f:
 		txt=f.read()
-		txt=unicode(txt.replace('\r\n','\n').replace('\r','\n'))
+		txt=six.text_type(txt.replace('\r\n','\n').replace('\r','\n'))
 		if use_bs4:
 			dom = bs4.BeautifulSoup(txt,'lxml')
 			for poem_i,poem in enumerate(dom('poem')):
@@ -210,7 +215,7 @@ def save_poems_from_raw_author_folder((author_fnfn, opath), use_bs4=False):
 				if not ids: continue
 				idx=ids[0].text
 				if not idx: continue
-				poem_xml_str = unicode(poem)
+				poem_xml_str = six.text_type(poem)
 
 				ofnfn = os.path.join(opath, idx+'.xml')
 				with codecs.open(ofnfn,'w',encoding='utf-8') as of:
@@ -252,7 +257,7 @@ def save_txt_from_xml(xml_path,results_dir='./', modernize_spelling=True):
 		pass
 	with codecs.open(ofnfn,'w',encoding='utf-8') as of:
 		of.write(txt)
-		print '>> saved:',ofnfn
+		print('>> saved:',ofnfn)
 
 # from /home/users/heuser/workspace/jupyter/prosodic_chadwyck/prosodic_parser.py
 def xml2txt(xml_path, xml_string=None, OK=['l','lb'], BAD=['note'], body_tag='poem', line_lim=None, modernize_spelling=False):
@@ -311,7 +316,7 @@ def xml2txt(xml_path, xml_string=None, OK=['l','lb'], BAD=['note'], body_tag='po
 
 	txt=txt[:line_lim]
 	txt='\n'.join(txt).replace(u'∣','').strip()
-	for k,v in REPLACEMENTS.items():
+	for k,v in list(REPLACEMENTS.items()):
 		txt=txt.replace(k,v)
 
 	if modernize_spelling:

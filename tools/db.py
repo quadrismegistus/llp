@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from __future__ import print_function
 TABLE_NOW='texts'
 TABLE_NEXT='texts2'
 
@@ -8,22 +10,22 @@ def make_metadata_db(dbname='llp',tablename=TABLE_NEXT, buffer_size=1000):
 	client = MongoClient()
 	db = client[dbname]
 	table = db[tablename]
-	print '>> removing'
+	print('>> removing')
 	table.drop()
 
-	print '>> creating index'
+	print('>> creating index')
 	table.create_index([('corpus', pymongo.ASCENDING)])
 	table.create_index([('corpus', pymongo.ASCENDING), ('id', pymongo.ASCENDING)],unique=True)
 
 	for corpus_name,corpus in llp.corpora():
-		print '>>',corpus,'...'
+		print('>>',corpus,'...')
 		#if corpus_name!='ChadwyckDrama': continue
 		ild=[]
 		for ti,text in enumerate(corpus.texts()):
 			if not text.id: continue
 			#odx={'corpus_textid':(corpus_name, text.id), 'corpus':corpus_name, 'id':text.id}
 			odx={'corpus':corpus_name, 'id':text.id}
-			for k,v in text.meta.items():
+			for k,v in list(text.meta.items()):
 				if not k: continue
 				k=k.replace('.','_')
 				if k=='_id': continue
@@ -43,16 +45,16 @@ def make_metadata_db(dbname='llp',tablename=TABLE_NEXT, buffer_size=1000):
 
 			if len(ild)>=buffer_size:
 				try:
-					print odx['corpus'],odx['id'],len(ild),ti,table.insert_many(ild).inserted_ids[:2],'...'
+					print(odx['corpus'],odx['id'],len(ild),ti,table.insert_many(ild).inserted_ids[:2],'...')
 				except pymongo.errors.BulkWriteError as e:
-					print "!!",e
+					print("!!",e)
 				ild=[]
 
 		if ild:
 			try:
-				print odx['corpus'],odx['id'],len(ild),ti,table.insert_many(ild).inserted_ids[:2],'...'
+				print(odx['corpus'],odx['id'],len(ild),ti,table.insert_many(ild).inserted_ids[:2],'...')
 			except pymongo.errors.BulkWriteError as e:
-				print "!!",e
+				print("!!",e)
 
 
 def get_text_meta(corpus,text_id,dbname='llp',tablename=TABLE_NOW):

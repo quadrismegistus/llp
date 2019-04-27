@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from __future__ import print_function
 from llp.config import settings
 import os
 PATH_TO_BOOKNLP_BINARY = settings['PATH_TO_BOOKNLP_BINARY']
@@ -43,7 +45,7 @@ class BookNLP(object):
 			if not char['names']: continue
 			names=[x['n'] for x in char['names']]
 
-			for datatype,data in char.items():
+			for datatype,data in list(char.items()):
 				if type(data)!=list: continue
 				words=[]
 				for event in data:
@@ -56,7 +58,7 @@ class BookNLP(object):
 				freqs=Counter(words)
 				nullchar[datatype].update(freqs)
 				sumfreq=float(sum(freqs.values()))
-				for k,v in freqs.items():
+				for k,v in list(freqs.items()):
 					odx={
 						'text_id':self.text.id if self.text else '',
 						'char_id':char['id'],
@@ -70,9 +72,9 @@ class BookNLP(object):
 					yield odx
 
 
-		for datatype,freqs in nullchar.items():
+		for datatype,freqs in list(nullchar.items()):
 			sumfreq=float(sum(freqs.values()))
-			for k,v in freqs.items():
+			for k,v in list(freqs.items()):
 				odx={
 					'text_id':self.text.id if self.text else '',
 					'char_id':None,
@@ -88,8 +90,8 @@ class BookNLP(object):
 
 
 def parse_text(path_txt,path_output,path_tokens):
-	print PATH_TO_BOOKNLP_BINARY+' novels/BookNLP -doc {0} -printHTML -p {1} -tok {2} -f'.format(
+	print(PATH_TO_BOOKNLP_BINARY+' novels/BookNLP -doc {0} -printHTML -p {1} -tok {2} -f'.format(
 			path_txt,
 			path_output,
 			path_tokens
-	)
+	))

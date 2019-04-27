@@ -1,6 +1,8 @@
 """
 A set of classes and functions for doing logistic regression and classification
 """
+from __future__ import absolute_import
+from __future__ import print_function
 
 # imports
 from sklearn.linear_model import LogisticRegression
@@ -13,19 +15,20 @@ import numpy as np
 from llp.model import Model,NullModel
 import pandas as pd
 import os
+from six.moves import zip
 
 
 def resample_df(df,key,numsample=None,replace=False):
-	print df[key].value_counts()
+	print(df[key].value_counts())
 	groups=df.groupby(key)
 	lens=[len(_gdf.index) for _gname,_gdf in groups]
 	minlen=min(lens)
-	print lens
-	print minlen
+	print(lens)
+	print(minlen)
 	ns=numsample if numsample else minlen
-	print '-->',ns
+	print('-->',ns)
 	dfs_sample=[_gdf.sample(ns,replace=replace) for _gname,_gdf in groups if len(_gdf)>=ns]
-	print [len(x) for x in dfs_sample]
+	print([len(x) for x in dfs_sample])
 	ndf=pd.concat(dfs_sample)
 	ndf=ndf.sample(frac=1)
 	return ndf
@@ -135,14 +138,14 @@ class Classifier(Model):
 		self.dfr['prob']=all_probs
 		self.dfr['true']=y
 		self.coeffs=all_coeffs
-		self.dfc=pd.DataFrame([{'feat':c, 'coeff':f} for c,f in all_coeffs.items()])
+		self.dfc=pd.DataFrame([{'feat':c, 'coeff':f} for c,f in list(all_coeffs.items())])
 		self.clf=clf
 		#return (all_predictions,all_probs,all_coeffs,clf)
 
 	def report(self):
 		from sklearn.metrics import classification_report
-		print '## Report for Model (%s)' % self.name
-		print classification_report(self.dfr['true'], self.dfr['pred'])
+		print('## Report for Model (%s)' % self.name)
+		print(classification_report(self.dfr['true'], self.dfr['pred']))
 
 
 	def save_model(self,odir='saved_clf_model_data'):

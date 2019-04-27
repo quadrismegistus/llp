@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 # -*- coding: utf-8 -*-
 
 from llp.corpus import CorpusMeta,name2corpus

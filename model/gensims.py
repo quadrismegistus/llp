@@ -1,8 +1,12 @@
+from __future__ import absolute_import
 import gensim
 from llp import tools
+import six
+from six.moves import range
+from six.moves import zip
 
 def load_model(model_or_path):
-	if type(model_or_path) in {str,unicode}:
+	if type(model_or_path) in {str,six.text_type}:
 		return gensim.models.KeyedVectors.load_word2vec_format(fnfn)
 	else:
 		return model
@@ -12,7 +16,7 @@ def limit_words(model,num_top_words=None,min_count=None):
 		raise Exception('Please specify either num_top_words, min_count, or both.')
 
 	vocab = model.wv.vocab
-	words = vocab.keys()
+	words = list(vocab.keys())
 	for word in words:
 		if min_count and vocab[word].count<min_count:
 			del vocab[word]
@@ -65,8 +69,8 @@ def semantic_displacement(self,models1,models2,ofn='data.semantic_displacement.t
 
 				## Major stats
 				odx={'model1':m1.name, 'model2':m2.name, 'word':word, 'cosine_similarity':cos}
-				for k,v in m1.named.items(): odx[k+'_1']=v
-				for k,v in m2.named.items(): odx[k+'_2']=v
+				for k,v in list(m1.named.items()): odx[k+'_1']=v
+				for k,v in list(m2.named.items()): odx[k+'_2']=v
 				odx['model_rank_1'],odx['model_count_1']=word1stat[word]
 				odx['model_rank_2'],odx['model_count_2']=word2stat[word]
 				neighborhood1 = [w for w,c in m1.similar(word,neighborhood_size)]
@@ -87,8 +91,8 @@ def semantic_displacement(self,models1,models2,ofn='data.semantic_displacement.t
 
 				## Vector stats on abstract vectors (optional)
 				vectors = set(vectord1.keys()) & set(vectord2.keys())
-				for k,v in m1.cosine_word(word,vectord1).items(): odx['vec_'+k+'_1']=v
-				for k,v in m2.cosine_word(word,vectord2).items(): odx['vec_'+k+'_2']=v
+				for k,v in list(m1.cosine_word(word,vectord1).items()): odx['vec_'+k+'_1']=v
+				for k,v in list(m2.cosine_word(word,vectord2).items()): odx['vec_'+k+'_2']=v
 				for vec in vectors: odx['vec_'+vec+'_2-1']=odx['vec_'+vec+'_2'] - odx['vec_'+vec+'_1']
 
 
@@ -122,7 +126,7 @@ def semantic_displacement(self,models1,models2,ofn='data.semantic_displacement.t
 				WordMeta[key][k]+=[dx[k]]
 
 		for key in WordMeta:
-			metadx=dict(zip(key_str,key))
+			metadx=dict(list(zip(key_str,key)))
 			metadx['num_records']=len(WordMeta[key]['cosine_similarity'])
 			for k in WordMeta[key]:
 				try:

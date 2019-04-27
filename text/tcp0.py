@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+from __future__ import print_function
 
 import os,codecs
 from llp import tools
 from llp.text import Text,TextSection
 from llp.text import clean_text
+import six
 
 
 class TextSectionTCP(TextSection):
@@ -26,7 +29,7 @@ class TextTCP(Text):
 		return super(TextTCP,self).sections_xml(divider_tag=divider_tag,text_section_class=self.corpus.TEXT_SECTION_CLASS)
 
 	def text_plain_from_xml(self, xml=None, OK=['p','l'], BAD=[], body_tag='text', force_xml=False, text_only_within_medium=True):
-		print '>> text_plain from stored XML file...'
+		print('>> text_plain from stored XML file...')
 		import bs4
 
 		## get dom
@@ -36,7 +39,7 @@ class TextTCP(Text):
 			dom = bs4.BeautifulSoup(xml,'lxml')
 		elif type(xml)==bs4.BeautifulSoup:
 			dom = xml
-			text_xml=unicode(xml)
+			text_xml=six.text_type(xml)
 		else:
 			text_xml=xml
 			dom = bs4.BeautifulSoup(xml,'lxml')

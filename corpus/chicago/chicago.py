@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from __future__ import print_function
 
 from llp.corpus import Corpus
 from llp.text import Text
@@ -31,12 +33,12 @@ class Chicago(Corpus):
 		auth_dd = ld2dd(auth_ld,'AUTH_ID')
 		for d in text_ld:
 			auth_id = d['AUTH_ID']
-			for k,v in auth_dd.get(auth_id,{}).items(): d[k]=v
+			for k,v in list(auth_dd.get(auth_id,{}).items()): d[k]=v
 			d['id']=d['FILENAME'].replace('.txt','')
 
 			# lowercase keys
-			keys=d.keys()
-			for k in d.keys():
+			keys=list(d.keys())
+			for k in list(d.keys()):
 				k2=k.lower()
 				if k2!=k:
 					d[k2]=d[k]
@@ -46,6 +48,6 @@ class Chicago(Corpus):
 			d['year']=d['publ_date']
 			d['author']=d['auth_last']+', '+d['auth_first']
 
-			print d
+			print(d)
 
 		write2(self.path_metadata, text_ld)

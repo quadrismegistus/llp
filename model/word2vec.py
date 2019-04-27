@@ -1,3 +1,8 @@
+from __future__ import absolute_import
+from __future__ import print_function
+import six
+from six.moves import range
+from six.moves import zip
 # -*- coding: utf-8 -*-
 
 PATH_TO_WORD2VEC_BINARY = '/Users/ryan/DH/github/word2vec/bin/word2vec'
@@ -94,10 +99,10 @@ class Word2Vec(Model):
 		"""
 
 		if not self.skipgram_fn:
-			print '>> skipgram generator: SkipgramsCorpus'
+			print('>> skipgram generator: SkipgramsCorpus')
 			skips = SkipgramsCorpus(corpus=self.corpus, n=self.skipgram_n)
 		elif not self.num_skips_wanted:
-			print '>> skipgram generator: LineSentence'
+			print('>> skipgram generator: LineSentence')
 			skips = gensim.models.word2vec.LineSentence(self.skipgram_fn)
 		else:
 			skips = SkipgramsSampler(self.skipgram_fn, self.num_skips_wanted)
@@ -157,14 +162,14 @@ class Word2Vec(Model):
 		if not self._gensim is None: return True
 		then=time.time()
 		if os.path.exists(self.fnfn_vocab):
-			print '>> loading word2vec model [{0}] [{1}]'.format(self.fnfn,os.path.basename(self.fnfn_vocab))
+			print('>> loading word2vec model [{0}] [{1}]'.format(self.fnfn,os.path.basename(self.fnfn_vocab)))
 			self._gensim=gensim.models.KeyedVectors.load_word2vec_format(self.fnfn, self.fnfn_vocab)
 		else:
-			print '>> loading word2vec model [{0}]'.format(self.fnfn)
+			print('>> loading word2vec model [{0}]'.format(self.fnfn))
 			self._gensim=gensim.models.KeyedVectors.load_word2vec_format(self.fnfn)
 		self._gensim.init_sims(replace=True)
 		now=time.time()
-		print '>> done loading word2vec model:',os.path.basename(self.fnfn),'['+str(round(now-then,1))+' seconds]'
+		print('>> done loading word2vec model:',os.path.basename(self.fnfn),'['+str(round(now-then,1))+' seconds]')
 
 	@property
 	def gensim(self):
@@ -181,7 +186,7 @@ class Word2Vec(Model):
 	def freqs(self):
 		if not hasattr(self,'_freqs'):
 			self._freqs=d={}
-			for word,vocabobj in self.gensim.vocab.items():
+			for word,vocabobj in list(self.gensim.vocab.items()):
 				count=vocabobj.count
 				if not count: continue
 				d[word]=count
@@ -191,7 +196,7 @@ class Word2Vec(Model):
 	def vocab(self):
 		if not hasattr(self,'_vocab'):
 			#self._vocab=set([w for w,c in sorted(self.freqs.items(),key=lambda _lt: -_lt[1])[:self.vocab_size]])
-			self._vocab=[w for w,c in sorted(self.freqs.items(),key=lambda _lt: -_lt[1])]
+			self._vocab=[w for w,c in sorted(list(self.freqs.items()),key=lambda _lt: -_lt[1])]
 		return self._vocab
 
 	@property
@@ -202,9 +207,9 @@ class Word2Vec(Model):
 
 	def reset_vocab(self):
 		self._freqs=d={}
-		for word,vocabobj in self.gensim.vocab.items():
+		for word,vocabobj in list(self.gensim.vocab.items()):
 			d[word]=vocabobj.count
-		self._vocab=[w for w,c in sorted(self.freqs.items(),key=lambda _lt: -_lt[1])]
+		self._vocab=[w for w,c in sorted(list(self.freqs.items()),key=lambda _lt: -_lt[1])]
 		self._vocabset=set(self.vocab)
 
 
@@ -212,7 +217,7 @@ class Word2Vec(Model):
 	def word2index(self):
 		if not hasattr(self,'_word2index'):
 			self._word2index=w2i={}
-			for word,vocabobj in self.gensim.vocab.items():
+			for word,vocabobj in list(self.gensim.vocab.items()):
 				index=vocabobj.index
 				w2i[word]=index
 		return self._word2index
@@ -221,7 +226,7 @@ class Word2Vec(Model):
 	def word2array(self):
 		if not hasattr(self,'_word2array'):
 			self._word2array=w2a={}
-			for word,index in self.word2index.items():
+			for word,index in list(self.word2index.items()):
 				#w2a[word]=self.gensim.syn0[index]
 				w2a[word]=self.gensim[word]
 		return self._word2array
@@ -251,7 +256,7 @@ class Word2Vec(Model):
 		return self.limit_vocab(min_count=min_count,fpm_cutoff=None,n=None)
 
 	def mfw_in_model(self,n=None):
-		for i,(w,c) in enumerate(sorted(self.freqs.items(), key=lambda _t: -_t[1])):
+		for i,(w,c) in enumerate(sorted(list(self.freqs.items()), key=lambda _t: -_t[1])):
 			if n and i>=n: break
 			yield w
 
@@ -274,7 +279,7 @@ class Word2Vec(Model):
 		elif n:
 			words = set(list(self.mfw_in_model(n=n))) if not words else set(words)
 		else:
-			print '!! neither number of words (n) nor fpm_cutoff specified.'
+			print('!! neither number of words (n) nor fpm_cutoff specified.')
 			return
 
 		m=self.gensim
@@ -360,8 +365,8 @@ class Word2Vec(Model):
 		"""
 
 		# Create mfw option dictionary
-		mfw_d=dict(self.mfw_d.items())
-		for k,v in attrs.items(): mfw_d[k]=v
+		mfw_d=dict(list(self.mfw_d.items()))
+		for k,v in list(attrs.items()): mfw_d[k]=v
 
 		"""
 		For now, force mfw in model
@@ -377,7 +382,7 @@ class Word2Vec(Model):
 
 
 
-		print '>> generating mfw for model [{0}]: [{1}]'.format(self.name,mfw_d)
+		print('>> generating mfw for model [{0}]: [{1}]'.format(self.name,mfw_d))
 		then=time.time()
 
 		# Get results
@@ -408,7 +413,7 @@ class Word2Vec(Model):
 		M2=other.gensim
 		old=[]
 		for rank,word in enumerate(words):
-			print rank,word,'...'
+			print(rank,word,'...')
 			if not word in M1 or not word in M2: continue
 			l1=M1.most_similar(word,topn=topn*100)
 			l2=M2.most_similar(word,topn=topn*100)
@@ -580,7 +585,7 @@ class Word2Vec(Model):
 	def cosine_word(self,word,vectord):
 		model=self.gensim
 		odx={'word':word}
-		for vname,vector in vectord.items():
+		for vname,vector in list(vectord.items()):
 			#print vname
 			#print model[word]
 			#print vector
@@ -644,7 +649,7 @@ class Word2Vec(Model):
 			model2=word2_or_model2
 			return 1-cosine(self.word2array[word1], model2.word2array[word1])
 		else:
-			word2=unicode(word2_or_model2)
+			word2=six.text_type(word2_or_model2)
 			return self.gensim.similarity(word1,word2)
 
 	@property
@@ -674,10 +679,10 @@ class Word2Vec(Model):
 		model=self.gensim
 		now=time.time()
 		if interesting_vectors:
-			for k,v in self.interesting_vectors().items():
+			for k,v in list(self.interesting_vectors().items()):
 				vectord[k]=v
 		if abstract_vectors:
-			for k,v in self.abstract_vectors().items():
+			for k,v in list(self.abstract_vectors().items()):
 				vectord[k]=v
 		words = words if words else self.mfw(**mfw_d)
 		words = list(words)
@@ -708,7 +713,7 @@ class Word2Vec(Model):
 			tools.write2(ofnfn, old, toprint=False)
 
 			nownow=time.time()
-			print '>> saved %s in %s seconds' % (ofn, round(nownow-now,1))
+			print('>> saved %s in %s seconds' % (ofn, round(nownow-now,1)))
 
 			if model_lm: self.model_lm(ofn, top_words=len(old))
 
@@ -718,11 +723,11 @@ class Word2Vec(Model):
 		import tools
 		db_ld=tools.read_ld(fn)
 		db_dd=tools.ld2dd(db_ld,word_key)
-		words = db_dd.keys()
+		words = list(db_dd.keys())
 
 		model_ld = self.model_words(words=words,save=False,vectord=vectord,interesting_vectors=interesting_vectors,model_lm=model_lm)
 		for dx in model_ld:
-			for k,v in db_dd.get(dx['word'],{}).items(): dx[k]=v
+			for k,v in list(db_dd.get(dx['word'],{}).items()): dx[k]=v
 
 		if save:
 			tools.write2(ofn.replace('.txt','.'+self.name+'.txt'),model_ld)
@@ -736,7 +741,7 @@ class Word2Vec(Model):
 
 		ld=tools.tsv2ld(fn)
 		ld = [d for d in ld if d['rank']<=top_words]
-		keys = ld[0].keys()
+		keys = list(ld[0].keys())
 		keys.remove('word')
 		poss=[(k1,k2) for k1,k2 in pystats.product(keys,keys) if k1!=k2]
 		numposs=len(poss)
@@ -825,7 +830,7 @@ class Word2Vec(Model):
 
 		# Main
 		words=list(self.mfw()) if not words else list(words)
-		print '>> generating cosine similarities between '+str(len(words))+' words...'
+		print('>> generating cosine similarities between '+str(len(words))+' words...')
 
 		M = []
 		M_words=[]
@@ -852,7 +857,7 @@ class Word2Vec(Model):
 		elif to_similarity:
 			to_sim(dist)
 
-		print '>> done'
+		print('>> done')
 		return dist,M_words
 
 	def nearest_neighbors(self,words=[],n=3,allow_other_words=False):
@@ -885,7 +890,7 @@ class Word2Vec(Model):
 				edge2val[edge]=val
 
 		## Get minimum value
-		for (w1,w2),val in sorted(edge2val.items(),key=lambda _t: -_t[1])[:n]:
+		for (w1,w2),val in sorted(list(edge2val.items()),key=lambda _t: -_t[1])[:n]:
 			yield (w1,w2,val)
 
 	def top_connections_by_word(self,words=[],topn=100,cosine_cut=None,special=[]):
@@ -954,7 +959,7 @@ class Word2Vec(Model):
 	def fields_default(self):
 		fields = {}
 		fieldwords=set()
-		for k,v in tools.fields.items():
+		for k,v in list(tools.fields.items()):
 			if '_' in k and k.split('_')[0] in ['AbstractValues','HardSeed']:
 				fwords=set([x for x in v if x in self.vocab and not x in fieldwords])
 				fields[k]=fwords
@@ -974,7 +979,7 @@ class Word2Vec(Model):
 		fields=self.fields_default() if not fields else fields
 		field_words=[x for k,v in sorted(fields.items()) for x in v]
 		field_fields=[k for k,v in sorted(fields.items()) for x in v]
-		word2field=dict(zip(field_words,field_fields))
+		word2field=dict(list(zip(field_words,field_fields)))
 
 		# Get distances
 		dist,dist_words = self.dist(words=field_words)
@@ -989,7 +994,7 @@ class Word2Vec(Model):
 		for i1,word1 in enumerate(dist_words):
 			dx={'word1':word1, 'field':word2field[word1], 'tsne_V1':fit[i1][0], 'tsne_V2':fit[i1][1]}
 			for i2,word2 in enumerate(dist_words):
-				dx2=dict(dx.items())
+				dx2=dict(list(dx.items()))
 				dx2['word2']=word2
 				dx2['cosine_similarity']=dist[i1,i2]
 				old+=[dx2]
@@ -1011,14 +1016,14 @@ class Word2Vec(Model):
 
 		model_kclust = KMeans(n_clusters=k).fit(dist)
 		labels = model_kclust.labels_
-		word2label = dict(zip(dist_words, labels))
+		word2label = dict(list(zip(dist_words, labels)))
 
 		#return fit_kclust
 
 		old=[]
 		for i,word in enumerate(dist_words):
 			dx={'model':self.name, 'word':word}
-			for k,v in word2d[word].items(): dx[k]=v
+			for k,v in list(word2d[word].items()): dx[k]=v
 			dx['cluster']=word2label.get(word,'')
 			for ii in range(n_components):
 				dx['tsne_V'+str(ii+1)]=fit[i][ii]
@@ -1044,7 +1049,7 @@ class Word2Vec(Model):
 		old=[]
 		for i,word in enumerate(dist_words):
 			dx={'model':self.name, 'word':word}
-			for k,v in word2d[word].items(): dx[k]=v
+			for k,v in list(word2d[word].items()): dx[k]=v
 			for ii in range(n_components):
 				dx['tsne_V'+str(ii+1)]=fit[i][ii]
 			old+=[dx]
@@ -1093,7 +1098,7 @@ def do_model1(model,mfw,topn=25):
 	old=[]
 	wordset=set(mfw)
 	for i,w in enumerate(mfw):
-		print i,w,'...'
+		print(i,w,'...')
 		if not w in model.gensim: continue
 		top_tuples = model.gensim.most_similar(w,topn=topn*1000)
 		ii=0
@@ -1113,7 +1118,7 @@ def do_model2(model,mfw=None,topn=100):
 	old=[]
 	mfw=model.mfw() if not mfw else mfw
 	for i,w in enumerate(mfw):
-		print i,w,'...'
+		print(i,w,'...')
 		if not w in model.gensim: continue
 
 		word2sim={}
@@ -1150,19 +1155,19 @@ def compare_dists(ns=[2,5,10,15,20,25], num_mfw=1000, topn=100):
 
 	models={}
 	for n in ns:
-		print '>> loading model:',n,'...'
+		print('>> loading model:',n,'...')
 		models['skipgram_n'+str(n)]=gensim.models.Word2Vec.load('word2vec.ECCO-TCP.skipgram_n={0}.model'.format(n))
 
-	print '>> mfw:',len(mfw)
-	mfw = [w for w in mfw if not False in [w in model for model in models.values()]]
-	print '>> mfw:',len(mfw)
+	print('>> mfw:',len(mfw))
+	mfw = [w for w in mfw if not False in [w in model for model in list(models.values())]]
+	print('>> mfw:',len(mfw))
 
 	mfw = mfw[:num_mfw]
 
 	old=[]
 	for i,w in enumerate(mfw):
-		print i,w,'...'
-		for mname,model in models.items():
+		print(i,w,'...')
+		for mname,model in list(models.items()):
 			top_tuples = model.most_similar(w,topn=topn)
 			for ii,(word,cos) in enumerate(top_tuples):
 				dx={'word1':w, 'word1_rank': i+1,'word2':word, 'closeness_rank':ii+1, 'closeness_cosine':cos, 'model':mname, 'word1_pos':w2pos.get(w,"?"), 'word2_pos':w2pos.get(word,"?")}
@@ -1172,7 +1177,7 @@ def compare_dists(ns=[2,5,10,15,20,25], num_mfw=1000, topn=100):
 def compare_models(model_type='corpus_size', num_mfw=1000, topn=100):
 	model_fns=[fn for fn in os.listdir('.') if model_type in fn and fn.endswith('.model')]
 	for fn in model_fns:
-		print fn
+		print(fn)
 
 
 	c = ECCO()
@@ -1184,19 +1189,19 @@ def compare_models(model_type='corpus_size', num_mfw=1000, topn=100):
 
 	models={}
 	for model_fn in model_fns:
-		print '>> loading model:',model_fn,'...'
+		print('>> loading model:',model_fn,'...')
 		models[model_fn]=gensim.models.Word2Vec.load(model_fn)
 
-	print '>> mfw:',len(mfw)
-	mfw = [w for w in mfw if not False in [w in model for model in models.values()]]
-	print '>> mfw:',len(mfw)
+	print('>> mfw:',len(mfw))
+	mfw = [w for w in mfw if not False in [w in model for model in list(models.values())]]
+	print('>> mfw:',len(mfw))
 
 	mfw = mfw[:num_mfw]
 
 	old=[]
 	for i,w in enumerate(mfw):
-		print i,w,'...'
-		for mname,model in models.items():
+		print(i,w,'...')
+		for mname,model in list(models.items()):
 			top_tuples = model.most_similar(w,topn=topn)
 			for ii,(word,cos) in enumerate(top_tuples):
 				dx={'word1':w, 'word1_rank': i+1,'word2':word, 'closeness_rank':ii+1, 'closeness_cosine':cos, 'model':mname, 'word1_pos':w2pos.get(w,"?"), 'word2_pos':w2pos.get(word,"?")}
@@ -1220,10 +1225,10 @@ def entropy_gen_data(num_mfw=2000):
 
 	old=[]
 	for i,word in enumerate(mfw):
-		print '>>',i,word,'...'
+		print('>>',i,word,'...')
 		odx1=model_cosine_word(M,word,vectord1)
 		odx2=model_cosine_word(M,word,vectord2)
-		odx=dict(odx1.items() + odx2.items())
+		odx=dict(list(odx1.items()) + list(odx2.items()))
 		odx['rank']=i
 		old+=[odx]
 	tools.write2('data.word2vec.nouns.entropy3.txt', old)
@@ -1237,7 +1242,7 @@ def entropy(fn='data.word2vec.nouns.entropy3.txt'):
 
 	old=[]
 	for i,vectorname in enumerate(dl):
-		print i,vectorname,'...'
+		print(i,vectorname,'...')
 		if vectorname in ['word']:
 			continue
 		vector_israndom = False if vectorname in vectord else True
@@ -1400,13 +1405,13 @@ def reject_binaries(model, A, binaries, return_vector=True):
 
 	r=model.syn0[A] if type(A)==int else model[A]
 	for B,C in binaries:
-		if type(B) in [str,unicode]:
+		if type(B) in [str,six.text_type]:
 			if not B in model: continue
-			print '>> B:',B
+			print('>> B:',B)
 			B = model[B]
-		if type(C) in [str,unicode]:
+		if type(C) in [str,six.text_type]:
 			if not C in model: continue
-			print '>> C:',C
+			print('>> C:',C)
 			C = model[C]
 		if type(B) in [list,tuple]:
 			B=[model[x] for x in B if x in model]
@@ -1489,13 +1494,13 @@ class SkipgramsSampler(object):
 
 	def get_num_lines(self):
 		then=time.time()
-		print '>> [SkipgramsSampler] counting lines in',self.fn
+		print('>> [SkipgramsSampler] counting lines in',self.fn)
 		with gzip.open(self.fn,'rb') as f:
 			for i,line in enumerate(f):
 				pass
 		num_lines=i+1
 		now=time.time()
-		print '>> [SkipgramsSampler] finished counting lines in',self.fn,'in',int(now-then),'seconds. # lines =',num_lines,'and num skips wanted =',self.num_skips_wanted
+		print('>> [SkipgramsSampler] finished counting lines in',self.fn,'in',int(now-then),'seconds. # lines =',num_lines,'and num skips wanted =',self.num_skips_wanted)
 		return num_lines
 
 	def __iter__(self):

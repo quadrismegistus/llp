@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from __future__ import print_function
 # -*- coding: utf-8 -*-
 
 import codecs,os,bs4
@@ -10,7 +12,7 @@ class TextOldBailey(Text):
 
 	@property
 	def meta_by_file(self,bad_tags={'div1'}):
-		print '>>',self.id,'...'
+		print('>>',self.id,'...')
 		md={}
 		md['id']=self.id
 		md['medium']='Dialogue'

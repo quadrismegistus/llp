@@ -1,5 +1,10 @@
+from __future__ import absolute_import
+from __future__ import print_function
 import os,codecs,gzip,random,time
 from llp import tools
+import six
+from six.moves import range
+from six.moves import zip
 
 
 PATH_CORPUS = os.path.dirname(__file__)
@@ -20,17 +25,17 @@ def load_manifest(force=False):
 	if MANIFEST and not force: return MANIFEST
 
 	# read config
-	print '>> reading config files...'
+	print('>> reading config files...')
 	import configparser
 	config = configparser.ConfigParser()
 	for path in PATH_MANIFESTS:
 		config.read(path)
 
 	# convert config
-	for corpus in config.keys():
+	for corpus in list(config.keys()):
 		if corpus=='DEFAULT': continue
 		MANIFEST[corpus]=cd={}
-		for k,v in config[corpus].items():
+		for k,v in list(config[corpus].items()):
 			cd[k]=v
 
 	return MANIFEST
@@ -39,21 +44,21 @@ def load_corpus(name=None,required_data = ['path_python','class_name'], manifest
 	manifest=load_manifest() if not manifest else manifest
 
 	if not name:
-		print ">> Printing available corpora"
+		print(">> Printing available corpora")
 		for cname in sorted(manifest):
-			print cname
+			print(cname)
 		return
 
 	if not name in manifest:
-		print '!! Corpus not found in manifests:'
-		for path in PATH_MANIFESTS: print '\t'+path
+		print('!! Corpus not found in manifests:')
+		for path in PATH_MANIFESTS: print('\t'+path)
 		return
 
 	corpus_manifest=manifest[name]
 
 	for rd in required_data:
 		if not corpus_manifest.get(rd):
-			print '!! No "%s = " set for corpus "%s" in manifests' % name
+			print('!! No "%s = " set for corpus "%s" in manifests' % name)
 			return
 
 	# load and configure corpus
@@ -145,14 +150,14 @@ class Corpus(object):
 		#self.path_freq_table=os.path.join(self.path,path_freq_table) if path_freq_table else ''
 
 		self.path_freq_table={}
-		for k,v in path_freq_table.items():
+		for k,v in list(path_freq_table.items()):
 			self.path_freq_table[k]=os.path.join(self.path,v) if v else ''
 
 		self.graph_text_rel={}
 		self.matched_corpora={}
 
 		# leftover kwargs?
-		for k,v in kwargs.items():
+		for k,v in list(kwargs.items()):
 			setattr(self,k,v)
 
 		#self.models = self.word2vec_by_period
@@ -283,7 +288,7 @@ class Corpus(object):
 
 		def do_text(text_i):
 			text,i=text_i
-			print i,text.id,'...'
+			print(i,text.id,'...')
 			fnfn_txt = os.path.join(path_txt,text.id+'.txt')
 			if compress:
 				fnfn_txt+='.gz'
@@ -291,7 +296,7 @@ class Corpus(object):
 			#	print '>> already exists:',fnfn_txt
 			#	return
 			path_fnfn=os.path.dirname(fnfn_txt)
-			print '>>> need to save:',fnfn_txt
+			print('>>> need to save:',fnfn_txt)
 
 			if not os.path.exists(path_fnfn):
 				os.makedirs(path_fnfn)
@@ -311,7 +316,7 @@ class Corpus(object):
 						for line in txt2save:
 							line=line+'\n'
 							f.write(line.encode('utf-8'))
-				print '>> saved:',fnfn_txt
+				print('>> saved:',fnfn_txt)
 
 		#for i,text in enumerate(self.texts()): pool.spawn(do_text, text, i)
 		texts=self.texts()
@@ -328,9 +333,9 @@ class Corpus(object):
 		texts.sort(key=lambda T: T.id)
 		#texts=texts[:100]
 		num_todo = len(texts)
-		print "DONE:",num_texts-num_todo
-		print "TODO:",num_todo
-		text_is=zip(texts,range(len(texts)))
+		print("DONE:",num_texts-num_todo)
+		print("TODO:",num_todo)
+		text_is=list(zip(texts,list(range(len(texts)))))
 		from llp import tools
 		tools.crunch(text_is, do_text, nprocs=16)
 
@@ -346,12 +351,12 @@ class Corpus(object):
 
 	def load_metadata(self,combine_matches=False,load_text_data=True,load_rel_data=False,minimal=False,maximal=False,fix_ids=True):
 		from llp import tools
-		meta_ld=tools.read_ld(self.path_metadata,keymap={'*':unicode})
+		meta_ld=tools.read_ld(self.path_metadata,keymap={'*':six.text_type})
 		for d in meta_ld: d['corpus']=self.name
 
 		self._meta=meta_ld
 		self._text_ids=[self.get_id_from_metad(d) for d in meta_ld]
-		self._metad=dict(zip(self._text_ids,self._meta))
+		self._metad=dict(list(zip(self._text_ids,self._meta)))
 
 		if maximal or (not minimal and load_text_data): self.load_text_data()
 		if maximal or (not minimal and combine_matches): self.combine_matches()
@@ -361,13 +366,13 @@ class Corpus(object):
 		from llp import tools
 		all_keys=set()
 		for data_fn in self.paths_text_data:
-			data_ld=tools.read_ld(data_fn,keymap={'*':unicode})
+			data_ld=tools.read_ld(data_fn,keymap={'*':six.text_type})
 			for _d in data_ld:
 				if not 'id' in _d: continue
 				idx=_d['id']
 				if not idx in self._metad: continue
 				all_keys|=set(_d.keys())
-				for k,v in _d.items():
+				for k,v in list(_d.items()):
 					if k in self._metad[idx]: continue
 					self._metad[idx][k]=v
 		for idx in self._metad:
@@ -379,12 +384,12 @@ class Corpus(object):
 		# load graph
 		for data_fn in self.paths_rel_data:
 			now=time.time()
-			print '>> reading as tsv:',data_fn
+			print('>> reading as tsv:',data_fn)
 			try:
 				rel=data_fn.split('.')[data_fn.split('.').index('rel')+1]
 			except IndexError:
-				print "!! please format relation data files as:"
-				print "data.rel.RELATION_TYPE.txt"
+				print("!! please format relation data files as:")
+				print("data.rel.RELATION_TYPE.txt")
 				continue
 			if not rel in self.graph_text_rel:
 				import networkx as nx
@@ -397,10 +402,10 @@ class Corpus(object):
 					#if not a in self._metad or not b in self._metad: continue
 					self.graph_text_rel[rel].add_edge(str(a),str(b),rel=rel)
 			nownow=time.time()
-			print '>> done ['+str(round(nownow-now,1))+' seconds]'
+			print('>> done ['+str(round(nownow-now,1))+' seconds]')
 
 		# merge matched corporas' relational data
-		for corpname,corp in self.matched_corpora.items():
+		for corpname,corp in list(self.matched_corpora.items()):
 			#corp.load_metadata(load_text_data=False, combine_matches=False, load_rel_data=True)
 			for rel in corp.graph_text_rel:
 				#if not rel in self.graph_text_rel: continue
@@ -516,7 +521,7 @@ class Corpus(object):
 	def metad(self):
 		from llp import tools
 		if not hasattr(self,'_metad'):
-			self._metad=dict(zip(self.text_ids,self._meta))
+			self._metad=dict(list(zip(self.text_ids,self._meta)))
 		return self._metad
 
 	def export(self,folder,meta_fn=None,txt_folder=None,compress=False):
@@ -552,7 +557,7 @@ class Corpus(object):
 			timestamp=tools.now().split('.')[0]
 			ofn=os.path.join(self.path,'corpus-metadata.%s.%s.txt' % (self.name,timestamp))
 
-		print '>> generating metadata...'
+		print('>> generating metadata...')
 		texts = self.texts()
 		num_texts = len(texts)
 		old=[]
@@ -565,7 +570,7 @@ class Corpus(object):
 		#def writegen():
 		for i,text in enumerate(texts):
 			#print i,num_texts
-			if not i%100: print '>> text #%s of %s..' % (i+1,num_texts)
+			if not i%100: print('>> text #%s of %s..' % (i+1,num_texts))
 			#md=text.meta_by_file
 			#@HACK?->
 			md=text.meta_by_file if hasattr(text,'meta_by_file') else text.meta
@@ -575,7 +580,7 @@ class Corpus(object):
 				if num_words:
 					md['num_words']=sum(freqs.values())
 				if ocr_accuracy:
-					num_words_recognized = sum([v for k,v in freqs.items() if k in ENGLISH])
+					num_words_recognized = sum([v for k,v in list(freqs.items()) if k in ENGLISH])
 					#print md['num_words'], num_words_recognized
 					md['ocr_accuracy'] = num_words_recognized / float(md['num_words']) if float(md['num_words']) else 0.0
 				if genre:
@@ -663,7 +668,7 @@ class Corpus(object):
 		#for row in tools.readgen(fnfn,as_list=True):
 
 		now=time.time()
-		print '>> streaming freqs:',fnfn
+		print('>> streaming freqs:',fnfn)
 		f=gzip.open(fnfn) if fnfn.endswith('.gz') else open(fnfn)
 		for i,ln in enumerate(f):
 			ln=ln[:-1] # remove \n
@@ -696,11 +701,11 @@ class Corpus(object):
 			data+=[row]
 		f.close()
 		nownow=time.time()
-		print '   done ['+str(round(nownow-now,1))+' seconds]'
+		print('   done ['+str(round(nownow-now,1))+' seconds]')
 
 
 		now=time.time()
-		print '>> generating numpy array...'
+		print('>> generating numpy array...')
 		#X = np.zeros((len(data),len(data[0])), dtype=int)
 		#X[:] = data
 		#data=X
@@ -708,10 +713,10 @@ class Corpus(object):
 
 		#data = np.array(data)
 		nownow=time.time()
-		print '   done [{0} seconds]'.format(round(nownow-now,1))
+		print('   done [{0} seconds]'.format(round(nownow-now,1)))
 
 		now=time.time()
-		print '>> generating pandas dataframe...'
+		print('>> generating pandas dataframe...')
 		#data = [pd.to_numeric(row) for row in data]
 		df=pd.DataFrame(data,index=indices,columns=columns)
 		df.fillna(0,inplace=True)
@@ -728,7 +733,7 @@ class Corpus(object):
 				df[colname] = (df[colname] - mean) / std
 
 		nownow=time.time()
-		print '   done [{0} seconds]'.format(round(nownow-now,1))
+		print('   done [{0} seconds]'.format(round(nownow-now,1)))
 		return df
 
 	def gen_freq_table(self,n=25000,words=None,only_english=False):
@@ -753,7 +758,7 @@ class Corpus(object):
 
 			# write rows
 			for i,t in enumerate(texts):
-				if not i%100: print '>>',i,len(texts),'...'
+				if not i%100: print('>>',i,len(texts),'...')
 				freqs=t.freqs()
 				row='\t'.join([t.id]+[str(freqs.get(w,'0')) for w in words]).encode('utf-8')
 				f.write(row+'\n')
@@ -811,7 +816,7 @@ class Corpus(object):
 		period2texts = {'all':texts} if not yearbin else self.divide_texts_historically(yearbin=yearbin,texts=texts)
 		period2bounter = {}
 		for period,texts in sorted(period2texts.items()):
-			print '>> generating mfw for text grouping \'%s\' (%s texts)' % (period,len(texts))
+			print('>> generating mfw for text grouping \'%s\' (%s texts)' % (period,len(texts)))
 			countd = period2bounter[period] = bounter(1024)
 			texts=texts
 			for i,text in enumerate(texts):
@@ -821,7 +826,7 @@ class Corpus(object):
 
 		all_words = set()
 		totals={}
-		for period,countd in period2bounter.items():
+		for period,countd in list(period2bounter.items()):
 			all_words|=set(countd.keys())
 			totals[period]=float(countd.total())
 		num_words=len(all_words)
@@ -838,7 +843,7 @@ class Corpus(object):
 		"""
 		for i,word in enumerate(all_words):
 			#if not i%1000: print '>>',i,num_words,'...'
-			vals = [float(countd[word])/totals[period]*1000000 for period,countd in period2bounter.items()]
+			vals = [float(countd[word])/totals[period]*1000000 for period,countd in list(period2bounter.items())]
 			median_val = np.mean(vals)
 			#COUNTD.update({word:median_val})
 			COUNTD[word]=median_val
@@ -846,10 +851,10 @@ class Corpus(object):
 		del period2bounter
 
 		with codecs.open(self.path_mfw,'w',encoding='utf-8') as f:
-			for i,(word,val) in enumerate(sorted(COUNTD.iteritems(), key=lambda _t: -_t[1])):
+			for i,(word,val) in enumerate(sorted(six.iteritems(COUNTD), key=lambda _t: -_t[1])):
 				#if not i%1000: print '>>',i,num_words,'...'
 				f.write(word+'\n')
-		print '>> saved:',self.path_mfw
+		print('>> saved:',self.path_mfw)
 
 
 	### TOKENIZING
@@ -905,7 +910,7 @@ class Corpus(object):
 	def word2vec(self,skipgram_n=10,name=None,skipgram_fn=None):
 		if not name: name=self.name
 		from llp.model.word2vec import Word2Vec
-		if skipgram_fn and not type(skipgram_fn) in [unicode,str]:
+		if skipgram_fn and not type(skipgram_fn) in [six.text_type,str]:
 			skipgram_fn=self.fnfn_skipgrams
 
 		return Word2Vec(corpus=self, skipgram_n=skipgram_n, name=name, skipgram_fn=skipgram_fn)
@@ -913,7 +918,7 @@ class Corpus(object):
 	def doc2vec(self,skipgram_n=5,name=None,skipgram_fn=None):
 		if not name: name=self.name
 		from llp.model.word2vec import Doc2Vec
-		if not skipgram_fn or not type(skipgram_fn) in [unicode,str]:
+		if not skipgram_fn or not type(skipgram_fn) in [six.text_type,str]:
 			skipgram_fn=os.path.join(self.path_skipgrams,'sentences.'+self.name+'.txt.gz')
 
 		return Doc2Vec(corpus=self, skipgram_n=skipgram_n, name=name, skipgram_fn=skipgram_fn)
@@ -980,7 +985,7 @@ class Corpus(object):
 			for other_text in self.matchd.get(self.name,{}).get(idx,[]):
 				match_meta=other_text.meta
 				if not match_meta: continue
-				for k,v in match_meta.items():
+				for k,v in list(match_meta.items()):
 					#print [k,v,self._metad[idx].get(k,'')]
 
 					if 'reprint' in k: # HACK HACK HACK HACK
@@ -1043,12 +1048,12 @@ class Corpus(object):
 		c1=self
 		c2=corpus
 
-		texts1=[t for t in c1.texts() if not False in [t.meta[k]==v for k,v in filter1.items()]]
-		texts2=[t for t in c2.texts() if not False in [t.meta[k]==v for k,v in filter2.items()]]
+		texts1=[t for t in c1.texts() if not False in [t.meta[k]==v for k,v in list(filter1.items())]]
+		texts2=[t for t in c2.texts() if not False in [t.meta[k]==v for k,v in list(filter2.items())]]
 
-		print 'Matching from '+c1.name+' ('+str(len(texts1))+' texts)'
-		print '\t to '+c2.name+' ('+str(len(texts2))+' texts)'
-		print
+		print('Matching from '+c1.name+' ('+str(len(texts1))+' texts)')
+		print('\t to '+c2.name+' ('+str(len(texts2))+' texts)')
+		print()
 
 		matches={}
 
@@ -1098,10 +1103,10 @@ class Corpus(object):
 			matches[t1_id].sort(key=lambda _t: -_t[1])
 			for t2_id,mratio,is_match in matches[t1_id]:
 				dx={}
-				for k,v in c1.metad[t1_id].items():
+				for k,v in list(c1.metad[t1_id].items()):
 					if not k in ['author','title','year','id']: continue
 					dx[k+'1']=v
-				for k,v in c2.metad[t2_id].items():
+				for k,v in list(c2.metad[t2_id].items()):
 					if not k in ['author','title','year','id']: continue
 					dx[k+'2']=v
 				dx['match_ratio']=mratio
@@ -1125,18 +1130,18 @@ class Corpus(object):
 
 			if copy_txt:
 				if os.path.exists(t1.fnfn_txt): continue
-				print t2.fnfn_txt
-				print '-->'
-				print t1.fnfn_txt
-				print
+				print(t2.fnfn_txt)
+				print('-->')
+				print(t1.fnfn_txt)
+				print()
 				shutil.copyfile(t2.fnfn_txt, t1.fnfn_txt)
 
 			if copy_xml:
 				if os.path.exists(t1.fnfn_xml): continue
-				print t2.fnfn_xml
-				print '-->'
-				print t1.fnfn_xml
-				print
+				print(t2.fnfn_xml)
+				print('-->')
+				print(t1.fnfn_xml)
+				print()
 				shutil.copyfile(t2.fnfn_xml, t1.fnfn_xml)
 
 
@@ -1167,7 +1172,7 @@ class Corpus(object):
 		def writegen():
 			texts = self.texts()
 			for i1,t1 in enumerate(texts):
-				print '>>',i1,len(texts),'...'
+				print('>>',i1,len(texts),'...')
 				for i2,t2 in enumerate(texts):
 					if i1>=i2: continue
 					title1=t1.title
@@ -1202,10 +1207,10 @@ class Corpus(object):
 
 				title2texts=defaultdict(list)
 				for t in texts: title2texts[filter_title(t.title)]+=[t]
-				texts_unique_title=[x[0] for x in title2texts.values()]
+				texts_unique_title=[x[0] for x in list(title2texts.values())]
 				for title in title2texts:
 					for i1,t1 in enumerate(title2texts[title]):
-						print '>> a) finished {0} of {1} texts. currently on author #{2} of {3}, who has {4} texts. ...'.format(numtextsdone,NumTexts,ai1+1,numauthors,len(texts))
+						print('>> a) finished {0} of {1} texts. currently on author #{2} of {3}, who has {4} texts. ...'.format(numtextsdone,NumTexts,ai1+1,numauthors,len(texts)))
 						for i2,t2 in enumerate(title2texts[title]):
 							if t1.id>=t2.id: continue
 							dx={}
@@ -1221,7 +1226,7 @@ class Corpus(object):
 				if not author and anonymous_must_be_equal: continue
 
 				for i1,t1 in enumerate(texts_unique_title):
-					print '>> b) finished {0} of {1} texts. currently on author #{2} of {3} [{5}], who has {4} texts. ...'.format(numtextsdone,NumTexts,ai1+1,numauthors,len(texts),author.encode('utf-8',errors='ignore'))
+					print('>> b) finished {0} of {1} texts. currently on author #{2} of {3} [{5}], who has {4} texts. ...'.format(numtextsdone,NumTexts,ai1+1,numauthors,len(texts),author.encode('utf-8',errors='ignore')))
 
 					### HACK -->
 					if numtextsdone<250000:
@@ -1237,7 +1242,7 @@ class Corpus(object):
 						if t1.id>=t2.id: continue
 						#print (t1.id,t2.id), (t1.id,t2.id) in done, (t2.id,t1.id) in done
 						if (t1.id,t2.id) in done:
-							print '>> skipping'
+							print('>> skipping')
 							continue
 						nuncmp+=1
 						#print i1,i2,nuncmp,'..'
@@ -1250,7 +1255,7 @@ class Corpus(object):
 							for t2_x in title2texts[title2]:
 								if t1_x.id>=t2_x.id: continue
 								if (t1_x.id,t2_x.id) in done:
-									print '>> skipping'
+									print('>> skipping')
 									continue
 								dx={}
 								dx['id1'],dx['id2']=t1_x.id,t2_x.id
@@ -1278,13 +1283,13 @@ class Corpus(object):
 		G=nx.Graph()
 
 		threshold_range=[float(x) for x in threshold_range]
-		print '>> getting duplicates for thresholds:',threshold_range
+		print('>> getting duplicates for thresholds:',threshold_range)
 
 		for threshold in reversed(threshold_range):
 			threshold_count=0
-			print '>> computing LSH at threshold =',threshold,'...'
+			print('>> computing LSH at threshold =',threshold,'...')
 			lsh,hashd=self.lsh(threshold=threshold,path_hashes=path_hashes,suffix_hashes=suffix_hashes,hashd=hashd)
-			hash_keys = hashd.keys()
+			hash_keys = list(hashd.keys())
 			random.shuffle(hash_keys)
 			for idx1 in hash_keys:
 				if sample and threshold_count>=sample:
@@ -1295,8 +1300,8 @@ class Corpus(object):
 					if not G.has_edge(idx1,idx2):
 						G.add_edge(idx1,idx2,weight=float(threshold))
 						threshold_count+=1
-			print G.order(), G.size()
-			print
+			print(G.order(), G.size())
+			print()
 
 		def writegen1():
 			for a,b,d in sorted(G.edges(data=True),key=lambda tupl: -tupl[-1]['weight']):
@@ -1305,15 +1310,15 @@ class Corpus(object):
 				weight=d['weight']
 				dx={'0_jacc_estimate':weight}
 				dx['1_is_match']=''
-				for k,v in meta1.items(): dx[k+'_1']=v
-				for k,v in meta2.items(): dx[k+'_2']=v
+				for k,v in list(meta1.items()): dx[k+'_1']=v
+				for k,v in list(meta2.items()): dx[k+'_2']=v
 				yield dx
 
 		def writegen2():
 			g=G
 			gg = sorted(nx.connected_components(g), key = len, reverse=True)
 			for i,x in enumerate(gg):
-				print '>> cluster #',i,'has',len(x),'texts...'
+				print('>> cluster #',i,'has',len(x),'texts...')
 				#if len(x)>50000: continue
 				xset=x
 				x=list(x)
@@ -1333,7 +1338,7 @@ class Corpus(object):
 					dx['4_title']=metad.get('fullTitle','')
 					dx['5_author']=metad.get('author','')
 					dx['6_id']=metad.get('id','')
-					for k,v in metad.items(): dx[k]=v
+					for k,v in list(metad.items()): dx[k]=v
 					yield dx
 
 		ofn='data.duplicates.%s.txt' % self.name if not ofn else ofn
@@ -1343,7 +1348,7 @@ class Corpus(object):
 
 	def hashd(self,path_hashes=None,suffix_hashes=None,text_ids=None):
 		from datasketch import MinHash
-		import cPickle
+		import six.moves.cPickle
 
 		if not suffix_hashes: suffix_hashes='.hash.pickle'
 		if not path_hashes: path_hashes=self.path_txt.replace('_txt_','_hash_')
@@ -1358,7 +1363,7 @@ class Corpus(object):
 				#break
 			fnfn=os.path.join(path_hashes, idx+suffix_hashes)
 			try:
-				hashval=cPickle.load(open(fnfn))
+				hashval=six.moves.cPickle.load(open(fnfn))
 			except IOError as e:
 				hashobj=self.textd[idx].minhash
 				hashval=hashobj.digest()
@@ -1395,14 +1400,14 @@ class Corpus(object):
 			if nw<min_num_words:
 				del subcorpus2texts[sc]
 				continue
-			print sc, nw
+			print(sc, nw)
 
 		if dry_run: return
 
 		if not os.path.exists(odir): os.makedirs(odir)
 		for sc in sorted(subcorpus2texts):
 			fnfn=os.path.join(odir,sc+'.txt')
-			print '>> saving:',fnfn,'...'
+			print('>> saving:',fnfn,'...')
 			of=codecs.open(fnfn,'w',encoding='utf-8')
 			for text in subcorpus2texts[sc]:
 				of.write(text.text_plain + u'\n\n\n\n\n\n\n\n\n\n')
@@ -1441,7 +1446,7 @@ class Corpus(object):
 			#	del subcorpus2author2texts[sc]
 			#	continue
 
-			print sc,'\t',na_sc,'\t',nw_sc
+			print(sc,'\t',na_sc,'\t',nw_sc)
 
 		if dry_run: return
 
@@ -1480,7 +1485,7 @@ class CorpusMeta(Corpus):
 	def __init__(self,name,corpora):
 		self.name=name
 		self.path = os.path.dirname(__file__)
-		self.corpora=[name2corpus(c)() if type(c) in [str,unicode] else c for c in corpora]
+		self.corpora=[name2corpus(c)() if type(c) in [str,six.text_type] else c for c in corpora]
 		self.corpus2rank=dict([(c.name,i+1) for i,c in enumerate(self.corpora)])
 		self.corpus2metad={}
 		self.path_freq_table={}
@@ -1576,11 +1581,11 @@ class Corpus_in_Sections(Corpus):
 			from llp.text import TextSection
 			self.TEXT_SECTION_CLASS=TextSection
 
-	 	self._texts=[]
-	 	for dx in self._meta:
+		self._texts=[]
+		for dx in self._meta:
 			#print dx
 			section_num=int(dx['id'].split('/section')[1])
-	 		ts=self.TEXT_SECTION_CLASS(text=self.parent.textd[dx['text_id']],section_num=section_num,section_type=dx['section_type'])
+			ts=self.TEXT_SECTION_CLASS(text=self.parent.textd[dx['text_id']],section_num=section_num,section_type=dx['section_type'])
 			ts._meta=dx
 			self._texts+=[ts]
 
@@ -1699,7 +1704,7 @@ class CorpusGroups(Corpus):
 
 	def save_id2group(self,ofn=None):
 		if not ofn: ofn='data.groups.%s.id2group.txt' % self.corpus.name
-		ld=[{'id':idx, 'group':group} for idx,group in self.textid2group.items()]
+		ld=[{'id':idx, 'group':group} for idx,group in list(self.textid2group.items())]
 		tools.write(ofn,ld)
 
 
@@ -1725,7 +1730,7 @@ class CorpusGroups(Corpus):
 		self._desc+=['>> saving groups to %s' % ofolder]
 		self._desc+=['\t'+self.table_of_counts.replace('\n','\n\t')]
 		with codecs.open(os.path.join(ofolder,'log.txt'),'w') as lf: lf.write(self.log)      # write log
- 		for groupname,grouptexts in sorted(self.groups.items()):
+		for groupname,grouptexts in sorted(self.groups.items()):
 			#print '>> saving group "%s" with %s texts...' % (groupname,len(grouptexts))
 			ofnfn=os.path.join(ofolder2,str(groupname)+'.txt')
 			with codecs.open(ofnfn,'w',encoding='utf-8') as of:
@@ -1750,18 +1755,18 @@ class CorpusGroups(Corpus):
 def do_metadata_text(i,text,num_words=False,ocr_accuracy=False):
 	global ENGLISH
 	md=text.meta
-	print '>> starting:',i, text.id, len(md),'...'
+	print('>> starting:',i, text.id, len(md),'...')
 	if num_words or ocr_accuracy:
-		print '>> getting freqs:',i,text.id,'...'
+		print('>> getting freqs:',i,text.id,'...')
 		freqs=text.freqs()
-		print '>> computing values:',i,text.id,'...'
+		print('>> computing values:',i,text.id,'...')
 		if num_words:
 			md['num_words']=sum(freqs.values())
 		if ocr_accuracy:
-			num_words_recognized = sum([v for k,v in freqs.items() if k[0] in ENGLISH])
-			print md['num_words'], num_words_recognized
+			num_words_recognized = sum([v for k,v in list(freqs.items()) if k[0] in ENGLISH])
+			print(md['num_words'], num_words_recognized)
 			md['ocr_accuracy'] = num_words_recognized / float(md['num_words']) if float(md['num_words']) else 0.0
-	print '>> done:',i, text.id, len(md)
+	print('>> done:',i, text.id, len(md))
 	return [md]
 
 
@@ -1781,10 +1786,10 @@ def do_save_subcorpus(ofnfn,author2texts,subcorpus,slice_len=1000,num_words=5000
 		num_words_author_included=0
 
 		author_slices = tools.slice(author_words,slice_length=slice_len,runts=False)
-		print author,'has',len(author_words),'and',len(author_slices),'slices',
+		print(author,'has',len(author_words),'and',len(author_slices),'slices', end=' ')
 		random.shuffle(author_slices)
 		author_slices = author_slices[:(num_words/slice_len)]
-		print 'normalized to',len(author_slices),'slices'
+		print('normalized to',len(author_slices),'slices')
 		for slicex in author_slices:
 			f.write(' '.join(slicex)+'\n')
 			numlines+=1
@@ -1795,16 +1800,16 @@ def do_save_subcorpus(ofnfn,author2texts,subcorpus,slice_len=1000,num_words=5000
 		md={'author':author, 'subcorpus':subcorpus, 'num_words':num_words_author, 'num_words_included':num_words_author_included}
 		old+=[md]
 	f.close()
-	print 'DONE!'
-	print subcorpus
-	print numlines
-	print numwords
-	print
+	print('DONE!')
+	print(subcorpus)
+	print(numlines)
+	print(numwords)
+	print()
 	return old
 
 def skipgram_do_text(text,i=0,n=10):
 	from llp import tools
-	print i, text.id, '...'
+	print(i, text.id, '...')
 	from nltk import word_tokenize
 	words=word_tokenize(text.text_plain)
 	words=[w for w in words if True in [x.isalpha() for x in w]]
@@ -1814,7 +1819,7 @@ def skipgram_do_text(text,i=0,n=10):
 def skipgram_do_text2(text_i,n=10,lowercase=True):
 	text,i=text_i
 	import random
-	print i, text.id, '...'
+	print(i, text.id, '...')
 	from llp import tools
 	words=text.text_plain.strip().split()
 	words=[tools.noPunc(w.lower()) if lowercase else tools.noPunc(w) for w in words if True in [x.isalpha() for x in w]]
@@ -1867,10 +1872,10 @@ def save_tokenize_text(text,ofolder=None,force=False):
 	opath = os.path.split(ofnfn)[0]
 	if not os.path.exists(opath): os.makedirs(opath)
 	if not force and os.path.exists(ofnfn) and os.stat(ofnfn).st_size:
-		print '>> already tokenized:',text.id
+		print('>> already tokenized:',text.id)
 		return
 	else:
-		print '>> tokenizing:',text.id,ofnfn
+		print('>> tokenizing:',text.id,ofnfn)
 
 	from collections import Counter
 	import json,codecs

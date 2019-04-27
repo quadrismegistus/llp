@@ -1,9 +1,12 @@
+from __future__ import absolute_import
+from __future__ import print_function
+from six.moves import range
 def model_ranks_lm(self,fn=None):
     import pystats
     if not fn: fn='data.word2vec.consolidated.ranks.{0}.txt'.format(self.name)
-    print '>> loading:',fn
+    print('>> loading:',fn)
     ld=pytxt.tsv2ld(fn)
-    print '>> done.'
+    print('>> done.')
     for d in ld: d['W1_W2']=(d['word1'],d['word2'])
 
     #"""
@@ -14,7 +17,7 @@ def model_ranks_lm(self,fn=None):
         for dx in wld:
             dx['num_periods']=num_periods
             dx['has_max_periods']=num_periods==max_periods
-        print word1,word2
+        print(word1,word2)
         if num_periods!=max_periods: continue
         wld.sort(key=lambda _d: _d['model_1'])
         Y = [d['closeness_rank'] for d in wld]
@@ -28,7 +31,7 @@ def model_ranks_lm(self,fn=None):
     #"""
 
     for word1,wld in sorted(pytxt.ld2dld(ld,'word1').items()):
-        print word1,'...'
+        print(word1,'...')
         dld_wld=pytxt.ld2dld(wld,'model_1')
         period2sets={}
         for period,pld in sorted(dld_wld.items()):
@@ -65,10 +68,10 @@ def model_ranks_lm(self,fn=None):
     ## Compress by median-ing across runs
 
     def writegen():
-        for ww,wwld in dld.items():
+        for ww,wwld in list(dld.items()):
             dld2=pytxt.ld2dld(wwld,'model_1')
             old=[]
-            for pww,pwwld in dld2.items():
+            for pww,pwwld in list(dld2.items()):
                 newd={}
                 keys=set()
                 for d in pwwld: keys|=set(d.keys())
@@ -81,7 +84,7 @@ def model_ranks_lm(self,fn=None):
                 old+=[newd]
 
             dld2=pytxt.ld2dld(old,'model_1')
-            for pww,pwwld in dld2.items():
+            for pww,pwwld in list(dld2.items()):
                 for dx in pwwld:
                     #print sorted(d.keys())
                     if not dx['has_max_periods']: continue

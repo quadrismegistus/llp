@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 # -*- coding: utf-8 -*-
 
 #### TEXT CLASS
@@ -62,7 +63,7 @@ class TextChadwyck(Text):
 		#print chapter_tag,done,parent_tags
 		dom=bs4.BeautifulSoup(txt,'lxml')
 		# numretu
-		for ctag in parent_tags.values():
+		for ctag in list(parent_tags.values()):
 			for i,ctagx in enumerate(dom(ctag)):
 				ctagx['num']=i+1
 		for child_i,child in enumerate(chapter_tags):
@@ -94,7 +95,7 @@ class TextChadwyck(Text):
 					parent=xml_chapter.find_parent(ptag)
 
 					if parent:
-						for k,v in parent.attrs.items():
+						for k,v in list(parent.attrs.items()):
 							#print '>>',level,ptag,k,v
 							chapter_meta[k+'_'+ptag+'_in_doc' if '_in_' not in k else k]=v
 

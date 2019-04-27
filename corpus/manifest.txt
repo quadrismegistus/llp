@@ -123,6 +123,7 @@ name = ECCO_TCP
 desc = Eighteenth Century Collections Online (curated by the Text Creation Partnership)
 path_txt = ecco/_txt_ecco_tcp
 path_xml = ecco/_xml_ecco_tcp
+path_header = ecco/headers.ecco_tcp
 path_metadata = ecco/corpus-metadata.ECCO-TCP.xlsx
 path_python = ecco/ecco.py
 class_name = ECCO_TCP
