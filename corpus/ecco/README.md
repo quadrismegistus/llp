@@ -61,28 +61,28 @@ Non self-explanatory fields:
 	* A more specific genre designation, done manually by Ryan Heuser, so far applied only to what were originally declared non-fiction texts in "Genre" (see above). (Errors in the "Genre" tag were then manually corrected).
 	* Distribution (>5 occurrences):
 	```
-Essay                  297
-Fiction                143
-Pamphlet                97
-History                 79
-Treatise                71
-Letter                  53
-Sermon                  48
-Travel                  44
-Biography               28
-Satire                  23
-Oratory                 20
-Comedy                  13
-Memoir                  13
-Tract                    9
-Practical Treatise       9
-Periodical               8
-Criticism                7
-Panegyric                7
-Lecture                  7
-Tragedy                  6
-Dialogue                 6
-```
+	Essay                  297
+	Fiction                143
+	Pamphlet                97
+	History                 79
+	Treatise                71
+	Letter                  53
+	Sermon                  48
+	Travel                  44
+	Biography               28
+	Satire                  23
+	Oratory                 20
+	Comedy                  13
+	Memoir                  13
+	Tract                    9
+	Practical Treatise       9
+	Periodical               8
+	Criticism                7
+	Panegyric                7
+	Lecture                  7
+	Tragedy                  6
+	Dialogue                 6
+	```
 
 * Topic:
 	* Another incomplete ad hoc designation by Ryan Heuser.
