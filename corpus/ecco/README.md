@@ -43,7 +43,7 @@ Non self-explanatory fields:
 		```
 
 * **Medium**:
-	* Verse or Prose. Automatically determined:
+	* Verse or Prose. Automatically determined (accuracy unknown):
 		```python
 		# The medium of a text is 'verse'
 		# if the number of line tags outnumbers the number of paragraph tags:
