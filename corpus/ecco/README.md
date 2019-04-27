@@ -16,7 +16,7 @@ ECCO-TCP is able to be shared freely. Here are links to versions of the metadata
 
 ### Metadata
 
-I've extracted the metadata from the XML files. It can be found [here]().
+I've extracted the metadata from the header metadata files, and saved it in an Excel file, along with custom columns, some of which are explained just below. The metadata file can be found [here](https://www.dropbox.com/s/9ex8rkfsbysc1oi/corpus-metadata.ECCO-TCP.xlsx?dl=0).
 
 Non self-explanatory fields:
 * **Genre**:
