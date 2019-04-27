@@ -19,7 +19,7 @@ ECCO-TCP is able to be shared freely. Here are links to versions of the metadata
 I've extracted the metadata from the XML files. It can be found [here]().
 
 Non self-explanatory fields:
-* Genre:
+* **Genre**:
 	* When available (in 2,188 of 2,387 cases), the genre of the text is taken from the metadata produced by Ted Underwood and Jordan Sellars in "The Emergence of Literary Diction" (*Journal of Digital Humanities*, 2012). Original data is [here]() (although currently a 404); my copy of it is [here](https://www.dropbox.com/s/ct1kf9p9sxjprqy/corpus-metadata.TedJDH.xls?dl=0), and [here](https://www.dropbox.com/s/a6k21lgew1pztby/matches.TedJDH--ECCO-TCP.xls?dl=0) is a list of the matches between the original ECCO-TCP and Underwood's and Sellars' corpus.
 	* The remaining 199 texts were assigned a genre tag by Ryan Heuser, attempting to follow the general annotation schema of Underwood and Sellars.
 	* Distribution:
@@ -39,7 +39,7 @@ Non self-explanatory fields:
 		Non-English      1
 		```
 
-* Medium:
+* **Medium**:
 	* Verse or Prose. Automatically determined:
 		```python
 		# The medium of a text is 'verse'
@@ -56,7 +56,7 @@ Non self-explanatory fields:
 		Mixed       2
 		```
 
-* Form:
+* **Form**:
 	* A more specific genre designation, done manually by Ryan Heuser, so far applied only to what were originally declared non-fiction texts in "Genre" (see above). (Errors in the "Genre" tag were then manually corrected).
 	* Distribution (>5 occurrences):
 		```
@@ -83,7 +83,7 @@ Non self-explanatory fields:
 		Dialogue                 6
 		```
 
-* Topic:
+* **Topic**:
 	* Another incomplete ad hoc designation by Ryan Heuser.
 
 ### XML Files
