@@ -46,9 +46,7 @@ Non self-explanatory fields:
 		# if the number of line tags outnumbers the number of paragraph tags:
 		medium = 'Verse' if tag_counts['</L>'] > tag_counts['</P>'] else 'Prose'
 		```
-
-	A separate 'mixed' designation was manually assigned to two texts (miscellanies).
-
+	* A separate 'mixed' designation was manually assigned to two texts (miscellanies).
 	* Distribution:
 		```
 		Prose    1644
