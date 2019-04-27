@@ -23,39 +23,38 @@ Non self-explanatory fields:
 	* When available (in 2,188 of 2,387 cases), the genre of the text is taken from the metadata produced by Ted Underwood and Jordan Sellars in "The Emergence of Literary Diction" (*Journal of Digital Humanities*, 2012). Original data is [here]() (although currently a 404); my copy of it is [here](https://www.dropbox.com/s/ct1kf9p9sxjprqy/corpus-metadata.TedJDH.xls?dl=0), and [here](https://www.dropbox.com/s/a6k21lgew1pztby/matches.TedJDH--ECCO-TCP.xls?dl=0) is a list of the matches between the original ECCO-TCP and Underwood's and Sellars' corpus.
 	* The remaining 199 texts were assigned a genre tag by Ryan Heuser, attempting to follow the general annotation schema of Underwood and Sellars.
 	* Distribution:
-	```
-	Non-Fiction    959
-	Poetry         464
-	Drama          441
-	Fiction        299
-	Biography       67
-	Sermon          48
-	Letter          44
-	Oratory         30
-	Miscellany      26
-	Dialogue         5
-	Trial            2
-	French           1
-	Non-English      1
-	```
+		```
+		Non-Fiction    959
+		Poetry         464
+		Drama          441
+		Fiction        299
+		Biography       67
+		Sermon          48
+		Letter          44
+		Oratory         30
+		Miscellany      26
+		Dialogue         5
+		Trial            2
+		French           1
+		Non-English      1
+		```
 
 * Medium:
 	* Verse or Prose. Automatically determined:
-
-	```python
-	# The medium of a text is 'verse'
-	# if the number of line tags outnumbers the number of paragraph tags:
-	medium = 'Verse' if tag_counts['</L>'] > tag_counts['</P>'] else 'Prose'
-	```
+		```python
+		# The medium of a text is 'verse'
+		# if the number of line tags outnumbers the number of paragraph tags:
+		medium = 'Verse' if tag_counts['</L>'] > tag_counts['</P>'] else 'Prose'
+		```
 
 	A separate 'mixed' designation was manually assigned to two texts (miscellanies).
 
 	* Distribution:
-	```
-	Prose    1644
-	Verse     741
-	Mixed       2
-	```
+		```
+		Prose    1644
+		Verse     741
+		Mixed       2
+		```
 
 * Form:
 	* A more specific genre designation, done manually by Ryan Heuser, so far applied only to what were originally declared non-fiction texts in "Genre" (see above). (Errors in the "Genre" tag were then manually corrected).
