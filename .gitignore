@@ -5,6 +5,7 @@ corpus/*
 !corpus/*.py
 !corpus/default/
 !corpus/**/*.py
+!corpus/**/*.md
 corpus/_matches
 .DS_Store
 model/_models_word2vec/

@@ -4,7 +4,9 @@
 
 From its [website](https://www.textcreationpartnership.org/tcp-ecco/): "ECCO-TCP is a partnership with Gale, part of Cengage Learning, to produce highly accurate, fully-searchable, SGML/XML-encoded texts from among the 150,000 titles available in the Eighteenth Century Collections Online (ECCO) database."
 
-### Files
+ECCO-TCP is able to be shared freely. Here are links to versions of the metadata and data that I have adapted from the originals. Documentation on what was changed is also below.
+
+### Download
 
 * [Metadata](https://www.dropbox.com/s/9ex8rkfsbysc1oi/corpus-metadata.ECCO-TCP.xlsx?dl=0)
 * [XML files](https://www.dropbox.com/s/yr6dz7clk4w5y2s/xml_eccotcp.zip?dl=0)
