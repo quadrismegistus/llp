@@ -15,7 +15,7 @@ ECCO-TCP is able to be shared freely. Here are links to versions of the metadata
 * [XML schema description](https://www.dropbox.com/s/rwsvoee35pf61yw/schemas_eccotcp.zip?dl=0)
 * [(All of the above in a single zip file [320MB])](https://www.dropbox.com/s/mrqof6muiodu67u/ECCO_TCP.metadata%2Bxml%2Btxt.zip?dl=0)
 
-See the Dropbox folder [here](https://www.dropbox.com/sh/59xxy7fzg3va4ir/AABRcKXr4pndrLilXWgsSW1ha?dl=0).
+Or see the Dropbox folder [here](https://www.dropbox.com/sh/59xxy7fzg3va4ir/AABRcKXr4pndrLilXWgsSW1ha?dl=0).
 
 ### Metadata
 
