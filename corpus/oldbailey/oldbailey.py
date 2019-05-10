@@ -1,8 +1,9 @@
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import
 from __future__ import print_function
-# -*- coding: utf-8 -*-
 
-import codecs,os,bs4
+
+import codecs,os
 
 from llp.text import Text
 
@@ -17,6 +18,7 @@ class TextOldBailey(Text):
 		md['id']=self.id
 		md['medium']='Dialogue'
 
+		import bs4
 		dom=bs4.BeautifulSoup(self.text_xml,'lxml')
 		for tag in bad_tags: [x.extract() for x in dom.findAll(tag)]
 
@@ -32,6 +34,7 @@ class TextOldBailey(Text):
 
 	def text_plain(self, dialogue_only=True, BAD=['']):
 		txt=[]
+		import bs4
 		dom=bs4.BeautifulSoup(self.text_xml,'lxml')
 		for tag in BAD: [x.extract() for x in dom.findAll(tag)]
 		if dialogue_only or True: # @TODO other option hasn't been implemented yet
