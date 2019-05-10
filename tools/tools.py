@@ -7,6 +7,10 @@ from six.moves import zip
 from functools import reduce
 LIT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 CONFIG_PATH = os.path.join(LIT_ROOT,'config.txt')
+
+#WORDDB_FN = '/Users/ryan/DH/18C/data/data.worddb.txt'
+WORDDB_FN = '/Users/ryan/DH/Dissertation/agency/data.worddb.2019.txt'
+
 config = configparser.ConfigParser()
 config.read(CONFIG_PATH)
 config = dict([(k.upper(),v) for k,v in list(config['Default'].items())])
@@ -89,8 +93,12 @@ def to_singular(ld):
 	p=inflect.engine()
 	return [d for d in ld if p.singular_noun(d['word']) in {d['word'],False}]
 
+def worddf():
+	import pandas as pd
+	return pd.read_csv(WORDDB_FN,sep='\t')
+
 def worddb(abs_key = 'Complex Substance (Locke) <> Mixed Modes (Locke)_max',conc_key='Complex Substance (Locke) <> Mixed Modes (Locke)_min',cutoff_abs=0.1,cutoff_conc=-0.1,allow_names=False,only_content_words=True):
-	worddb = read_ld('/Users/ryan/DH/18C/data/data.worddb.txt')
+	worddb = read_ld(WORDDB_FN)
 	for d in worddb:
 		d['Abstract/Concrete'] = ''
 

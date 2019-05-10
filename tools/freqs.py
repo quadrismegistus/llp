@@ -53,15 +53,30 @@ def get_fields(fnfn='/Users/ryan/DH/Dissertation/abstraction/words/data.fields.t
 
 	return field2words
 
-def get_word2fields(fnfn='/Users/ryan/DH/Dissertation/abstraction/words/data.field_words.txt', only_fields={'W2V.Locke.Abstract', 'W2V.Locke.Concrete'}):
+def get_word2pos(worddb=None, word_col='word', pos_col='pos_byu'):
+	from llp.tools import worddf
+	df=worddf()
+	return dict(zip(df[word_col],df[pos_col]))
+
+def get_word2fields(fnfn='/Users/ryan/DH/Dissertation/abstraction/words/data.field_words.txt',
+only_fields={'W2V.Locke.Abstract', 'W2V.Locke.Concrete'},
+only_pos={'n','v','r','j'}):
 	from llp import tools
 	from collections import defaultdict
+	if only_pos: w2pos=get_word2pos()
+
 	w2f=defaultdict(list)
 	for dx in tools.readgen(fnfn):
 		try:
 			w=dx['word']
 			f=dx['field']
 			if only_fields and not f in only_fields: continue
+
+			if only_pos:
+				pos=w2pos.get(w,'')
+				if True not in [pos.startswith(x) for x in only_pos]:
+					continue
+
 			w2f[w]+=[f]
 		except KeyError:
 			pass
