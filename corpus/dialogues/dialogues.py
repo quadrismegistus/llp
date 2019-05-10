@@ -1,9 +1,10 @@
-from __future__ import absolute_import
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+
 
 
 #### TEXT CLASS
-import codecs,os,bs4
+import codecs,os
 from llp.text import Text
 
 class TextEnglishDialogues(Text):
@@ -17,7 +18,7 @@ class TextEnglishDialogues(Text):
 		md['medium']='Dialogue'
 		#num_lines=0
 		#num_stanzas=0
-
+		import bs4
 		dom=bs4.BeautifulSoup(self.text_xml,'lxml')
 		header=dom('dialogueheader')[0]
 		for tag in header:
@@ -44,6 +45,7 @@ class TextEnglishDialogues(Text):
 
 	def text_plain(self, dialogue_only=True, BAD=['comment']):
 		txt=[]
+		import bs4
 		dom=bs4.BeautifulSoup(self.text_xml,'lxml')
 		for tag in BAD: [x.extract() for x in dom.findAll(tag)]
 		if dialogue_only or True: # @TODO other option hasn't been implemented yet
