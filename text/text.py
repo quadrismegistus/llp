@@ -159,12 +159,21 @@ class Text(object):
 			for word in self.all_tokens():
 				word=word.replace('\n','<br/>')
 				w=word.lower()
-				fields=' '.join(['field_'+field.replace('.','_') for field in word2fields.get(w,[])])
-				if fields:
-					tag=u'<span class="{fields}">{word}</span>'.format(fields=fields, word=word)
+				if not w: continue
+				print(w)
+				if w[0].isalpha():
+					fields=' '.join(['field_'+field.replace('.','_') for field in word2fields.get(w,[])])
+					if fields:
+						tag=u'<span class="{fields}">{word}</span>'.format(fields=fields, word=word)
+					else:
+						tag=word
+					tags+=[tag]
+				elif tags:
+					print(word)
+					tags[-1]+=word
 				else:
-					tag=word
-				tags+=[tag]
+					tags+=[word]
+
 			return '\n'.join(tags)
 
 
@@ -196,6 +205,14 @@ class Text(object):
 
 			_i=int(dx.get('_i',-1))
 			w=word.lower()
+
+			# punct
+			if not w: continue
+			if not w[0].isalnum():
+				tags[-1]+=w
+				continue
+
+
 			classes=[]
 			classes+=['field_'+field.replace('.','_') for field in word2fields.get(w,[])]
 			if para!=dx.get('para',para):
@@ -474,7 +491,9 @@ class Text(object):
 
 	@property
 	def words(self):
-		return [a for a,b in self.tokens]
+		#return [a for a,b in self.tokens]
+		#return self.tokens_plain
+		return self.blob.words
 
 	@property
 	def tokens_plain(self):
@@ -485,6 +504,16 @@ class Text(object):
 		except IOError:
 			return []
 
+	@property
+	def nltk(self):
+		from nltk import word_tokenize
+		tokens = word_tokenize(self.text_plain())
+		return nltk.Text(tokens)
+
+	@property
+	def blob(self):
+		from textblob import TextBlob
+		return TextBlob(self.text_plain())
 
 	@property
 	def num_words(self,keys=['num_words_adorn','num_words']):

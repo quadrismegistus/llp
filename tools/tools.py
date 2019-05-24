@@ -9,11 +9,13 @@ LIT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 CONFIG_PATH = os.path.join(LIT_ROOT,'config.txt')
 
 #WORDDB_FN = '/Users/ryan/DH/18C/data/data.worddb.txt'
-WORDDB_FN = '/Users/ryan/DH/Dissertation/agency/data.worddb.2019.txt'
+#WORDDB_FN = '/Users/ryan/DH/Dissertation/agency/data.worddb.2019.txt'
 
 config = configparser.ConfigParser()
 config.read(CONFIG_PATH)
 config = dict([(k.upper(),v) for k,v in list(config['Default'].items())])
+
+WORDDB_FN = config.get('PATH_TO_WORDDB')
 
 ENGLISH=None
 
@@ -94,11 +96,20 @@ def to_singular(ld):
 	return [d for d in ld if p.singular_noun(d['word']) in {d['word'],False}]
 
 def worddf():
+	WORDDB_PATH = config.get('PATH_TO_WORDDB')
+	if not WORDDB_PATH: raise Exception('!! PATH_TO_WORDDB not set in config.txt')
+	if not WORDDB_PATH.startswith(os.path.sep): WORDDB_PATH=os.path.join(LIT_ROOT,WORDDB_PATH)
+
 	import pandas as pd
-	return pd.read_csv(WORDDB_FN,sep='\t')
+	return pd.read_csv(WORDDB_PATH,sep='\t')
 
 def worddb(abs_key = 'Complex Substance (Locke) <> Mixed Modes (Locke)_max',conc_key='Complex Substance (Locke) <> Mixed Modes (Locke)_min',cutoff_abs=0.1,cutoff_conc=-0.1,allow_names=False,only_content_words=True):
-	worddb = read_ld(WORDDB_FN)
+	WORDDB_PATH = config.get('PATH_TO_WORDDB')
+	if not WORDDB_PATH: raise Exception('!! PATH_TO_WORDDB not set in config.txt')
+	if not WORDDB_PATH.startswith(os.path.sep): WORDDB_PATH=os.path.join(LIT_ROOT,WORDDB_PATH)
+
+
+	worddb = read_ld(WORDDB_PATH)
 	for d in worddb:
 		d['Abstract/Concrete'] = ''
 
@@ -163,7 +174,7 @@ def writegen(fnfn,generator,header=None,args=[],kwargs={}):
 		writer.writeheader()
 		for i,dx in enumerate(iterator):
 			for k,v in dx.items():
-				if type(v) in [unicode]:
+				if type(v) in [str]:
 					dx[k]=v.encode('utf-8')
 			writer.writerow(dx)
 	print('>> saved:',fnfn)

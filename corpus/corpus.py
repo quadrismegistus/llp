@@ -166,6 +166,8 @@ class Corpus(object):
 	def num_texts(self):
 		return len(self.texts())
 
+	def path2text(self,path_key='path_txt'):
+		return dict((getattr(t,path_key),t) for t in self.texts())
 
 	## Sections
 	@property
@@ -1570,6 +1572,7 @@ class Corpus_in_Sections(Corpus):
 
 	#@property
 	#def path_freq_table(self): return self.parent.path_freq_table
+
 
 	def get_section(self,idx):
 		sidx=idx.split('/')[-1]

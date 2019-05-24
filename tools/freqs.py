@@ -37,17 +37,23 @@ def measure_fields(word_counts,fields={},only_fields=None):
 
 	return cd
 
-def get_fields(fnfn='/Users/ryan/DH/Dissertation/abstraction/words/data.fields.txt',only_fields={},word2fields={}):
+def get_fields(fnfn='/Users/ryan/DH/Dissertation/abstraction/words/data.fields.txt',only_fields={},only_pos={},word2fields={}):
 	#from llp import tools
 	#fd=field2words={}
 	#for d in tools.readgen(fnfn):
 	#	field2words[d['field']]=set(d['words'].split())
 	from collections import defaultdict
 	field2words=defaultdict(set)
+	if only_pos: w2pos=get_word2pos()
 
 	word2fields = get_word2fields(only_fields=only_fields) if not word2fields else word2fields
 
 	for word,fields in list(word2fields.items()):
+		if only_pos:
+			pos=w2pos.get(w,'')
+			if True not in [pos.startswith(x) for x in only_pos]:
+				continue
+
 		for f in fields:
 			field2words[f]|={word}
 
@@ -59,7 +65,7 @@ def get_word2pos(worddb=None, word_col='word', pos_col='pos_byu'):
 	return dict(zip(df[word_col],df[pos_col]))
 
 def get_word2fields(fnfn='/Users/ryan/DH/Dissertation/abstraction/words/data.field_words.txt',
-only_fields={'W2V.Locke.Abstract', 'W2V.Locke.Concrete'},
+only_fields={'W2V.HGI.Abstract', 'W2V.HGI.Concrete'},
 only_pos={'n','v','r','j'}):
 	from llp import tools
 	from collections import defaultdict
