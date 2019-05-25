@@ -8,9 +8,6 @@ from functools import reduce
 LIT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 CONFIG_PATH = os.path.join(LIT_ROOT,'config.txt')
 
-#WORDDB_FN = '/Users/ryan/DH/18C/data/data.worddb.txt'
-#WORDDB_FN = '/Users/ryan/DH/Dissertation/agency/data.worddb.2019.txt'
-
 config = configparser.ConfigParser()
 config.read(CONFIG_PATH)
 config = dict([(k.upper(),v) for k,v in list(config['Default'].items())])
