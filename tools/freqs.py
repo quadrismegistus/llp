@@ -1,6 +1,8 @@
 from __future__ import absolute_import
 
-import os
+import codecs,configparser,os,re
+from collections import defaultdict
+
 from llp import tools
 LIT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 CONFIG_PATH = os.path.join(LIT_ROOT,'config.txt')
@@ -23,17 +25,28 @@ def measure_fields(word_counts,fields={},only_fields=None):
 
 	return cd
 
-def get_field2words(fnfn=None,only_fields={},only_pos={},word2fields={}):
+def get_field2words(fnfn=None,only_fields={},only_pos={},word2fields={},sep='\t'):
 	if not fnfn: fnfn=config.get('PATH_TO_FIELDS')
 	if not fnfn: return {}
+	if not fnfn.startswith(os.path.sep): fnfn=os.path.join(LIT_ROOT,fnfn)
 
 
-	#fd=field2words={}
+	fd=field2words={}
 	if only_pos: w2pos=get_word2pos()
-	for d in tools.readgen(fnfn):
-		field2words[d['field']]=set(d['words'].split())
-		if only_pos:
-			field2words[d['field']]={w for w in field2words[d['field']] if w2pos.get(w) in only_pos}
+	with open(fnfn) as file:
+		header=None
+		for i,ln in enumerate(file):
+			dat=ln.strip().split(sep)
+			if not header:
+				header=dat
+				continue
+			d=dict(zip(header,dat))
+			field=d.get('field','')
+			if not field: continue
+			words=set(d.get('words','').split())
+			field2words[field]=words
+			if only_pos:
+				field2words[field]={w for w in field2words[field] if True in [w2pos.get(w,'').startswith(x) for x in only_pos]}
 
 	return field2words
 
@@ -80,3 +93,7 @@ only_pos={'n','v','r','j'}):
 		for word in words:
 			word2fields[word]|={field}
 	return word2fields
+
+
+
+get_fields = get_field2words
