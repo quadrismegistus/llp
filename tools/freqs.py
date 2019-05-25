@@ -3,7 +3,6 @@ from __future__ import absolute_import
 import codecs,configparser,os,re
 from collections import defaultdict
 
-from llp import tools
 LIT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 CONFIG_PATH = os.path.join(LIT_ROOT,'config.txt')
 config = configparser.ConfigParser()
