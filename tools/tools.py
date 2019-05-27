@@ -1103,3 +1103,17 @@ def yank(text,tag,none=None):
 
 def tagname2tagtup(tagname):
 	return ('<'+tagname+'>','</'+tagname+'>')
+
+
+
+
+def product(*args):
+	if not args:
+		return iter(((),)) # yield tuple()
+	return (items + (item,)
+		for items in product(*args[:-1]) for item in args[-1])
+
+
+def zfy(data):
+	from scipy.stats import zscore
+	return zscore(data)

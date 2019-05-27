@@ -75,7 +75,7 @@ class TextChadwyckPoetry(Text):
 
 
 	# from /home/users/heuser/workspace/jupyter/prosodic_chadwyck/prosodic_parser.py
-	def text_plain(self, OK=['l','lb'], BAD=['note'], body_tag='poem', line_lim=None, modernize_spelling=True):
+	def text_plain(self, OK=['l','lb'], BAD=['note','edit'], body_tag='poem', line_lim=None, modernize_spelling=True):
 		#if not self.exists: return ''
 		if os.path.exists(self.fnfn_txt):
 			print('>> text_plain from stored text file:',self.fnfn_txt)

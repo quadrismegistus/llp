@@ -29,8 +29,8 @@ def get_field2words(fnfn=None,only_fields={},only_pos={},word2fields={},sep='\t'
 	if not fnfn: return {}
 	if not fnfn.startswith(os.path.sep): fnfn=os.path.join(LIT_ROOT,fnfn)
 
-
-	fd=field2words={}
+	from collections import defaultdict
+	fd=field2words=defaultdict(set)
 	if only_pos: w2pos=get_word2pos()
 	with open(fnfn) as file:
 		header=None

@@ -17,7 +17,7 @@ TOP2000SINGNOUN=dict(n=2000,only_pos='NN',pos_regex=False,remove_stopwords=True,
 
 DEFAULT_MFWD=TOP5000
 
-import os,gensim,logging,time,numpy as np,random,pystats
+import os,gensim,logging,time,numpy as np,random
 from llp.model import Model
 from scipy.spatial.distance import cosine,pdist,squareform,cdist
 from scipy.stats import pearsonr,spearmanr
@@ -737,13 +737,12 @@ class Word2Vec(Model):
 
 
 	def model_lm(self,fn='data.word2vec.singnouns.ECCO-TCP.txt',top_words=1000):
-		import pystats
 
 		ld=tools.tsv2ld(fn)
 		ld = [d for d in ld if d['rank']<=top_words]
 		keys = list(ld[0].keys())
 		keys.remove('word')
-		poss=[(k1,k2) for k1,k2 in pystats.product(keys,keys) if k1!=k2]
+		poss=[(k1,k2) for k1,k2 in tools.product(keys,keys) if k1!=k2]
 		numposs=len(poss)
 		old=[]
 		for i,(k1,k2) in enumerate(poss):
@@ -1247,7 +1246,7 @@ def entropy(fn='data.word2vec.nouns.entropy3.txt'):
 			continue
 		vector_israndom = False if vectorname in vectord else True
 		vals = dl[vectorname]
-		vals_z=pystats.zfy(vals)
+		vals_z=tools.zfy(vals)
 		num_above1std = len([v for v in vals_z if abs(v)>=1.0])
 		num_above_point_1 = len([v for v in vals if abs(v)>=0.1])
 

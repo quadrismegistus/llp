@@ -40,7 +40,7 @@ def phrase2variants(phrase):
 	s2v=standard2variant()
 	words = phrase.split()
 	word_opts = [[s]+s2v[s] for s in words]
-	word_combos = list(pystats.product(*word_opts))
+	word_combos = list(tools.product(*word_opts))
 	phrase_combos = [' '.join(x) for x in word_combos]
 	return phrase_combos
 ###

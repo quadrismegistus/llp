@@ -1676,7 +1676,7 @@ class CorpusGroups(Corpus):
 			if len(yr)!=4: return 0
 			year=int(yr)
 			year+=plus
-			dec=year/int(res)*int(res)
+			dec=year//int(res)*int(res)
 			return dec
 
 		# group texts

@@ -149,32 +149,39 @@ class Text(object):
 	def fast_counts(self):
 		return Counter(self.fast_tokens())
 
-	def html(self,word2fields={},bad_words={'[','Footnote'},bad_strs={'Kb'},fn_model_result=None,fn_model_coeffs=None):
-		if self.is_parsed_spacy:
-			return self.html_spacy(word2fields=word2fields,bad_words=bad_words,bad_strs=bad_strs,fn_model_result=fn_model_result,fn_model_coeffs=fn_model_coeffs)
-		else:
-			tags=[]
-			#words=self.fast_tokens()
-			#fields=' '.join(['field_'+field.replace('.','_') for field in word2fields.get(w,[])])
-			for word in self.all_tokens():
-				word=word.replace('\n','<br/>')
-				w=word.lower()
-				if not w: continue
-				print(w)
-				if w[0].isalpha():
-					fields=' '.join(['field_'+field.replace('.','_') for field in word2fields.get(w,[])])
-					if fields:
-						tag=u'<span class="{fields}">{word}</span>'.format(fields=fields, word=word)
-					else:
-						tag=word
-					tags+=[tag]
-				elif tags:
-					print(word)
-					tags[-1]+=word
-				else:
-					tags+=[word]
+	def html(self,word2fields={},bad_words={'[','Footnote'},bad_strs={'Kb'},fn_model_result=None,fn_model_coeffs=None,data={}):
 
-			return '\n'.join(tags)
+		if False: #self.is_parsed_spacy:
+			html=self.html_spacy(word2fields=word2fields,bad_words=bad_words,bad_strs=bad_strs,fn_model_result=fn_model_result,fn_model_coeffs=fn_model_coeffs)
+
+			return html,data
+
+		from collections import Counter
+		field_counts = Counter()
+
+		tags=[]
+		#words=self.fast_tokens()
+		#fields=' '.join(['field_'+field.replace('.','_') for field in word2fields.get(w,[])])
+		for word in self.all_tokens():
+			word=word.replace('\n','<br/>')
+			w=word.lower()
+			if not w: continue
+			if w[0].isalpha():
+				field_counts.update(word2fields.get(w,[]))
+				if w in word2fields:
+					field_counts['has_field']+=1
+				fields=' '.join(['field_'+field.replace('.','_') for field in word2fields.get(w,[])])
+				if fields:
+					tag=u'<span class="{fields} word">{word}</span>'.format(fields=fields, word=word)
+				else:
+					tag=word
+				tags+=[tag]
+			elif tags:
+				tags[-1]+=word
+			else:
+				tags+=[word]
+
+		return '\n'.join(tags),field_counts
 
 
 	def html_spacy(self,word2fields={},bad_words={'[','Footnote'},bad_strs={'Kb'},fn_model_result=None,fn_model_coeffs=None):
