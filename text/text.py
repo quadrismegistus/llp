@@ -74,7 +74,7 @@ class Text(object):
 	@property
 	def fnfn_txt(self):
 		if hasattr(self,'_fnfn_txt') and self._fnfn_txt: return self._fnfn_txt
-		return os.path.join(self.corpus.path_txt, self.id.encode('utf-8',errors='ignore') + self.ext_txt)
+		return os.path.join(self.corpus.path_txt, self.id.decode('utf-8',errors='ignore') + self.ext_txt)
 
 	@property
 	def path_txt(self): return self.fnfn_txt
