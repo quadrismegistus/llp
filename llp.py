@@ -1,8 +1,7 @@
 from __future__ import absolute_import
 from __future__ import print_function
 import os,codecs
-from . import tools
-from .tools import *
+from tools import *
 
 ROOT = os.path.dirname(os.path.realpath(__file__))
 SPELLING_VARIANT_PATH=os.path.join(ROOT,'data/spelling_variants_from_morphadorner.txt')
