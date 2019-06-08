@@ -1,1 +1,1 @@
-from .lithist import LitHist
+from .lithist import *

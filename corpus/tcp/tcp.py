@@ -4,7 +4,7 @@ from __future__ import print_function
 import os
 from llp.corpus import Corpus,Corpus_in_Sections
 from llp import tools
-STYPE_FN=os.path.join(__file__,'data.section_types.xlsx')
+STYPE_FN=os.path.abspath(os.path.join(__file__,'../data.section_types.xlsx'))
 
 
 import os,codecs

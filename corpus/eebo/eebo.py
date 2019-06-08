@@ -2,7 +2,7 @@ from __future__ import absolute_import
 # -*- coding: utf-8 -*-
 import codecs
 from llp.text import Text
-from llp.text.tcp import TextTCP
+from llp.corpus.tcp import TextTCP
 
 class TextEEBO_TCP(TextTCP):
 	@property
@@ -22,8 +22,7 @@ class TextEEBO_TCP(TextTCP):
 		return self._meta
 
 import os
-from llp.corpus.tcp import TCP
-from llp.text.tcp import TextSectionTCP
+from llp.corpus.tcp import TCP,TextSectionTCP
 
 class EEBO_TCP(TCP):
 	"""
@@ -45,5 +44,5 @@ class EEBO_TCP(TCP):
 	TEXT_SECTION_CLASS=TextSectionTCP
 
 	def __init__(self):
-		super(EEBO_TCP,self).__init__('EEBO-TCP',self.PATH_XML,self.PATH_INDEX,self.EXT_XML,path_metadata=self.PATH_METADATA)
+		super(EEBO_TCP,self).__init__('EEBO-TCP',self.PATH_XML,self.PATH_INDEX,ext_xml=self.EXT_XML,path_metadata=self.PATH_METADATA)
 		self.path = os.path.dirname(__file__)

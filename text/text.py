@@ -74,7 +74,8 @@ class Text(object):
 	@property
 	def fnfn_txt(self):
 		if hasattr(self,'_fnfn_txt') and self._fnfn_txt: return self._fnfn_txt
-		return os.path.join(self.corpus.path_txt, self.id.decode('utf-8',errors='ignore') + self.ext_txt)
+		#print(type(self.corpus.path_txt), type(self.id), type(self.ext_txt))
+		return os.path.join(self.corpus.path_txt, self.id + self.ext_txt)
 
 	@property
 	def path_txt(self): return self.fnfn_txt
@@ -585,8 +586,12 @@ class Text(object):
 
 	@property
 	def fnfn_freqs(self):
-		fnfn=os.path.join(self.corpus.path, 'freqs', self.corpus.name, self.id+'.json')
+		#fnfn=os.path.join(self.corpus.path, 'freqs', self.corpus.name, self.id+'.json')
+		fnfn=os.path.join(self.corpus.path_freqs, self.id+'.json')
 		return fnfn
+
+	@property
+	def path_freqs(self): return self.fnfn_freqs
 
 	#@property
 	def freqs(self,modernize_spelling=False,modernize_spelling_before=3000,use_text_if_nec=True):

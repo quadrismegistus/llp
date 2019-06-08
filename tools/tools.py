@@ -929,8 +929,9 @@ def modernize_spelling_in_txt(txt,spelling_d):
 
 ### multiprocessing
 def crunch(objects,function_or_methodname,ismethod=None,nprocs=8,args=[],kwargs={}):
-	import time,random
-	ismethod=type(function_or_methodname) in [str,six.text_type] if ismethod is None else ismethod
+	import time,random,six
+	#ismethod=type(function_or_methodname) in [str,six.text_type] if ismethod is None else ismethod
+	ismethod=type(function_or_methodname) in [str] if ismethod is None else ismethod
 
 	def do_preparse(text,args=[],kwargs={}):
 		threadid=os.getpid()
@@ -947,7 +948,8 @@ def crunch(objects,function_or_methodname,ismethod=None,nprocs=8,args=[],kwargs=
 
 	import six.moves._thread,multiprocessing,os
 	from multiprocessing import Process, Pipe
-	from itertools import izip
+	#from itertools import zip
+	izip=zip
 
 	def spawn(f):
 		def fun(q_in,q_out):
