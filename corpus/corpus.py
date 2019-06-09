@@ -82,7 +82,10 @@ def load_corpus(name=None,required_data = ['path_python','class_name','path_root
 	class_obj = class_class()
 
 	# re-do init?
-	super(class_class,class_obj).__init__(**corpus_manifest)
+	if issubclass(class_class,CorpusMeta):
+		pass #?
+	else:
+		super(class_class,class_obj).__init__(**corpus_manifest)
 	return class_obj
 
 ####
@@ -1509,12 +1512,14 @@ class Corpus(object):
 ## CORPUS META
 
 class CorpusMeta(Corpus):
-	def __init__(self,name,corpora):
+	def __init__(self,name,corpora,**kwargs):
 		self.name=name
 		self.path = os.path.dirname(__file__)
 		self.corpora=[name2corpus(c)() if type(c) in [str,six.text_type] else c for c in corpora]
 		self.corpus2rank=dict([(c.name,i+1) for i,c in enumerate(self.corpora)])
 		self.corpus2metad={}
+		for k,v in list(kwargs.items()):
+			setattr(self,k,v)
 		self.path_freq_table={}
 		#self._metad={}
 		#self._meta=[]
@@ -1571,10 +1576,12 @@ class CorpusMeta(Corpus):
 
 ## Corpus in Sections
 class Corpus_in_Sections(Corpus):
-	def __init__(self,name,parent,col_id='id'):
+	def __init__(self,name,parent,col_id='id',**kwargs):
 		self.name=name
 		self.parent=parent
 		self.col_id=col_id
+		for k,v in list(kwargs.items()):
+			setattr(self,k,v)
 		#super(Corpus_in_Sections,self).__init__(name,self.PATH_XML,self.PATH_INDEX,self.EXT_XML,path_header=self.PATH_HEADER,path_metadata=self.PATH_METADATA,path_freq_table=self.PATH_FREQ_TABLE,paths_text_data=self.PATHS_TEXT_DATA)
 		#self.path = os.path.dirname(__file__)
 

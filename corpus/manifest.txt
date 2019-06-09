@@ -238,3 +238,17 @@ path_txt = _txt_tedjdh
 path_metadata = corpus-metadata.TedJDH.xls
 path_python = tedjdh.py
 class_name = TedJDH
+
+
+
+####
+# Synthetic Corpora
+####
+
+[LitHistAuthors]
+name = LitHistAuthors
+desc = Literary-historical texts with known author DOB
+sources = Chadwyck, ChadwyckPoetry, ChadwyckDrama, COHA, ECCO_TCP, EEBO_TCP
+path_root = lithist
+path_python = lithist.py
+class_name = LitHistAuthors
