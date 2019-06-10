@@ -28,6 +28,10 @@ class TextChadwyckPoetry(Text):
 	#	return self.meta['id'] if '/' in self.meta['id'] else self.path_xml.replace(self.corpus.path_xml,'').replace(self.corpus.ext_xml,'')
 
 	@property
+	def path(self):
+		return self.path_xml
+
+	@property
 	def meta_by_file(self):
 		return meta_by_file(self.text_xml)
 

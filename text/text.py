@@ -63,9 +63,10 @@ class Text(object):
 
 	@property
 	def path(self):
-		if os.path.exists(self.path_txt): return self.path_txt
-		if os.path.exists(self.path_xml): return self.path_xml
-		return ''
+		#if os.path.exists(self.path_txt): return self.path_txt
+		#if os.path.exists(self.path_xml): return self.path_xml
+		#return ''
+		return self.path_txt
 
 	@property
 	def ext_xml(self): return self.corpus.ext_xml

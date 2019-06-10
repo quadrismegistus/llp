@@ -548,6 +548,16 @@ class Corpus(object):
 		return self._meta
 
 	@property
+	def metadf(self):
+		if not hasattr(self,'_metadf'):
+			import pandas as pd
+			self._metadf=pd.DataFrame(self.meta)
+		return self._metadf
+
+	@property
+	def metadata(self): return self.metadf
+
+	@property
 	def metad(self):
 		from llp import tools
 		if not hasattr(self,'_metad'):
