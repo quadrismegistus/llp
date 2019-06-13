@@ -264,14 +264,15 @@ def save_txt_from_xml(xml_path,results_dir='./', modernize_spelling=True):
 		if not os.path.exists(opath): os.makedirs(opath)
 	except OSError:
 		pass
-	with codecs.open(ofnfn,'w',encoding='utf-8') as of:
+	#with codecs.open(ofnfn,'w',encoding='utf-8') as of:
+	with open(ofnfn,'w') as of:
 		of.write(txt)
 		print('>> saved:',ofnfn)
 
 # from /home/users/heuser/workspace/jupyter/prosodic_chadwyck/prosodic_parser.py
 def xml2txt(xml_path, xml_string=None, OK=['l','lb'], BAD=['note'], body_tag='poem', line_lim=None, modernize_spelling=False):
 	global spelling_d
-	import bs4,codecs
+	import bs4 #,codecs
 	STANZA_TAGS = ['stanza','versepara','pdiv']
 	LINE_TAGS = ['l','lb']
 	REPLACEMENTS={
@@ -289,7 +290,8 @@ def xml2txt(xml_path, xml_string=None, OK=['l','lb'], BAD=['note'], body_tag='po
 	}
 	txt=[]
 	if not xml_string:
-		with codecs.open(xml_path,encoding='utf-8') as f:
+		#with codecs.open(xml_path,encoding='utf-8') as f:
+		with open(xml_path,errors='ignore') as f:
 			xml_string = f.read()
 	dom = bs4.BeautifulSoup(xml_string,'lxml')
 
@@ -338,8 +340,10 @@ def meta_by_file(path_xml,guess_gender=True,detect_posthumous=True,fudge_dates=T
 	if guess_gender: import gender_guesser.detector as gender
 	gender_d={}
 
-	import bs4,codecs
-	with codecs.open(path_xml,encoding='utf-8',errors='ignore') as f: text_xml=f.read()
+	import bs4 #,codecs
+	#with codecs.open(path_xml,encoding='utf-8',errors='ignore') as f: text_xml=f.read()
+	with open(path_xml,errors='ignore') as f:
+		text_xml=f.read()
 
 	dom=bs4.BeautifulSoup(text_xml,'lxml')
 

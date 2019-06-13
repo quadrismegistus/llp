@@ -271,30 +271,49 @@ def header(fnfn,tsep='\t',encoding='utf-8'):
 	of.close()
 	return header
 
+# def read(fnfn,to_unicode=True):
+# 	if fnfn.endswith('.gz'):
+# 		import gzip
+# 		try:
+# 			with gzip.open(fnfn,'rb') as f:
+# 				x=f.read()
+# 				if to_unicode: x=x.decode('utf-8')
+# 				return x
+# 		except IOError as e:
+# 			print("!! error:",e, end=' ')
+# 			print("!! opening:",fnfn)
+# 			print()
+# 			return ''
+#
+# 	elif fnfn.endswith('.txt'):
+# 		if to_unicode:
+# 			try:
+# 				with codecs.open(fnfn,encoding='utf-8') as f:
+# 					return f.read()
+# 			except UnicodeDecodeError:
+# 				return read(fnfn,to_unicode=False)
+# 		else:
+# 			with open(fnfn) as f:
+# 				return f.read()
+#
+# 	return ''
+
 def read(fnfn,to_unicode=True):
 	if fnfn.endswith('.gz'):
 		import gzip
 		try:
 			with gzip.open(fnfn,'rb') as f:
-				x=f.read()
-				if to_unicode: x=x.decode('utf-8')
-				return x
+				return f.read()
 		except IOError as e:
 			print("!! error:",e, end=' ')
 			print("!! opening:",fnfn)
 			print()
 			return ''
 
-	elif fnfn.endswith('.txt'):
-		if to_unicode:
-			try:
-				with codecs.open(fnfn,encoding='utf-8') as f:
-					return f.read()
-			except UnicodeDecodeError:
-				return read(fnfn,to_unicode=False)
-		else:
-			with open(fnfn) as f:
-				return f.read()
+	#elif fnfn.endswith('.txt'):
+	else:
+		with open(fnfn) as f:
+			return f.read()
 
 	return ''
 
