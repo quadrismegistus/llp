@@ -69,10 +69,10 @@ class Text(object):
 		return self.path_txt
 
 	@property
-	def ext_xml(self): return self.corpus.ext_xml
+	def ext_xml(self): return self.corpus.EXT_XML
 
 	@property
-	def ext_txt(self): return self.corpus.ext_txt
+	def ext_txt(self): return self.corpus.EXT_TXT
 
 	@property
 	def fnfn(self):

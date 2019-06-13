@@ -118,6 +118,9 @@ def name2text(name):
 
 class Corpus(object):
 
+	EXT_TXT='.txt'
+	EXT_XML='.xml'
+
 	def __init__(self, name, path_xml='', path_index='', ext_xml='.xml', ext_txt='.txt', path_txt='',
 				path_model='',path_header=None, path_metadata='', paths_text_data=[], paths_rel_data=[],
 				path_freq_table={}, col_id='id',col_fn='', path_root='', path_freqs='', **kwargs):

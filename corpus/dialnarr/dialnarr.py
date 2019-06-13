@@ -18,7 +18,9 @@ class TextDialNarr(Text):
 		md['medium']='Prose'
 		return md
 
-
+	@property
+	def path_txt(self):
+		return self.fnfn_txt.replace('.ascii.','.ascii.txt')
 
 
 class DialNarr(Corpus):

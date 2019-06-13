@@ -27,7 +27,7 @@ class LitHist(CorpusMeta):
 	CORPORA=[
 		'Chadwyck','ChadwyckPoetry','ChadwyckDrama',
 		'ECCO-TCP','EEBO-TCP', #,'ECCO-TCP_in_Sections','EEBO-TCP_in_Sections' (too many files)
-		'TedJDH','Sellars',
+		'Sellars',   # 'TedJDH' (replicated in Sellars + ECCO-TCP)
 		'DialNarr', #LitLab (too noisy),
 		'MarkMark','Chicago',
 		'COHA','CLMET','OldBailey','EnglishDialogues',
