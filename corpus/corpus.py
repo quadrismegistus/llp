@@ -552,9 +552,11 @@ class Corpus(object):
 		if not hasattr(self,'_metadf'):
 			import pandas as pd
 			df=self._metadf=pd.DataFrame(self.meta)
-			if add_paths:
-				df['_path_txt']=[os.path.join(self.path_txt, idx + self.ext_txt) for idx in df['id']]
-				df['_path_xml']=[os.path.join(self.path_xml, idx + self.ext_txt) for idx in df['id']]
+			#if add_paths:
+				#df['_path_txt']=[os.path.join(self.path_txt, idx + self.ext_txt) for idx in df['id']]
+				#df['_path_xml']=[os.path.join(self.path_xml, idx + self.ext_txt) for idx in df['id']]
+				#df['_path_txt']=[t.path_txt for t in self.texts()]
+				#df['_path_xml']=[t.path_xml for t in self.texts()]
 		return self._metadf
 
 	@property

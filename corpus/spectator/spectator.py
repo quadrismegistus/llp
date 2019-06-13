@@ -20,6 +20,7 @@ class Spectator(Corpus):
 		meta_ld=[]
 		for idx in sorted(self.get_text_ids(from_files=True)):
 			odx={}
+			odx['id']=idx
 			odx['periodical'],odx['number'],odx['date'],odx['author']=idx.split('.')
 			odx['year']=odx['date'][:4]
 			odx['title']=''

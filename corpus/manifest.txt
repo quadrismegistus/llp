@@ -253,3 +253,11 @@ sources = Chadwyck, ChadwyckPoetry, ChadwyckDrama, COHA, ECCO_TCP, EEBO_TCP
 path_root = lithist
 path_python = lithist.py
 class_name = LitHistAuthors
+
+[LitHist]
+name = LitHist
+desc = Literary-historical texts from a wide variety of sources
+sources = ['Chadwyck','ChadwyckPoetry','ChadwyckDrama', 'ECCO-TCP','EEBO-TCP','TedJDH','Sellars', 'DialNarr', 'MarkMark','Chicago', 'COHA','CLMET','OldBailey','EnglishDialogues', 'Spectator']
+path_root = lithist
+path_python = lithist.py
+class_name = LitHist

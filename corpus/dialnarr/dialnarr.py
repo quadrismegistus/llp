@@ -31,3 +31,12 @@ class DialNarr(Corpus):
 		super(DialNarr,self).__init__('DialNarr',path_txt=self.PATH_TXT,path_xml=self.PATH_XML,path_metadata=self.PATH_METADATA)
 		self.path = os.path.dirname(__file__)
 		self.ext_txt = '.txt'
+
+		# load meta
+		self.meta
+
+	@property
+	def meta(self):
+		if not hasattr(self,'_meta'):
+			self._meta=[text.meta_by_file for text in self.texts()]
+		return self._meta

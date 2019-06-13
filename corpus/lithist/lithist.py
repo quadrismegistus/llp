@@ -24,7 +24,14 @@ import os
 
 
 class LitHist(CorpusMeta):
-	CORPORA={'Chadwyck','ChadwyckPoetry','ChadwyckDrama','COHA','Sellars','ECCO-TCP','EEBO-TCP'} #,'ECCO-TCP_in_Sections','EEBO-TCP_in_Sections'}
+	CORPORA=[
+		'Chadwyck','ChadwyckPoetry','ChadwyckDrama',
+		'ECCO-TCP','EEBO-TCP', #,'ECCO-TCP_in_Sections','EEBO-TCP_in_Sections' (too many files)
+		'TedJDH','Sellars',
+		'DialNarr', #LitLab (too noisy),
+		'MarkMark','Chicago',
+		'COHA','CLMET','OldBailey','EnglishDialogues',
+		'Spectator']
 
 	def __init__(self, name='LitHist',corpora=None):
 		if not corpora: corpora=[]
@@ -36,10 +43,10 @@ class LitHist(CorpusMeta):
 				c._texts = [t for t in c.texts() if t.year>1500 and t.year<1900]
 			elif name=='ChadwyckPoetry':
 				c=llp.load_corpus(name)
-				c._texts = [t for t in c.texts() if t.meta['posthumous']=='False' and t.year>1500 and t.year<2000]
+				#c._texts = [t for t in c.texts() if t.meta['posthumous']=='False' and t.year>1500 and t.year<2000]
 			elif name=='ChadwyckDrama':
 				c=llp.load_corpus(name)
-				c._texts = [t for t in c.texts() if t.meta['posthumous']=='False' and t.year>1500 and t.year<2000]
+				#c._texts = [t for t in c.texts() if t.meta['posthumous']=='False' and t.year>1500 and t.year<2000]
 			elif name=='ECCO-TCP_in_Sections':
 				c=llp.load_corpus('ECCO_TCP').sections
 				c._texts = [t for t in c.texts() if t.year>=1700 and t.year<1800]
