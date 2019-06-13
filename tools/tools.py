@@ -298,24 +298,20 @@ def header(fnfn,tsep='\t',encoding='utf-8'):
 #
 # 	return ''
 
-def read(fnfn,to_unicode=True):
-	if fnfn.endswith('.gz'):
-		import gzip
-		try:
+def read(fnfn):
+	try:
+		if fnfn.endswith('.gz'):
+			import gzip
 			with gzip.open(fnfn,'rb') as f:
 				return f.read()
-		except IOError as e:
-			print("!! error:",e, end=' ')
-			print("!! opening:",fnfn)
-			print()
-			return ''
-
-	#elif fnfn.endswith('.txt'):
-	else:
-		with open(fnfn) as f:
-			return f.read()
-
-	return ''
+		else:
+			with open(fnfn) as f:
+				return f.read()
+	except IOError as e:
+		print("!! error:",e, end=' ')
+		print("!! opening:",fnfn)
+		print()
+		return ''
 
 def filesize(fn):
 	return sizeof_fmt(os.path.getsize(fn))
