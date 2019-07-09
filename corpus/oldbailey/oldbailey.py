@@ -32,7 +32,7 @@ class TextOldBailey(Text):
 		return md
 
 
-	def text_plain(self, dialogue_only=True, BAD=['']):
+	def text_plain(self, dialogue_only=True, BAD=[''], force_xml=None):
 		txt=[]
 		import bs4
 		dom=bs4.BeautifulSoup(self.text_xml,'lxml')

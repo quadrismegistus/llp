@@ -14,7 +14,7 @@ SPELLING_VARIANT_PATH=os.path.join(ROOT,'data/spelling_variants_from_morphadorne
 
 ### FUNCTIONS
 
-from .corpus import load_corpus, corpora
+from .corpus import * #load_corpus, corpora
 
 
 
@@ -49,10 +49,5 @@ def phrase2variants(phrase):
 
 
 
-ENGLISH = None
 def load_english():
-	global ENGLISH
-	print('>> loading english dictionary...')
-	ENGLISH = set(codecs.open('/Dropbox/LITLAB/TOOLS/english.txt','r','utf-8').read().split('\n'))
-	#ENGLISH = (eng - load_stopwords())
-	return ENGLISH
+	return get_english_wordlist()

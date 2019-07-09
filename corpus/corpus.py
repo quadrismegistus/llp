@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+dfrom __future__ import absolute_import
 from __future__ import print_function
 import os,codecs,gzip,random,time
 from llp import tools
@@ -7,12 +7,13 @@ from six.moves import range
 from six.moves import zip
 
 
-PATH_CORPUS = os.path.dirname(__file__)
+PATH_CORPUS = os.path.abspath(os.path.dirname(__file__))
 PATH_MANIFEST=os.path.join(PATH_CORPUS,'manifest.txt')
 PATH_MANIFEST_LOCAL=os.path.join(PATH_CORPUS,'manifest_local.txt')
 PATH_MANIFEST_HOME='~/.llp/manifest.txt'
 
 PATH_MANIFESTS = [PATH_MANIFEST, PATH_MANIFEST_LOCAL, PATH_MANIFEST_HOME]
+PATH_MANIFESTS_TUPLES = [('Global Manifest',PATH_MANIFEST), ('Local Manifest',PATH_MANIFEST_LOCAL), ('User Manifest',PATH_MANIFEST_HOME)]
 
 nlp=None
 ENGLISH=None
@@ -21,25 +22,52 @@ MANIFEST={}
 
 
 #### LOAD CORPUS FROM MANIFEST
-def load_manifest(force=False):
+def load_manifest_list(corpus_name=None):
+	# read config
+	import configparser
+	config_list=[]
+	#print('>> reading config files...')
+	for (pn,path) in PATH_MANIFESTS_TUPLES:
+		#print('  ','reading:',path)
+		config = configparser.ConfigParser()
+		config.read(path)
+
+		# empty manifest
+		MANIFEST={}
+
+		# convert config
+		for corpus in list(config.keys()):
+			if not corpus_name or corpus==corpus_name:
+				if corpus=='DEFAULT': continue
+				MANIFEST[corpus]=cd={}
+				for k,v in list(config[corpus].items()):
+					cd[k]=v
+
+		pn=pn+' ('+path+')'
+		config_list+=[(pn,MANIFEST)] if not corpus_name else [(pn,MANIFEST.get(corpus_name,{}))]
+
+	return config_list
+
+def load_manifest(force=True,corpus_name=None):
 	if MANIFEST and not force: return MANIFEST
 
 	# read config
-	print('>> reading config files...')
+	#print('>> reading config files...')
 	import configparser
 	config = configparser.ConfigParser()
 	for path in PATH_MANIFESTS:
+		#print('  ','reading:',path)
 		config.read(path)
 
 	# convert config
 	for corpus in list(config.keys()):
-		if corpus=='DEFAULT': continue
-		MANIFEST[corpus]=cd={}
-		for k,v in list(config[corpus].items()):
-			cd[k]=v
+		if not corpus_name or corpus==corpus_name:
+			if corpus=='DEFAULT': continue
+			MANIFEST[corpus]=cd={}
+			for k,v in list(config[corpus].items()):
+				cd[k]=v
 
-	return MANIFEST
-
+	return MANIFEST if not corpus_name else MANIFEST.get(corpus_name,{})
 
 
 
@@ -80,6 +108,7 @@ def load_corpus(name=None,required_data = ['path_python','class_name','path_root
 	module = imp.load_source(module_name, path_python)
 	class_class = getattr(module,class_name)
 	class_obj = class_class()
+	class_obj.name = name
 
 	# re-do init?
 	if issubclass(class_class,CorpusMeta):
@@ -121,13 +150,132 @@ class Corpus(object):
 	EXT_TXT='.txt'
 	EXT_XML='.xml'
 
-	def __init__(self, name, path_xml='', path_index='', ext_xml='.xml', ext_txt='.txt', path_txt='',
+
+	def __init__(self,name,**input_kwargs):
+		#print('>> building corpus:',name)
+
+		self.name = name
+
+		# Set defaults
+		default_kwargs=dict(
+			path_txt='txt',
+			path_xml='xml',
+			path_index='',
+			ext_xml='.xml',
+			ext_txt='.txt',
+
+			path_model='',
+			path_header=None,
+			path_metadata='metadata.txt',
+			paths_text_data=[],
+			paths_rel_data=[],
+
+			path_freq_table={},
+			col_id='id',
+			col_fn='',
+			path_root='',
+			path_freqs=os.path.join('freqs',name),
+			manifest={},
+			path_python='',
+			manifest_override=True)
+
+		# Default important settings
+		#print(default_kwargs)
+
+		# Pathmaker
+		def get_path(path_corpus, path_root, path_rel):
+			path_corpus=path_corpus.strip()
+			path_rel=path_rel.strip()
+			path_root=path_root.strip()
+
+			if os.path.isabs(path_rel):
+				return path_rel
+			elif os.path.isabs(path_root):
+				return os.path.join(path_root,path_rel)
+			elif path_corpus.split(os.path.sep)[-1]==path_root:
+				return os.path.join(path_corpus,path_rel)
+			else:
+				return os.path.join(path_corpus,path_root,path_rel)
+
+		### Configs
+		import inspect
+		#class_path = inspect.getmodule(os.path.join(self.__class__)).__file__
+		#print(class_path)
+		opts_list = [('Default',default_kwargs), (self.__class__.__name__,input_kwargs)]
+
+		if input_kwargs.get('manifest_override',True):
+			#manifest_data['path_manifests'] = '|'.join(PATH_MANIFESTS)
+			#opts_list.append(('Manifest',manifest_data))
+			opts_list.extend(load_manifest_list(corpus_name=name))
+
+		opts={}
+		for (opts_name,opts_d) in reversed(opts_list):
+			#
+			if [v for v in opts_d.values() if v] and opts_name!='Default':
+				#print('\n>> setting attributes from:',opts_name)
+				pass
+			for opt_k,opt_v in sorted(opts_d.items()):
+				# Don't overwrrite (in reverse)
+				if opt_k in opts: continue
+
+				opts[opt_k]=opt_v
+				if opt_v and opts_name!='Default':
+					#print('--',opt_k,'=',opt_v)#,'(%s)' % opts_name)
+					pass
+
+		self.opts = opts
+
+
+		# Manifest override:
+
+		# Get root
+
+
+
+		path_root = self.opts.get('path_root','')
+
+
+		# Set as attributes
+		#if not self.opts.get('path_freqs'): self.opts['path_freqs'] = os.path.join('freqs',self.name)
+		for opt_name,opt_val in sorted(self.opts.items()):
+			# Set abs path
+			#print(opt_name,opt_val,opt_val,type(opt_val))
+			if opt_name.startswith('path_') and opt_val and type(opt_val)==str:
+				#print(opt_name,'\n',opt_val)
+				opt_val=get_path(PATH_CORPUS,path_root,opt_val)
+				#print(opt_val,'\n')
+			setattr(self,opt_name,opt_val)
+
+		# Individual
+		#if not self.opts.get('path_freqs'): self.opts['path_freqs'] = get_path(PATH_CORPUS, )
+
+
+
+
+	def __init_old__(self, name, path_xml='', path_index='', ext_xml='.xml', ext_txt='.txt', path_txt='',
 				path_model='',path_header=None, path_metadata='', paths_text_data=[], paths_rel_data=[],
-				path_freq_table={}, col_id='id',col_fn='', path_root='', path_freqs='', **kwargs):
+				path_freq_table={}, col_id='id',col_fn='', path_root='', path_freqs='', manifest={}, path_python='', manifest_override=True, **kwargs):
 
 		import llp
 
-		if path_root:
+		try:
+			from types import SimpleNamespace  #python 3
+			opts = SimpleNamespace(**locals())
+		except ImportError:
+			from argparse import Namespace     # python2
+			opts = Namespace(**locals())
+
+		## MANIFEST OVERRIDE
+		if manifest_override:
+			corpus_manifest = load_manifest(corpus_name=name)
+			# initial setting
+			for k,v in corpus_manifest.items():
+				setattr(self,k,v)
+
+		"""
+
+
+		if opts.path_root:
 			if path_root.startswith(os.path.sep):
 				self.path=path_root
 			else:
@@ -160,7 +308,8 @@ class Corpus(object):
 		elif path_freqs.startswith(os.path.sep):
 			self.path_freqs = path_freqs
 		else:
-			self.path_freqs=os.path.join(self.path,path_freqs)
+			self.path_freqs=os.path.join(self.path,path_freqs)"""
+
 
 		self.path_spacy = self.path_xml.replace('_xml_','_spacy_')
 		self.path_skipgrams = self.path_xml.replace('_xml_','_skipgrams_')
@@ -239,6 +388,11 @@ class Corpus(object):
 				td[t.id]=t
 		return self._textd
 
+
+	def text_random(self):
+		import random
+		return random.choice(self.texts())
+
 	@property
 	def exists_metadata(self):
 		return os.path.exists(self.path_metadata)
@@ -313,7 +467,7 @@ class Corpus(object):
 		for text in self.texts():
 			text.split()
 
-	def save_plain_text(self,compress=True,use_gen=False,force=False,path_txt=None):
+	def save_plain_text(self,compress=False,use_gen=False,force=False,path_txt=None):
 		from llp import tools
 
 		ext = '.txt' if not compress else '.txt.gz'
@@ -353,10 +507,10 @@ class Corpus(object):
 
 		#for i,text in enumerate(self.texts()): pool.spawn(do_text, text, i)
 		texts=self.texts()
-		texts = [text for text in texts if text.exists]
+		#texts = [text for text in texts if text.exists]
 		num_texts = len(texts)
-		#print len(texts)
-		text=texts[0]
+		#print(len(texts))
+		#text=texts[0]
 		#print os.path.join(self.path_txt,text.id+ext)
 		texts = [text for text in texts if (force or not os.path.exists(os.path.join(path_txt,text.id+ext)))]
 		#print len(texts)
@@ -569,7 +723,8 @@ class Corpus(object):
 	def metad(self):
 		from llp import tools
 		if not hasattr(self,'_metad'):
-			self._metad=dict(list(zip(self.text_ids,self._meta)))
+			#if not hasattr(self,'_meta'): self.meta
+			self._metad=dict(list(zip(self.text_ids,self.meta)))
 		return self._metad
 
 	def export(self,folder,meta_fn=None,txt_folder=None,compress=False):
@@ -784,7 +939,7 @@ class Corpus(object):
 		print('   done [{0} seconds]'.format(round(nownow-now,1)))
 		return df
 
-	def gen_freq_table(self,n=25000,words=None,only_english=False):
+	def gen_freq_table(self,n=25000,words=None,only_english=False,path=None):
 		from llp import tools
 		if words:
 			n=len(words)
@@ -792,26 +947,32 @@ class Corpus(object):
 			words = list(self.mfw(n=n,only_english=only_english))
 			assert len(words) <= n
 
-		path = self.get_path_freq_table(n=n,force=True)
+		path = self.get_path_freq_table(n=n,force=True) if not path else path
 		path_path = os.path.split(path)[0]
 		if not os.path.exists(path_path): os.makedirs(path_path)
 
 		texts=list(self.texts())
 		texts.sort(key=lambda t: t.id)
 
-		with gzip.open(path,'wb') as f:
+		#with gzip.open(path,'w',encoding='utf-8') as f:
+		with open(path.replace('.gz','') if path.endswith('.gz') else path, 'w') as f:
 			# write header
-			header='\t'.join(['']+words).encode('utf-8')
+			header='\t'.join(['']+words) #.encode('utf-8')
 			f.write(header+'\n')
 
 			# write rows
 			for i,t in enumerate(texts):
 				if not i%100: print('>>',i,len(texts),'...')
 				freqs=t.freqs()
-				row='\t'.join([t.id]+[str(freqs.get(w,'0')) for w in words]).encode('utf-8')
+				row='\t'.join([t.id]+[str(freqs.get(w,'0')) for w in words]) #.encode('utf-8')
 				f.write(row+'\n')
 
-
+	def freqs_async(self,words={},texts=[]):
+		import multiprocessing as mp
+		pool=mp.Pool()
+		if not texts: texts=self.texts()
+		for i,dx in enumerate(pool.imap(get_freq_async, texts)):
+			yield dict((k,v) for k,v in dx.items() if not words or k in words)
 
 	### MFW
 
@@ -819,11 +980,71 @@ class Corpus(object):
 	def path_mfw(self):
 		return os.path.join(self.path, 'data.mfw.%s.txt' % self.name)
 
+
+	def mfw_df(self,**attrs):
+		from llp import tools
+		import numpy as np,pandas as pd
+
+		n=attrs.get('n',None)
+		pos=attrs.get('only_pos',None)
+		alpha=attrs.get('only_alpha',None)
+		eng=attrs.get('only_english',None)
+		modspell=attrs.get('modernize_spelling',None)
+		min_count=attrs.get('min_count',None)
+		with_rank=attrs.get('with_count',False)
+		mfw_prefix=attrs.get('mfw_prefix','data.mfw.'+self.name+'.')
+		if eng:
+			from llp.tools import get_english_wordlist
+			ENGLISH=get_english_wordlist()
+		if modspell:
+			from llp.tools import get_spelling_modernizer
+			SPELLREGD=get_spelling_modernizer()
+
+		mfw_fn=self.path_mfw
+		mfw_ld=[]
+
+		for mfw_fn in os.listdir(self.path):
+			if not mfw_fn.startswith(mfw_prefix): continue
+			mfw_fnfn=os.path.join(self.path, mfw_fn)
+			mfw_fn_code = os.path.splitext(mfw_fn)[0].replace(mfw_prefix,'')
+			if mfw_prefix.startswith(mfw_fn_code):
+				mfw_fn_code='total'
+				continue  # skip totalized mfw's
+
+			with codecs.open(mfw_fnfn,encoding='utf-8') as f:
+				num=0
+				for i,ln in enumerate(f):
+					if n and num>=n: break
+					lndat=ln.strip().split('\t',1)
+					w=lndat[0]
+					if alpha and not str(w).replace('-','').isalpha(): continue
+					c=float(lndat[1]) if len(lndat)>1 else np.nan
+					if min_count and c<min_count: continue
+					if eng and not w in ENGLISH: continue
+					if modspell: w=SPELLREGD.get(w,w)
+					num+=1
+					dx={'word':w, 'count':c, 'rank':i, 'group':mfw_fn_code}
+					mfw_ld+=[dx]
+		mfw_df=pd.DataFrame(mfw_ld) #.set_index('word')
+		mfw_df=mfw_df.groupby(['word','group']).agg({'rank':'mean','count':'sum'}).reset_index()
+
+		from scipy.stats import zscore
+		mfw_df['z']=zscore(mfw_df['count'])
+
+		total_count=sum(mfw_df['count'])
+		mfw_df['fpm']=[c/total_count*1000000 for c in mfw_df['count']]
+		return mfw_df
+
+
 	def mfw_simple(self,**attrs):
 		from llp import tools
+		import numpy as np
+
 		n=attrs.get('n',None)
 		pos=attrs.get('only_pos',None)
 		eng=attrs.get('only_english',None)
+		min_count=attrs.get('min_count',None)
+		with_count=attrs.get('with_count',False)
 		if eng:
 			from llp.tools import get_english_wordlist
 			ENGLISH=get_english_wordlist()
@@ -834,10 +1055,16 @@ class Corpus(object):
 				num=0
 				for i,ln in enumerate(f):
 					if n and num>=n: break
-					w=ln.strip()
+					#w=ln.split('\t')[0].strip()
+					lndat=ln.strip().split('\t',1)
+					#print(lndat)
+					w=lndat[0]
+					c=float(lndat[1]) if len(lndat)>1 else np.nan
+					#print([min_count,c])
+					if min_count and c<min_count: continue
 					if eng and not w in ENGLISH: continue
 					num+=1
-					yield w
+					yield w if not with_count else (w,c)
 
 	def mfw(self,**attrs):
 		func=self.mfw_simple(**attrs)
@@ -854,55 +1081,70 @@ class Corpus(object):
 		return Grouping.groups
 
 
-	def gen_mfw(self,yearbin=None,year_min=None,year_max=None):
+	def gen_mfw(self,yearbin=None,year_min=None,year_max=None,include_freq=True,gen_total=True):
 		"""
 		From tokenize_texts()
 		"""
 		from bounter import bounter
+		from collections import Counter
+
 		import numpy as np
 		texts=[t for t in self.texts() if (not year_min or t.year>=year_min) and (not year_max or t.year<year_max)]
 		period2texts = {'all':texts} if not yearbin else self.divide_texts_historically(yearbin=yearbin,texts=texts)
 		period2bounter = {}
 		for period,texts in sorted(period2texts.items()):
+			if period.startswith('0-'): continue
 			print('>> generating mfw for text grouping \'%s\' (%s texts)' % (period,len(texts)))
-			countd = period2bounter[period] = bounter(1024)
+			if gen_total:
+				countd = bounter(1024)
+				#countd = Counter()
+			else:
+
+				countd = Counter()
+
 			texts=texts
 			for i,text in enumerate(texts):
 				#if not i%100: print '>>',i,len(texts),'...'
-				freqs = text.freqs()
+				freqs = text.freqs(use_text_if_nec=False)
 				if freqs: countd.update(freqs)
 
-		all_words = set()
-		totals={}
-		for period,countd in list(period2bounter.items()):
-			all_words|=set(countd.keys())
-			totals[period]=float(countd.total())
-		num_words=len(all_words)
+			path_mfw_period=os.path.splitext(self.path_mfw)[0]+'.'+period+'.txt'
+			with codecs.open(path_mfw_period,'w',encoding='utf-8') as f:
+				for i,(word,val) in enumerate(sorted(six.iteritems(countd), key=lambda _t: -_t[1])):
+					line=word if not include_freq else word+'\t'+str(val)
+					f.write(line+'\n')
+				print('>> saved:',path_mfw_period)
 
-		#COUNTD=bounter(1024)
-		COUNTD={}
+			if gen_total:
+				period2bounter[period] = countd
 
-		"""with codecs.open(self.path_mfw,'w',encoding='utf-8') as f:
+
+
+		if gen_total:
+			all_words = set()
+			totals={}
+			for period,countd in list(period2bounter.items()):
+				all_words|=set(countd.keys())
+				totals[period]=float(countd.total())
+
+			num_words=len(all_words)
+			COUNTD={}
+
 			for i,word in enumerate(all_words):
-				if not i%1000: print '>>',i,num_words,'...'
-				vals = [float(countd[word])/totals[period]*1000000 for period,countd in period2bounter.items()]
-				median_val = np.median(vals)
-				f.write(word+'\t'+str(median_val)+'\n')
-		"""
-		for i,word in enumerate(all_words):
-			#if not i%1000: print '>>',i,num_words,'...'
-			vals = [float(countd[word])/totals[period]*1000000 for period,countd in list(period2bounter.items())]
-			median_val = np.mean(vals)
-			#COUNTD.update({word:median_val})
-			COUNTD[word]=median_val
-
-		del period2bounter
-
-		with codecs.open(self.path_mfw,'w',encoding='utf-8') as f:
-			for i,(word,val) in enumerate(sorted(six.iteritems(COUNTD), key=lambda _t: -_t[1])):
 				#if not i%1000: print '>>',i,num_words,'...'
-				f.write(word+'\n')
-		print('>> saved:',self.path_mfw)
+				vals = [float(countd[word])/totals[period]*1000000 for period,countd in list(period2bounter.items())]
+				median_val = np.mean(vals)
+				#COUNTD.update({word:median_val})
+				COUNTD[word]=median_val
+
+			del period2bounter
+
+			with codecs.open(self.path_mfw,'w',encoding='utf-8') as f:
+				for i,(word,val) in enumerate(sorted(six.iteritems(COUNTD), key=lambda _t: -_t[1])):
+					#if not i%1000: print '>>',i,num_words,'...'
+					line=word if not include_freq else word+'\t'+str(val)
+					f.write(line+'\n')
+			print('>> saved:',self.path_mfw)
 
 
 	### TOKENIZING
@@ -1533,8 +1775,8 @@ class CorpusMeta(Corpus):
 	def __init__(self,name,corpora,**kwargs):
 		self.name=name
 		self.path = os.path.dirname(__file__)
-		self.corpora=[name2corpus(c)() if type(c) in [str,six.text_type] else c for c in corpora]
-		self.corpus2rank=dict([(c.name,i+1) for i,c in enumerate(self.corpora)])
+		self.corpora=corpora
+		self.corpus2rank=dict([(c,i+1) for i,c in enumerate(corpora)])
 		self.corpus2metad={}
 		for k,v in list(kwargs.items()):
 			setattr(self,k,v)
@@ -1542,7 +1784,8 @@ class CorpusMeta(Corpus):
 		#self._metad={}
 		#self._meta=[]
 		for c in self.corpora:
-			self.corpus2metad[c.name]=c.metad
+			cname=c.name if hasattr(c,'name') else c.__class__.__name__
+			self.corpus2metad[cname]=c.metad
 			#for idx,dx in c.metad.items():
 			#	dx['corpus']=c.name
 			#	self._metad[idx]=dx
@@ -1668,11 +1911,12 @@ class Corpus_in_Sections(Corpus):
 
 ## CorpusGroups
 class CorpusGroups(Corpus):
-	def __init__(self,corpus,texts=None):
+	def __init__(self,corpus,texts=None,name=None):
 		self.corpus=corpus
 		self._groups={}
 		self._desc=[]
 		self._texts=texts
+		self.name=corpus.name if not name else name
 
 	@property
 	def log(self):
@@ -1723,8 +1967,11 @@ class CorpusGroups(Corpus):
 	def group_by_year(self,year_key='year',yearbin=10,yearplus=0,texts=None,toreturn=False):
 		# function to get 'decade' from year
 		def get_dec(yr,res=25,plus=30):
-			yr = ''.join([x for x in yr if x.isdigit()])
-			if len(yr)!=4: return 0
+			if type(yr)==int:
+				pass
+			else:
+				yr = ''.join([x for x in yr if x.isdigit()])
+				if len(yr)!=4: return 0
 			year=int(yr)
 			year+=plus
 			dec=year//int(res)*int(res)
@@ -1938,3 +2185,11 @@ def save_tokenize_text(text,ofolder=None,force=False):
 	with codecs.open(ofnfn,'w',encoding='utf-8') as of:
 		json.dump(tokd,of)
 	#assert 1 == 2
+
+def get_freq_async(text):
+	return text.freqs()
+
+
+
+# Add new name for function
+load = load_corpus

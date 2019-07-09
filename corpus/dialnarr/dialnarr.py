@@ -10,6 +10,9 @@ class TextDialNarr(Text):
 	def meta_by_file(self):
 		# 1825.Child.Am.F.The_Rebels_Or_Boston_Before_The_Revolution.dialogue
 		md={}
+		idx=os.path.splitext(self.fnfn_txt)[0].replace(self.corpus.path_txt,'')
+		if idx.startswith(os.path.sep): idx=idx[1:]
+		md['id']=idx.replace('.ascii','')
 		fn=os.path.basename(self.fnfn_txt)
 		fn=fn.replace('.ascii','')
 		md['year'],md['author'],md['nation'],md['gender'],md['title'],md['genre'],txt=fn.split('.')

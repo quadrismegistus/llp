@@ -21,7 +21,38 @@ class LitHist(Corpus):
 from llp.corpus import CorpusMeta,name2corpus
 import os
 
+def lithist_load_corpus(name,medium={},genre={}):
+	if name=='Chadwyck':
+		c=llp.load_corpus(name)
+		c._texts = [t for t in c.texts() if t.year>1500 and t.year<1900]
+	elif name=='ChadwyckPoetry':
+		c=llp.load_corpus(name)
+		#c._texts = [t for t in c.texts() if t.meta['posthumous']=='False' and t.year>1500 and t.year<2000]
+	elif name=='ChadwyckDrama':
+		c=llp.load_corpus(name)
+		#c._texts = [t for t in c.texts() if t.meta['posthumous']=='False' and t.year>1500 and t.year<2000]
+	elif name=='ECCO-TCP_in_Sections':
+		c=llp.load_corpus('ECCO_TCP').sections
+		c._texts = [t for t in c.texts() if t.year>=1700 and t.year<1800]
+	elif name=='ECCO-TCP':
+		c=llp.load_corpus('ECCO_TCP')
+		c._texts = [t for t in c.texts() if t.year>=1700 and t.year<1800]
+	elif name=='EEBO-TCP_in_Sections':
+		c=llp.load_corpus('EEBO_TCP').sections
+		c._texts = [t for t in c.texts() if t.year>=1500 and t.year<1700]
+	elif name=='EEBO-TCP':
+		c=llp.load_corpus('EEBO_TCP')
+		c._texts = [t for t in c.texts() if t.year>=1500 and t.year<1700]
+	else:
+		c=llp.load_corpus(name)
 
+	if medium:
+		c._texts=[t for t in c.texts() if t.medium in medium]
+
+	if genre:
+		c._texts=[t for t in c.texts() if t.genre in genre]
+
+	return c
 
 class LitHist(CorpusMeta):
 	CORPORA=[
@@ -33,42 +64,48 @@ class LitHist(CorpusMeta):
 		'COHA','CLMET','OldBailey','EnglishDialogues',
 		'Spectator']
 
-	def __init__(self, name='LitHist',corpora=None):
-		if not corpora: corpora=[]
+	def __init__(self, name_meta='LitHist',corpora=None):
+		if not corpora:
+			corpora=[lithist_load_corpus(c) for c in self.CORPORA]
+			corpora=[x for x in corpora if x is not None]
+			print(corpora)
 
-		for name in self.CORPORA:
-
-			if name=='Chadwyck':
-				c=llp.load_corpus(name)
-				c._texts = [t for t in c.texts() if t.year>1500 and t.year<1900]
-			elif name=='ChadwyckPoetry':
-				c=llp.load_corpus(name)
-				#c._texts = [t for t in c.texts() if t.meta['posthumous']=='False' and t.year>1500 and t.year<2000]
-			elif name=='ChadwyckDrama':
-				c=llp.load_corpus(name)
-				#c._texts = [t for t in c.texts() if t.meta['posthumous']=='False' and t.year>1500 and t.year<2000]
-			elif name=='ECCO-TCP_in_Sections':
-				c=llp.load_corpus('ECCO_TCP').sections
-				c._texts = [t for t in c.texts() if t.year>=1700 and t.year<1800]
-			elif name=='ECCO-TCP':
-				c=llp.load_corpus('ECCO_TCP')
-				c._texts = [t for t in c.texts() if t.year>=1700 and t.year<1800]
-			elif name=='EEBO-TCP_in_Sections':
-				c=llp.load_corpus('EEBO_TCP').sections
-				c._texts = [t for t in c.texts() if t.year>=1500 and t.year<1700]
-			elif name=='EEBO-TCP':
-				c=llp.load_corpus('EEBO_TCP')
-				c._texts = [t for t in c.texts() if t.year>=1500 and t.year<1700]
-			else:
-				c=llp.load_corpus(name)
-			#"""
-
-			if c is not None:
-				corpora.append(c)
-
-		super(LitHist,self).__init__(name=name,corpora=corpora)
+		super(LitHist,self).__init__(name=name_meta,corpora=corpora)
 		self.path=os.path.join(self.path,'lithist')
 
+
+
+
+
+
+
+
+
+class LitHistProse(LitHist):
+
+	#CORPORA = [x for x in LitHist.CORPORA if not x in {'ChadwyckPoetry','ChadwyckDrama'}]
+	CORPORA=[
+		'Chadwyck',
+		#'ECCO-TCP','EEBO-TCP', #,
+		'ECCO-TCP_in_Sections','EEBO-TCP_in_Sections', # (too many files)
+		'Sellars',   # 'TedJDH' (replicated in Sellars + ECCO-TCP)
+		'MarkMark','Chicago',
+		'COHA','Spectator']
+
+	def __init__(self,name='LitHistProse',corpora=None):
+		#super(LitHist,self).__init__(name=name,corpora=None)
+		if not corpora:
+			corpora=[lithist_load_corpus(c,medium='Prose') for c in self.CORPORA]
+			corpora=[x for x in corpora if x is not None] # and len(x.texts())>0]
+			print(corpora)
+
+		super(LitHist,self).__init__(name=name,corpora=corpora)
+
+		# filter for prose
+		print(len(self.texts()))
+		self._texts = [t for t in self.texts() if t.medium=='Prose']
+		print(len(self.texts()))
+		self.path=os.path.join(self.path,'lithist')
 
 
 

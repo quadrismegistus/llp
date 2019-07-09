@@ -153,6 +153,9 @@ class TCP(Corpus):
 			self.STYPE_DD=tools.ld2dd(tools.read_ld(STYPE_FN),'section_type')
 		return self.STYPE_DD.get(stype,{}).get('genre','')
 
+	def __init__(self,name,**attrs):
+		return super(TCP,self).__init__(name,**attrs)
+
 
 def gen_section_types():
 	import tools

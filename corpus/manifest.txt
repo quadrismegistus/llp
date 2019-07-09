@@ -197,6 +197,7 @@ name = OldBailey
 desc = Old Bailey Online
 path_root = oldbailey
 path_xml = _xml_parsed_old_bailey
+path_txt = _txt_parsed_old_bailey
 path_metadata = corpus-metadata.OldBailey.xlsx
 path_python = oldbailey.py
 class_name = OldBailey
@@ -261,3 +262,10 @@ sources = ['Chadwyck','ChadwyckPoetry','ChadwyckDrama', 'ECCO-TCP','EEBO-TCP','T
 path_root = lithist
 path_python = lithist.py
 class_name = LitHist
+
+[LitHistProse]
+name = LitHistProse
+desc = Literary-historical texts from a wide variety of sources (PROSE)
+path_root = lithist
+path_python = lithist.py
+class_name = LitHistProse

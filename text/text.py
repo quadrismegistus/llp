@@ -434,6 +434,11 @@ class Text(object):
 		"""
 
 	@property
+	def xml(self):
+		return self.text_xml
+
+
+	@property
 	def text_xml(self):
 		return '\n'.join([line for line in self.lines_xml()])
 
@@ -604,9 +609,10 @@ class Text(object):
 	def freqs(self,modernize_spelling=False,modernize_spelling_before=3000,use_text_if_nec=True):
 		fnfn=self.fnfn_freqs
 		if not os.path.exists(fnfn):
-			#print '!! no freqs file for:',self.id,'--?-->',fnfn
+			#print('!! no freqs file for:',self.id,'--?-->',fnfn)
 			#return {}
 			if use_text_if_nec:
+				print('!! no freqs file for:',self.id,'--?-->',fnfn)
 				dx=self.freqs_tokens
 			else:
 				return {}

@@ -823,6 +823,9 @@ def noPunc(token):
 	from string import punctuation
 	return token.strip(punctuation)
 
+def zeroPunc(s):
+	import string
+	return s.translate(str.maketrans('', '', string.punctuation))
 
 def now(now=None):
 	import datetime as dt

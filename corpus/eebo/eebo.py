@@ -45,5 +45,5 @@ class EEBO_TCP(TCP):
 	TEXT_SECTION_CLASS=TextSectionTCP
 
 	def __init__(self):
-		super(EEBO_TCP,self).__init__('EEBO-TCP',self.PATH_XML,self.PATH_INDEX,ext_txt=self.EXT_TXT,ext_xml=self.EXT_XML,path_metadata=self.PATH_METADATA)
+		super(EEBO_TCP,self).__init__('EEBO-TCP',path_xml=self.PATH_XML,path_index=self.PATH_INDEX,ext_txt=self.EXT_TXT,ext_xml=self.EXT_XML,path_metadata=self.PATH_METADATA)
 		self.path = os.path.dirname(__file__)
