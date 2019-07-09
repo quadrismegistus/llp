@@ -189,9 +189,9 @@ class Corpus(object):
 			path_rel=path_rel.strip()
 			path_root=path_root.strip()
 
-			if os.path.isabs(path_rel):
+			if os.path.isabs(path_rel) or path_rel.startswith('http'):
 				return path_rel
-			elif os.path.isabs(path_root):
+			elif os.path.isabs(path_root) or path_root.startswith('http'):
 				return os.path.join(path_root,path_rel)
 			elif path_corpus.split(os.path.sep)[-1]==path_root:
 				return os.path.join(path_corpus,path_rel)
@@ -710,10 +710,13 @@ class Corpus(object):
 	def download(self):
 		cmd='cd {p1} && wget -O {p3} {p2} && unzip -n {p3}'.format(
 		p1=PATH_CORPUS,
-		p2=self.path_download,
+		p2=self.url_download,
 		p3='_download.zip')
 
 		print(cmd)
+		import os
+		os.system(cmd)
+
 
 
 
