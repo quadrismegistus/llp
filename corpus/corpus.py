@@ -708,7 +708,7 @@ class Corpus(object):
 
 
 	def download(self):
-		cmd='cd {p1} && wget -O {p3} {p2} && unzip -n {p3}'.format(
+		cmd='cd {p1} && wget -O {p3} {p2} && unzip -n {p3} && rm {p3}'.format(
 		p1=PATH_CORPUS,
 		p2=self.url_download,
 		p3='_download.zip')

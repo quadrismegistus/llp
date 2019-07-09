@@ -35,29 +35,7 @@ for text_obj in chicago.texts():
     num_words2 = text_obj.num_words
 ````
 
-## Do other things with corpora
 
-Now that you have a corpus object,
-
-```python
-# Get the texts as a list
-texts = corpus.texts()
-
-# Get the metadata as a list of dictionaries
-metadata = corpus.meta
-
-# Save a list of the most frequent words
-corpus.gen_mfw()
-
-# Save a term-document matrix for the top 10000 most frequent words
-corpus.gen_freq_table(n=10000)
-
-# Save a list of possible duplicate texts in corpus, by title similarity
-corpus.rank_duplicates_bytitle()
-
-# Save a list of possible duplicate texts in corpus, by the content of the text (MinHash)
-corpus.rank_duplicates()
-```
 
 ## Do oother things with texts
 
@@ -89,6 +67,37 @@ passages = text.get_passages(phrases=['labour'])
 # Get a spacy (http://spacy.io) representation
 text_spacy = text.spacy()
 ```
+
+
+
+
+## Do other things with corpora
+
+Now that you have a corpus object,
+
+```python
+# Get the texts as a list
+texts = corpus.texts()
+
+# Get the metadata as a list of dictionaries
+metadata = corpus.meta
+
+# Save a list of the most frequent words
+corpus.gen_mfw()
+
+# Save a term-document matrix for the top 10000 most frequent words
+corpus.gen_freq_table(n=10000)
+
+# Save a list of possible duplicate texts in corpus, by title similarity
+corpus.rank_duplicates_bytitle()
+
+# Save a list of possible duplicate texts in corpus, by the content of the text (MinHash)
+corpus.rank_duplicates()
+```
+
+
+
+
 
 ## Do things with models
 
