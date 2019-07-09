@@ -15,7 +15,11 @@ chicago = llp.load('Chicago')
 
 # don't have it yet?
 chicago.download()
+```
 
+With corpora you can do various things:
+
+```python
 # get the metadata as a dataframe
 df_meta = chicago.metadata
 
@@ -27,13 +31,7 @@ for text_obj in chicago.texts():
     # get the metadata as a dictionary
     text_meta = text_obj.meta
 
-    # get (e.g.) the title (and set default)
-    text_title = text_meta.get('title','[Unknown]')
-
-    # get the rough number of words in the string
-    num_words1 = len(text_str.split())
-    num_words2 = text_obj.num_words
-````
+```
 
 
 
