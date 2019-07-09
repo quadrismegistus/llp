@@ -1,6 +1,32 @@
 # llp
 
-Literary Language Processing (LLP): Corpora, models, and tools for the digital humanities. Written in Python.
+Literary Language Processing (LLP) for the Stanford Literary LAB. Corpora, models, and tools for the digital humanities. Written in Python.
+
+## Corpora in two lines
+
+Start working with corpora in two lines:
+
+```python
+# import the llp module
+import llp
+
+# load the chicago corpus
+chicago = llp.load('Chicago')
+
+# don't have it yet?
+chicago.download()
+
+# get the metadata as a dataframe
+df_meta = chicago.metadata
+
+# loop over thet texts...
+for text_obj in chicago.texts():
+    text_str = text_obj.txt
+    print(text_obj.title, len(text_str) )
+
+````
+
+
 
 ## Make a corpus in two lines
 
