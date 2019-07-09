@@ -4,7 +4,7 @@ Literary Language Processing (LLP) for the Stanford Literary LAB. Corpora, model
 
 ## Load corpora in a few lines
 
-Start working with corpora in two lines:
+Start working with corpora in a few lines:
 
 ```python
 # import the llp module
@@ -35,7 +35,7 @@ for text_obj in chicago.texts():
 
 
 
-## Do oother things with texts
+## Do other things with texts
 
 With any text object,
 
