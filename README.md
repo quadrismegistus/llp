@@ -2,7 +2,7 @@
 
 Literary Language Processing (LLP) for the Stanford Literary LAB. Corpora, models, and tools for the digital humanities. Written in Python.
 
-## Corpora in two lines
+## Load corpora in a few lines
 
 Start working with corpora in two lines:
 
@@ -19,30 +19,23 @@ chicago.download()
 # get the metadata as a dataframe
 df_meta = chicago.metadata
 
-# loop over thet texts...
+# loop over the texts...
 for text_obj in chicago.texts():
+    # get a string of that text
     text_str = text_obj.txt
-    print(text_obj.title, len(text_str) )
 
+    # get the metadata as a dictionary
+    text_meta = text_obj.meta
+
+    # get (e.g.) the title (and set default)
+    text_title = text_meta.get('title','[Unknown]')
+
+    # get the rough number of words in the string
+    num_words1 = len(text_str.split())
+    num_words2 = text_obj.num_words
 ````
 
-
-
-## Make a corpus in two lines
-
-If you have a folder of plain text files, and an accompanying metadata file,
-
-```python
-from llp.corpus.default import PlainTextCorpus
-
-corpus = PlainTextCorpus(
-	path_txt='texts',              # path to a folder of txt files
-	path_metadata='metadata.xls',  # path to a metadata CSV, TSV, XLS, XLSX file
-	col_fn='filename'              # column in metadata pointing to txt file (relative to `path_txt`)
-)
-```
-
-## Do things with corpora
+## Do other things with corpora
 
 Now that you have a corpus object,
 
@@ -66,7 +59,7 @@ corpus.rank_duplicates_bytitle()
 corpus.rank_duplicates()
 ```
 
-## Do things with texts
+## Do oother things with texts
 
 With any text object,
 
