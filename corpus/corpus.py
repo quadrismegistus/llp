@@ -1,4 +1,4 @@
-dfrom __future__ import absolute_import
+from __future__ import absolute_import
 from __future__ import print_function
 import os,codecs,gzip,random,time
 from llp import tools
@@ -10,10 +10,11 @@ from six.moves import zip
 PATH_CORPUS = os.path.abspath(os.path.dirname(__file__))
 PATH_MANIFEST=os.path.join(PATH_CORPUS,'manifest.txt')
 PATH_MANIFEST_LOCAL=os.path.join(PATH_CORPUS,'manifest_local.txt')
+PATH_MANIFEST_LAB=os.path.join(PATH_CORPUS,'manifest_lab.txt')
 PATH_MANIFEST_HOME='~/.llp/manifest.txt'
+PATH_MANIFESTS = [PATH_MANIFEST, PATH_MANIFEST_LOCAL,PATH_MANIFEST_LAB, PATH_MANIFEST_HOME]
 
-PATH_MANIFESTS = [PATH_MANIFEST, PATH_MANIFEST_LOCAL, PATH_MANIFEST_HOME]
-PATH_MANIFESTS_TUPLES = [('Global Manifest',PATH_MANIFEST), ('Local Manifest',PATH_MANIFEST_LOCAL), ('User Manifest',PATH_MANIFEST_HOME)]
+PATH_MANIFESTS_TUPLES = [('Global Manifest',PATH_MANIFEST), ('Local Manifest',PATH_MANIFEST_LOCAL), ('Lab Manifest',PATH_MANIFEST_LAB), ('User Manifest',PATH_MANIFEST_HOME)]
 
 nlp=None
 ENGLISH=None
@@ -703,6 +704,18 @@ class Corpus(object):
 				return [t.meta_by_file for t in self.texts()]
 
 		return self._meta
+
+
+
+	def download(self):
+		cmd='cd {p1} && wget -O {p3} {p2} && unzip -n {p3}'.format(
+		p1=PATH_CORPUS,
+		p2=self.path_download,
+		p3='_download.zip')
+
+		print(cmd)
+
+
 
 	@property
 	def metadf(self,add_paths=True):
