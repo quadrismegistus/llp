@@ -1,6 +1,6 @@
 # llp
 
-Literary Language Processing (LLP) for the Stanford Literary LAB. Corpora, models, and tools for the digital humanities. Written in Python.
+Literary Language Processing (LLP) for the Stanford Literary Lab. Corpora, models, and tools for the digital humanities. Written in Python.
 
 ## Load corpora in a few lines
 
