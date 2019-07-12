@@ -132,6 +132,12 @@ def load_corpus(name=None,required_data = ['path_python','class_name','path_root
 
 ####
 
+
+def download(name):
+	corpus=load_corpus(name)
+	corpus.download()
+
+
 def corpora(load=True):
 	manifest=load_manifest()
 	for corpus_name in sorted(manifest):
