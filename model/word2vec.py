@@ -141,9 +141,7 @@ class Word2Vec(Model):
 	def path(self):
 		return self.path_model
 
-		#import llp
-		#odir=os.path.join(llp.ROOT,'model','_models_word2vec')
-		#return odir
+
 
 	@property
 	def named(self):
@@ -261,8 +259,8 @@ class Word2Vec(Model):
 			yield w
 
 	def remove_non_english(self):
-		import llp.tools
-		eng = llp.tools.get_english_wordlist()
+		from llp import tools
+		eng = tools.get_english_wordlist()
 		logging.info('>> removing non-english words...')
 		self.limit_vocab(words=eng)
 

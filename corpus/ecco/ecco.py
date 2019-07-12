@@ -5,7 +5,6 @@ from __future__ import print_function
 ### TEXT CLASSES
 
 import os,codecs
-import llp
 from llp import tools
 
 from llp.text import Text
@@ -92,8 +91,8 @@ class TextECCO_LitLang(Text):
 		return self._meta
 
 	def extract_metadata(self,mtxt,word_stats=True):
-		if not llp.ENGLISH:
-			llp.ENGLISH=llp.load_english()
+		from llp import load_english
+		ENGLISH=load_english()
 
 		md={}
 		## IDs
@@ -131,7 +130,7 @@ class TextECCO_LitLang(Text):
 
 		words=[w for w,p in self.tokens]
 		md['num_words']=len(words)
-		md['ocr_accuracy']=len([w for w in words if w in llp.ENGLISH]) / float(len(words)) if len(words) else 0.0
+		md['ocr_accuracy']=len([w for w in words if w in ENGLISH]) / float(len(words)) if len(words) else 0.0
 
 		return md
 

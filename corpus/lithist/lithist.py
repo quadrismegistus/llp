@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 
-import llp
-from llp.corpus import Corpus
+from llp.corpus import Corpus,load_corpus
 from llp.text import Text
 import os
 
@@ -23,28 +22,28 @@ import os
 
 def lithist_load_corpus(name,medium={},genre={}):
 	if name=='Chadwyck':
-		c=llp.load_corpus(name)
+		c=load_corpus(name)
 		c._texts = [t for t in c.texts() if t.year>1500 and t.year<1900]
 	elif name=='ChadwyckPoetry':
-		c=llp.load_corpus(name)
+		c=load_corpus(name)
 		#c._texts = [t for t in c.texts() if t.meta['posthumous']=='False' and t.year>1500 and t.year<2000]
 	elif name=='ChadwyckDrama':
-		c=llp.load_corpus(name)
+		c=load_corpus(name)
 		#c._texts = [t for t in c.texts() if t.meta['posthumous']=='False' and t.year>1500 and t.year<2000]
 	elif name=='ECCO-TCP_in_Sections':
-		c=llp.load_corpus('ECCO_TCP').sections
+		c=load_corpus('ECCO_TCP').sections
 		c._texts = [t for t in c.texts() if t.year>=1700 and t.year<1800]
 	elif name=='ECCO-TCP':
-		c=llp.load_corpus('ECCO_TCP')
+		c=load_corpus('ECCO_TCP')
 		c._texts = [t for t in c.texts() if t.year>=1700 and t.year<1800]
 	elif name=='EEBO-TCP_in_Sections':
-		c=llp.load_corpus('EEBO_TCP').sections
+		c=load_corpus('EEBO_TCP').sections
 		c._texts = [t for t in c.texts() if t.year>=1500 and t.year<1700]
 	elif name=='EEBO-TCP':
-		c=llp.load_corpus('EEBO_TCP')
+		c=load_corpus('EEBO_TCP')
 		c._texts = [t for t in c.texts() if t.year>=1500 and t.year<1700]
 	else:
-		c=llp.load_corpus(name)
+		c=load_corpus(name)
 
 	if medium:
 		c._texts=[t for t in c.texts() if t.medium in medium]
@@ -118,7 +117,7 @@ class LitHistAuthors(CorpusMeta):
 		if not corpora: corpora=[]
 
 		for name in self.CORPORA:
-			c=llp.load_corpus(name)
+			c=load_corpus(name)
 			if c is None: continue
 			c._texts = [t for t in c.texts() if t.year_author_is_30>self.YEAR_AUTHOR_30_MIN]
 			corpora.append(c)

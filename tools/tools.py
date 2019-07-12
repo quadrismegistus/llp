@@ -5,12 +5,41 @@ import six
 from six.moves import range
 from six.moves import zip
 from functools import reduce
-LIT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-CONFIG_PATH = os.path.join(LIT_ROOT,'config.txt')
 
-config = configparser.ConfigParser()
-config.read(CONFIG_PATH)
-config = dict([(k.upper(),v) for k,v in list(config['Default'].items())])
+from os.path import expanduser
+HOME=expanduser("~")
+
+LIT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+
+
+### SET THE CONFIG
+
+### SET THE CONFIGS
+
+def load_config():
+	CONFIG_PATHS = [os.path.join(LIT_ROOT,'config.txt')]
+	CONFIG_PATHS.append(os.path.join(os.path.join(LIT_ROOT,'..','llp_config.txt')))
+	CONFIG_PATHS.append(os.path.join(os.path.join(HOME,'litlab','llp_config.txt')))
+	CONFIG_PATHS.append(os.path.join(os.path.join(HOME,'llp_config.txt')))
+	CONFIG={}
+	for config_path in CONFIG_PATHS:
+		if not os.path.exists(config_path): continue
+		config = configparser.ConfigParser()
+		config.read(config_path)
+		config = dict([(k.upper(),v) for k,v in list(config['Default'].items())])
+		for k,v in config.items():
+			## PATHHACK?
+			if 'path' in k.lower() and not os.path.isabs(v):
+				newpath=os.path.join(os.path.dirname(config_path), v)
+				#print(v,'-->',newpath)
+				v=newpath
+			CONFIG[k]=v
+
+	#print(CONFIG)
+	return CONFIG
+
+# load config
+config=load_config()
 
 WORDDB_FN = config.get('PATH_TO_WORDDB')
 

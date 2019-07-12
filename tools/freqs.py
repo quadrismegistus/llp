@@ -4,11 +4,7 @@ import codecs,configparser,os,re
 from collections import defaultdict
 
 LIT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-CONFIG_PATH = os.path.join(LIT_ROOT,'config.txt')
-config = configparser.ConfigParser()
-config.read(CONFIG_PATH)
-config = dict([(k.upper(),v) for k,v in list(config['Default'].items())])
-
+from .tools import config
 
 def measure_fields(word_counts,fields={},only_fields=None):
 	if not fields: fields=get_fields()
@@ -25,9 +21,12 @@ def measure_fields(word_counts,fields={},only_fields=None):
 	return cd
 
 def get_field2words(fnfn=None,only_fields={},only_pos={},word2fields={},sep='\t'):
+	print('1',fnfn)
 	if not fnfn: fnfn=config.get('PATH_TO_FIELDS')
+	print('2',fnfn)
 	if not fnfn: return {}
 	if not fnfn.startswith(os.path.sep): fnfn=os.path.join(LIT_ROOT,fnfn)
+	print('3',fnfn)
 
 	from collections import defaultdict
 	fd=field2words=defaultdict(set)
@@ -54,12 +53,6 @@ def get_field2words(fnfn=None,only_fields={},only_pos={},word2fields={},sep='\t'
 def get_fields0(fnfn=None,only_fields={},only_pos={},word2fields={}):
 	if not fnfn: fnfn=config.get('PATH_TO_FIELDS')
 	if not fnfn: return {}
-
-	# fnfn = '/Users/ryan/DH/Dissertation/abstraction/words/data.fields.txt'
-	#from llp import tools
-	#fd=field2words={}
-	#for d in tools.readgen(fnfn):
-	#	field2words[d['field']]=set(d['words'].split())
 	from collections import defaultdict
 	field2words=defaultdict(set)
 	if only_pos: w2pos=get_word2pos()
@@ -78,7 +71,7 @@ def get_fields0(fnfn=None,only_fields={},only_pos={},word2fields={}):
 	return field2words
 
 def get_word2pos(worddb=None, word_col='word', pos_col='pos_byu'):
-	from llp.tools import worddf
+	from .tools import worddf
 	df=worddf()
 	return dict(zip(df[word_col],df[pos_col]))
 

@@ -82,7 +82,7 @@ def tsne(datadf,df_dist=None,n_components=2,resultdf=None):
     return resultdf
 
 def analyze_as_dist(datadf,df_dist=None,n_kmeans=5, do_tsne=True):
-    from llp.tools import now
+    from .tools import now
 
     if df_dist is None:
         print('>> dist(datadf)',now())

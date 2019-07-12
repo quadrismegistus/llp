@@ -1,20 +1,32 @@
 from __future__ import absolute_import
 from __future__ import print_function
 import os,codecs,gzip,random,time
-from llp import tools
+import tools
 import six
 from six.moves import range
 from six.moves import zip
 
+from os.path import expanduser
+HOME=expanduser("~")
 
-PATH_CORPUS = os.path.abspath(os.path.dirname(__file__))
-PATH_MANIFEST=os.path.join(PATH_CORPUS,'manifest.txt')
-PATH_MANIFEST_LOCAL=os.path.join(PATH_CORPUS,'manifest_local.txt')
-PATH_MANIFEST_LAB=os.path.join(PATH_CORPUS,'manifest_lab.txt')
-PATH_MANIFEST_HOME='~/.llp/manifest.txt'
-PATH_MANIFESTS = [PATH_MANIFEST, PATH_MANIFEST_LOCAL,PATH_MANIFEST_LAB, PATH_MANIFEST_HOME]
+PATH_HERE=os.path.abspath(os.path.dirname(__file__))
+PATH_CORPUS = tools.config.get('PATH_TO_CORPORA', PATH_HERE )
+PATH_TO_CORPUS_CODE = tools.config.get('PATH_TO_CORPUS_CODE', PATH_HERE )
+PATH_MANIFEST=os.path.join(PATH_TO_CORPUS_CODE,'manifest.txt')
+PATH_MANIFEST_LOCAL=os.path.join(PATH_TO_CORPUS_CODE,'manifest_local.txt')
+PATH_MANIFEST_LOCAL2=os.path.abspath(os.path.join(PATH_TO_CORPUS_CODE,'..','..','llp_manifest.txt'))
+PATH_MANIFEST_LOCAL3=os.path.join(PATH_CORPUS,'manifest.txt')
+PATH_MANIFEST_LAB=os.path.join(PATH_TO_CORPUS_CODE,'manifest_lab.txt')
+PATH_MANIFEST_HOME=os.path.join(HOME,'llp_manifest.txt')
 
-PATH_MANIFESTS_TUPLES = [('Global Manifest',PATH_MANIFEST), ('Local Manifest',PATH_MANIFEST_LOCAL), ('Lab Manifest',PATH_MANIFEST_LAB), ('User Manifest',PATH_MANIFEST_HOME)]
+PATH_MANIFESTS_TUPLES = PMT = []
+PMT.append(('Global Manifest',PATH_MANIFEST))
+PMT.append(('Local Manifest',PATH_MANIFEST_LOCAL))
+PMT.append(('Local Manifest (2)',PATH_MANIFEST_LOCAL2))
+if PATH_MANIFEST_LOCAL3 not in {PATH_MANIFEST_LOCAL,PATH_MANIFEST_LOCAL2,PATH_MANIFEST}:
+	PMT.append(('Local Manifest (3)',PATH_MANIFEST_LOCAL3))
+PMT.append(('Lab Manifest',PATH_MANIFEST_LAB))
+PMT.append(('User Manifest',PATH_MANIFEST_HOME))
 
 nlp=None
 ENGLISH=None
@@ -56,7 +68,7 @@ def load_manifest(force=True,corpus_name=None):
 	#print('>> reading config files...')
 	import configparser
 	config = configparser.ConfigParser()
-	for path in PATH_MANIFESTS:
+	for (pn,path) in PATH_MANIFESTS_TUPLES:
 		#print('  ','reading:',path)
 		config.read(path)
 
@@ -83,7 +95,7 @@ def load_corpus(name=None,required_data = ['path_python','class_name','path_root
 
 	if not name in manifest:
 		print('!! Corpus not found in manifests:')
-		for path in PATH_MANIFESTS: print('\t'+path)
+		for (pn,path) in PATH_MANIFESTS_TUPLES: print('\t'+path)
 		return
 
 	corpus_manifest=manifest[name]
@@ -100,7 +112,7 @@ def load_corpus(name=None,required_data = ['path_python','class_name','path_root
 	path_root = corpus_manifest['path_root']
 
 	if not path_root.startswith(os.path.sep):
-		path_root=os.path.join(PATH_CORPUS,path_root)
+		path_root=os.path.join(PATH_TO_CORPUS_CODE,path_root)
 
 	#path_python = os.path.join(PATH_CORPUS,path_python) if not path_python[0] in {'\\','/'} else path_python
 	path_python = os.path.join(path_root,path_python) if not path_python.startswith(os.path.sep) else path_python
@@ -205,8 +217,6 @@ class Corpus(object):
 		opts_list = [('Default',default_kwargs), (self.__class__.__name__,input_kwargs)]
 
 		if input_kwargs.get('manifest_override',True):
-			#manifest_data['path_manifests'] = '|'.join(PATH_MANIFESTS)
-			#opts_list.append(('Manifest',manifest_data))
 			opts_list.extend(load_manifest_list(corpus_name=name))
 
 		opts={}
@@ -252,96 +262,6 @@ class Corpus(object):
 
 
 
-
-	def __init_old__(self, name, path_xml='', path_index='', ext_xml='.xml', ext_txt='.txt', path_txt='',
-				path_model='',path_header=None, path_metadata='', paths_text_data=[], paths_rel_data=[],
-				path_freq_table={}, col_id='id',col_fn='', path_root='', path_freqs='', manifest={}, path_python='', manifest_override=True, **kwargs):
-
-		import llp
-
-		try:
-			from types import SimpleNamespace  #python 3
-			opts = SimpleNamespace(**locals())
-		except ImportError:
-			from argparse import Namespace     # python2
-			opts = Namespace(**locals())
-
-		## MANIFEST OVERRIDE
-		if manifest_override:
-			corpus_manifest = load_manifest(corpus_name=name)
-			# initial setting
-			for k,v in corpus_manifest.items():
-				setattr(self,k,v)
-
-		"""
-
-
-		if opts.path_root:
-			if path_root.startswith(os.path.sep):
-				self.path=path_root
-			else:
-				self.path=os.path.join(llp.ROOT,'corpus',path_root)
-		else:
-			self.path = os.path.dirname(__file__)
-
-
-		self.path_matches = os.path.join(llp.ROOT,'corpus','_matches')
-		self.name=name
-		path = path_xml if path_xml else path_txt
-		if not path_xml:
-			self.path_xml=''
-		else:
-			if path_xml.startswith(os.path.sep): # abs path
-				self.path_xml=path_xml
-			else: # relative
-				self.path_xml=os.path.join(self.path,path_xml) if path_xml else ''
-
-		if not path_txt:
-			self.path_txt = self.path_xml.replace('_xml_','_txt_')
-		else:
-			if path_txt.startswith('/'): # abs path
-				self.path_txt=path_txt
-			else: # relative
-				self.path_txt=os.path.join(self.path,path_txt)
-
-		if not path_freqs:
-			self.path_freqs=os.path.join(self.path,'freqs',self.name)
-		elif path_freqs.startswith(os.path.sep):
-			self.path_freqs = path_freqs
-		else:
-			self.path_freqs=os.path.join(self.path,path_freqs)"""
-
-
-		self.path_spacy = self.path_xml.replace('_xml_','_spacy_')
-		self.path_skipgrams = self.path_xml.replace('_xml_','_skipgrams_')
-		self.path_index=os.path.join(self.path,path_index) if path_index else ''
-		#self.path_model = os.path.join(llp.ROOT,'model','_models_word2vec')
-		self.path_model = path_model if path_model else os.path.join(self.path_txt,'_txt_','_models_word2vec_')
-		self.fnfn_model = os.path.join(self.path_model,'word2vec.'+self.name+'.model')
-		if path_header:
-			self.path_header=os.path.join(self.path,path_header)
-		self.ext_xml = ext_xml
-		self.ext_txt = ext_txt
-		self.col_fn=col_fn
-		self.col_id=col_id
-		self.path_metadata = os.path.join(self.path,path_metadata) if path_metadata else os.path.join(self.path,'corpus-metadata.'+self.name+'.txt')
-		self.path_mfw_simple = os.path.join(self.path,'mfw.'+self.name+'.txt')
-		self.paths_text_data=[os.path.join(self.path,_fn) for _fn in paths_text_data]
-		self.paths_rel_data=[os.path.join(self.path,_fn) for _fn in paths_rel_data]
-		#self.path_freq_table=os.path.join(self.path,path_freq_table) if path_freq_table else ''
-
-		self.path_freq_table={}
-		for k,v in list(path_freq_table.items()):
-			self.path_freq_table[k]=os.path.join(self.path,v) if v else ''
-
-		self.graph_text_rel={}
-		self.matched_corpora={}
-
-		# leftover kwargs?
-		for k,v in list(kwargs.items()):
-			setattr(self,k,v)
-
-		#self.models = self.word2vec_by_period
 
 	@property
 	def num_texts(self):
@@ -708,10 +628,15 @@ class Corpus(object):
 
 
 	def download(self):
-		cmd='cd {p1} && wget -O {p3} {p2} && unzip -n {p3} && rm {p3}'.format(
+		cmd='cd {p1} && wget -O {p3} {p2} && unzip -n {p3} -x "*.py*" -x "*.DS_Store" -x "*__pycache__*" && rm {p3}'.format(
 		p1=PATH_CORPUS,
 		p2=self.url_download,
 		p3='_download.zip')
+
+		import os
+
+		ofnfn=os.path.join(PATH_CORPUS,'_download.zip')
+		print('>> saving temporarily to:',ofnfn)
 
 		print(cmd)
 		import os

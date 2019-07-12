@@ -6,18 +6,21 @@ TABLE_NEXT='texts2'
 def make_metadata_db(dbname='llp',tablename=TABLE_NEXT, buffer_size=1000):
 	import pymongo
 	from pymongo import MongoClient
-	import llp
+
 	client = MongoClient()
 	db = client[dbname]
 	table = db[tablename]
 	print('>> removing')
 	table.drop()
 
+	from .. import corpus
+	from corpus import corpora
+
 	print('>> creating index')
 	table.create_index([('corpus', pymongo.ASCENDING)])
 	table.create_index([('corpus', pymongo.ASCENDING), ('id', pymongo.ASCENDING)],unique=True)
 
-	for corpus_name,corpus in llp.corpora():
+	for corpus_name,corpus in corpora():
 		print('>>',corpus,'...')
 		#if corpus_name!='ChadwyckDrama': continue
 		ild=[]
