@@ -2,6 +2,7 @@
 backups/
 corpus/*
 !corpus/manifest.txt
+!config_local.txt
 !corpus/manifest_lab.txt
 !corpus/*.py
 !corpus/default/
