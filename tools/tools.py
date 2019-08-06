@@ -37,7 +37,7 @@ def load_config():
 		for k,v in config.items():
 			## PATHHACK?
 			if 'path' in k.lower() and not os.path.isabs(v):
-				newpath=os.path.join(os.path.dirname(config_path), v)
+				newpath=os.path.abspath(os.path.join(os.path.dirname(config_path), v))
 				#print(v,'-->',newpath)
 				v=newpath
 			CONFIG[k]=v
