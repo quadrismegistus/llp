@@ -2,7 +2,22 @@
 
 Literary Language Processing (LLP): corpora, models, and tools for the digital humanities.
 
-## Load corpora in a few lines
+## Make a corpus
+
+If you have a folder of plain text files, and an accompanying metadata file,
+
+```python
+from llp.corpus.default import PlainTextCorpus
+
+corpus = PlainTextCorpus(
+	path_txt='texts',              # path to a folder of txt files
+	path_metadata='metadata.xls',  # path to a metadata CSV, TSV, XLS, XLSX file
+	col_fn='filename'              # column in metadata pointing to txt file (relative to `path_txt`)
+)
+```
+
+
+## Load a pre-existing corpus
 
 Start working with corpora in a few lines:
 
@@ -10,14 +25,14 @@ Start working with corpora in a few lines:
 # import the llp module
 import llp
 
-# load the chicago corpus
+# load the ECCO-TCP corpus [distributed freely online]
 corpus = llp.load('ECCO_TCP')
 
 # don't have it yet?
 corpus.download()
 ```
 
-With corpora you can do various things:
+## Do things with corpora
 
 ```python
 # get the metadata as a dataframe
