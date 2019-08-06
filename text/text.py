@@ -919,3 +919,21 @@ def get_author_dates(author):
 
 def tokenize_fast(line):
 	return re.findall("[A-Z]{2,}(?![a-z])|[A-Z][a-z]+(?=[A-Z])|[\'\w\-]+",line.lower())
+
+
+
+
+########################################################
+class PlainText(Text):
+	def __init__(self,txt=None,path_to_txt=None):
+		self.id=None
+		self.corpus=None
+		self._sections=[]
+		self._fnfn_xml=None
+		self._fnfn_txt=path_to_txt
+		self._txt=txt
+
+	@property
+	def txt(self):
+		if self._txt: return self._txt
+		return self.text

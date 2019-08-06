@@ -15,7 +15,10 @@ TOP1000ABSNOUN=dict(n=1000,only_pos='NN',pos_regex=False,remove_stopwords=True,o
 TOP50000ALLWORDS = dict(n=50000,only_pos=None,pos_regex=False,remove_stopwords=False,only_abstract=None)
 TOP2000SINGNOUN=dict(n=2000,only_pos='NN',pos_regex=False,remove_stopwords=True,only_abstract=None)
 
-DEFAULT_MFWD=TOP5000
+
+TOPALL=dict(n=None,only_pos=None,pos_regex=False,remove_stopwords=False,only_abstract=None)
+
+DEFAULT_MFWD=TOPALL
 
 import os,gensim,logging,time,numpy as np,random
 from llp.model import Model
@@ -42,7 +45,7 @@ KEYWORDS|=KEYWORDS_OTHER
 KEYWORDS|=KEYWORDS_BECOMING_ABSTRACT
 
 class Word2Vec(Model):
-	def __init__(self, corpus, skipgram_n=10, name=None, mongo_q={}, fn=None, skipgram_fn=None, vocab_size=20000, num_skips_wanted=None,period=None):
+	def __init__(self, corpus=None, skipgram_n=10, name=None, mongo_q={}, fn=None, skipgram_fn=None, vocab_size=20000, num_skips_wanted=None,period=None):
 		"""Initialize a Word2Vec object.
 
 		Each W2V object...
@@ -70,7 +73,7 @@ class Word2Vec(Model):
 		self.skipgram_n=skipgram_n
 		self._gensim=None
 		self.mfw_d=DEFAULT_MFWD
-		self.path_model = self.corpus.path_model
+		self.path_model = self.corpus.path_model if self.corpus else ''
 		self.mongo_q = mongo_q
 		self._fn=fn
 		self.skipgram_fn=skipgram_fn
@@ -684,6 +687,7 @@ class Word2Vec(Model):
 				vectord[k]=v
 		words = words if words else self.mfw(**mfw_d)
 		words = list(words)
+		#print(len(words),'!')
 		old=[]
 		words_sofar=set()
 		i=0
@@ -691,7 +695,7 @@ class Word2Vec(Model):
 			if not word in model: continue
 			i+=1
 			odx=self.cosine_word(word,vectord)
-			#if not i%1000: print '>> model_words: {} of {}...'.format(i+1,len(words))
+			#if not i%1000:print('>> model_words: {} of {}...'.format(i+1,len(words)))
 			odx['rank']=i
 			odx['model_rank'],odx['model_count']=self.gensim.vocab[word].index,self.gensim.vocab[word].count
 			#odx['model_tf']=float(odx['model_count']) / self.num_words
@@ -749,7 +753,7 @@ class Word2Vec(Model):
 			vals1 = [d[k1] for d in ld]
 			vals2 = [d[k2] for d in ld]
 			try:
-				dx['lm_a'],dx['lm_b'],dx['lm_RR'] = pystats.linreg(vals1,vals2)
+				dx['lm_a'],dx['lm_b'],dx['lm_RR'] = tools.linreg(vals1,vals2)
 				dx['pearson_r'],dx['pearson_p']=pearsonr(vals1,vals2)
 				old+=[dx]
 			except TypeError:

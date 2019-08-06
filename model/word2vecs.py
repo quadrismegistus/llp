@@ -164,7 +164,8 @@ class Word2Vecs(Model):
 		## consolidate
 		self.consolidate_model_words()
 
-	def consolidate_model_words(self,idir='.'):
+	def consolidate_model_words(self,idir='.',name=None):
+		if not name: name=self.name
 		old1=[]
 		old2=[]
 		#for w2v in self.models:
@@ -205,7 +206,7 @@ class Word2Vecs(Model):
 					continue
 				X = list(range(len(Y)))
 
-				a,b,RR = pystats.linreg(X,Y)
+				a,b,RR = tools.linreg(X,Y)
 				pr,pp=pearsonr(X,Y)
 				odx={'word':word, 'vector':vec}
 				for period,y in zip(sorted(period2ld.keys()), Y):
@@ -218,9 +219,9 @@ class Word2Vecs(Model):
 				old3+=[odx]
 
 
-		ofn1='data.word2vec.consolidated.words.'+self.name+'.txt'
-		ofn2='data.word2vec.consolidated.words.'+self.name+'.linreg-results.txt'
-		ofn3='data.word2vec.consolidated.words.'+self.name+'.linreg-words.txt'
+		ofn1='data.word2vec.consolidated.words.'+name+'.txt'
+		ofn2='data.word2vec.consolidated.words.'+name+'.linreg-results.txt'
+		ofn3='data.word2vec.consolidated.words.'+name+'.linreg-words.txt'
 		tools.write2(ofn1,old1)
 		tools.write2(ofn2,old2)
 		tools.write2(ofn3,old3)
@@ -416,7 +417,7 @@ class Word2Vecs(Model):
 
 				if len(set(X))<2: continue
 
-				a,b,RR = pystats.linreg(X,Y)
+				a,b,RR = tools.linreg(X,Y)
 				pr,pp=pearsonr(X,Y)
 
 				odx={}

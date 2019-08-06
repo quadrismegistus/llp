@@ -1795,6 +1795,7 @@ class Corpus_in_Sections(Corpus):
 
 	def texts(self):
 		if not hasattr(self,'_texts'):
+			#print(self.path_metadata, os.path.exists(self.path_metadata))
 			if os.path.exists(self.path_metadata):
 				self.meta
 				for t in self._texts:

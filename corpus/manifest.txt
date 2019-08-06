@@ -50,7 +50,8 @@ link = http://collections.chadwyck.co.uk/marketing/list_of_all.jsp
 path_root = chadwyck_poetry
 path_txt = _txt_chadwyck_poetry
 path_xml = _xml_chadwyck_poetry
-path_metadata = corpus-metadata.ChadwyckPoetry.txt
+#path_metadata = corpus-metadata.ChadwyckPoetry.txt
+path_metadata = metadata.txt.gz
 path_python = chadwyck_poetry.py
 class_name = ChadwyckPoetry
 
@@ -254,6 +255,7 @@ sources = Chadwyck, ChadwyckPoetry, ChadwyckDrama, COHA, ECCO_TCP, EEBO_TCP
 path_root = lithist
 path_python = lithist.py
 class_name = LitHistAuthors
+path_metadata = corpus-metadata.LitHistAuthors.txt
 
 [LitHist]
 name = LitHist
@@ -262,6 +264,7 @@ sources = ['Chadwyck','ChadwyckPoetry','ChadwyckDrama', 'ECCO-TCP','EEBO-TCP','T
 path_root = lithist
 path_python = lithist.py
 class_name = LitHist
+path_metadata = corpus-metadata.LitHist.txt
 
 [LitHistProse]
 name = LitHistProse
@@ -269,3 +272,4 @@ desc = Literary-historical texts from a wide variety of sources (PROSE)
 path_root = lithist
 path_python = lithist.py
 class_name = LitHistProse
+path_metadata = corpus-metadata.LitHistProse.txt

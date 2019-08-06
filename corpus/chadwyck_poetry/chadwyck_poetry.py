@@ -40,7 +40,7 @@ class TextChadwyckPoetry(Text):
 		meta=super(TextChadwyckPoetry,self).meta
 		meta['year']
 		try:
-			meta['year']=int(meta['author_dob'][:4])+plus_years
+			meta['year']=int(str(meta['author_dob'])[:4])+plus_years
 		except ValueError:
 			meta['year']=0
 		return meta
@@ -350,14 +350,15 @@ def xml2txt(xml_path, xml_string=None, OK=['l','lb'], BAD=['note'], body_tag='po
 
 	return txt
 
-def meta_by_file(path_xml,guess_gender=True,detect_posthumous=True,fudge_dates=True):
+#def meta_by_file(path_xml,guess_gender=False,detect_posthumous=True,fudge_dates=True):
+def meta_by_file(text_xml,guess_gender=False,detect_posthumous=True,fudge_dates=True):
 	if guess_gender: import gender_guesser.detector as gender
 	gender_d={}
 
 	import bs4 #,codecs
 	#with codecs.open(path_xml,encoding='utf-8',errors='ignore') as f: text_xml=f.read()
-	with open(path_xml,errors='ignore') as f:
-		text_xml=f.read()
+	#with open(path_xml,errors='ignore') as f:
+	#	text_xml=f.read()
 
 	dom=bs4.BeautifulSoup(text_xml,'lxml')
 

@@ -21,12 +21,12 @@ def measure_fields(word_counts,fields={},only_fields=None):
 	return cd
 
 def get_field2words(fnfn=None,only_fields={},only_pos={},word2fields={},sep='\t'):
-	print('1',fnfn)
+	#print('1',fnfn)
 	if not fnfn: fnfn=config.get('PATH_TO_FIELDS')
-	print('2',fnfn)
+	#print('2',fnfn)
 	if not fnfn: return {}
 	if not fnfn.startswith(os.path.sep): fnfn=os.path.join(LIT_ROOT,fnfn)
-	print('3',fnfn)
+	#print('3',fnfn)
 
 	from collections import defaultdict
 	fd=field2words=defaultdict(set)
@@ -41,6 +41,7 @@ def get_field2words(fnfn=None,only_fields={},only_pos={},word2fields={},sep='\t'
 			d=dict(zip(header,dat))
 			field=d.get('field','')
 			if not field: continue
+			if only_fields and not field in only_fields: continue
 			words=set(d.get('words','').split())
 			field2words[field]=words
 			if only_pos:
@@ -75,10 +76,7 @@ def get_word2pos(worddb=None, word_col='word', pos_col='pos_byu'):
 	df=worddf()
 	return dict(zip(df[word_col],df[pos_col]))
 
-def get_word2fields(fnfn=None,
-only_fields={},
-only_pos={'n','v','r','j'}):
-
+def get_word2fields(fnfn=None,only_fields={},only_pos={'n','v','r','j'}):
 	word2fields=defaultdict(set)
 	field2words=get_field2words(only_fields=only_fields, only_pos=only_pos)
 	for field,words in field2words.items():

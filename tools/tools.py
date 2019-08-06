@@ -14,6 +14,10 @@ LIT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 ### SET THE CONFIG
 
+def hash(x):
+	import hashlib
+	return hashlib.sha224(str(x).encode('utf-8')).hexdigest()
+
 ### SET THE CONFIGS
 
 def load_config():
@@ -199,9 +203,9 @@ def writegen(fnfn,generator,header=None,args=[],kwargs={}):
 		writer = csv.DictWriter(csvfile,fieldnames=header,delimiter='\t')
 		writer.writeheader()
 		for i,dx in enumerate(iterator):
-			for k,v in dx.items():
-				if type(v) in [str]:
-					dx[k]=v.encode('utf-8')
+			#for k,v in dx.items():
+				#if type(v) in [str]:
+				#	dx[k]=v.encode('utf-8')
 			writer.writerow(dx)
 	print('>> saved:',fnfn)
 
@@ -224,14 +228,21 @@ def writegengen(fnfn,generator,header=None,save=True):
 		yield dx
 
 def readgen_csv(fnfn,sep='\t',encoding='utf-8',errors='ignore'):
-	from xopen import xopen
-	with xopen(fnfn) as f:
-		reader = csv.DictReader(f,delimiter=sep,quoting=csv.QUOTE_NONE)
-		for dx in reader:
-			#for k,v in dx.items():
-			#	if type(v)==str:
-			#		dx[k]=v.decode(encoding=encoding, errors=errors)
-			yield dx
+	#
+	if fnfn.endswith('.gz'):
+		from xopen import xopen
+		f=xopen(fnfn)
+	else:
+		f=open(fnfn,encoding=encoding,errors=errors)
+
+	reader = csv.DictReader(f,delimiter=sep,quoting=csv.QUOTE_NONE)
+	for dx in reader:
+		#for k,v in dx.items():
+		#	if type(v)==str:
+		#		dx[k]=v.decode(encoding=encoding, errors=errors)
+		yield dx
+
+	f.close()
 
 def readgen(fnfn,header=None,tsep='\t',keymap={},keymap_all=six.text_type,encoding='utf-8',as_list=False,as_tuples=False,as_dict=True,toprint=True):
 	if 'jsonl' in fnfn.split('.'):
@@ -970,6 +981,9 @@ def modernize_spelling_in_txt(txt,spelling_d):
 	return '\n'.join(lines)
 
 
+def tokenize_fast(line):
+	return re.findall("[A-Z]{2,}(?![a-z])|[A-Z][a-z]+(?=[A-Z])|[\'\w\-]+",line.lower())
+
 
 
 
@@ -1085,7 +1099,7 @@ write = write2
 
 
 def splitkeepsep(s, sep):
-    return reduce(lambda acc, elem: acc[:-1] + [acc[-1] + elem] if elem == sep else acc + [elem], re.split("(%s)" % re.escape(sep), s), [])
+	return reduce(lambda acc, elem: acc[:-1] + [acc[-1] + elem] if elem == sep else acc + [elem], re.split("(%s)" % re.escape(sep), s), [])
 
 
 
@@ -1118,7 +1132,7 @@ def phrase2variants(phrase):
 	s2v=standard2variant()
 	words = phrase.split()
 	word_opts = [[s]+s2v[s] for s in words]
-	word_combos = list(pystats.product(*word_opts))
+	word_combos = list(tools.product(*word_opts))
 	phrase_combos = [' '.join(x) for x in word_combos]
 	return phrase_combos
 ###
@@ -1166,3 +1180,57 @@ def product(*args):
 def zfy(data):
 	from scipy.stats import zscore
 	return zscore(data)
+
+
+
+
+load_stopwords = get_stopwords
+
+
+
+
+
+
+
+def linreg(X, Y):
+	from math import sqrt
+	from numpy import nan, isnan
+	from numpy import array, mean, std, random
+
+	if len(X)<2 or len(Y)<2:
+		return 0,0,0
+	"""
+	Summary
+		Linear regression of y = ax + b
+	Usage
+		real, real, real = linreg(list, list)
+	Returns coefficients to the regression line "y=ax+b" from x[] and y[], and R^2 Value
+	"""
+
+
+	if len(X) != len(Y):  raise ValueError('unequal length')
+	N = len(X)
+	Sx = Sy = Sxx = Syy = Sxy = 0.0
+	for x, y in map(None, X, Y):
+		Sx = Sx + x
+		Sy = Sy + y
+		Sxx = Sxx + x*x
+		Syy = Syy + y*y
+		Sxy = Sxy + x*y
+	det = Sxx * N - Sx * Sx
+	a, b = (Sxy * N - Sy * Sx)/det, (Sxx * Sy - Sx * Sxy)/det
+	meanerror = residual = 0.0
+	for x, y in map(None, X, Y):
+		meanerror = meanerror + (y - Sy/N)**2
+		residual = residual + (y - a * x - b)**2
+
+	RR = 1 - residual/meanerror if meanerror else 1
+	ss = residual / (N-2) if (N-2) else 0
+	Var_a, Var_b = ss * N / det, ss * Sxx / det
+	#print "y=ax+b"
+	#print "N= %d" % N
+	#print "a= %g \\pm t_{%d;\\alpha/2} %g" % (a, N-2, sqrt(Var_a))
+	#print "b= %g \\pm t_{%d;\\alpha/2} %g" % (b, N-2, sqrt(Var_b))
+	#print "R^2= %g" % RR
+	#print "s^2= %g" % ss
+	return a, b, RR

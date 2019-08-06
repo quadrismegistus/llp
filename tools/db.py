@@ -2,6 +2,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 TABLE_NOW='texts'
 TABLE_NEXT='texts2'
+ADDR_SEP='|'
 
 def make_metadata_db(dbname='llp',tablename=TABLE_NEXT, buffer_size=1000):
 	import pymongo
@@ -81,3 +82,29 @@ def get_corpus_meta(corpus,dbname='llp',tablename=TABLE_NOW):
 		yield dx
 	#for dx in ld: del dx['_id']
 	#return ld
+
+
+def get_table(dbname='llp',tablename=TABLE_NOW):
+	from pymongo import MongoClient
+	client = MongoClient()
+	db = client[dbname]
+	table = db[tablename]
+	return table
+
+
+def make_mini_db(keys=['author','title','year']): #keys=['corpus','id','author','title','year']):
+	from llp import tools
+	from tqdm import tqdm #tqdm_notebook as tqdm
+
+	dbtable=get_table()
+	total=dbtable.count()
+
+	def _writegen():
+		for dx in tqdm(dbtable.find(),total=total):
+			minidx=dict( [ (k,dx.get(k,'')) for k in keys ] )
+			minidx['_addr']=str(dx.get('corpus','Corpus')) + ADDR_SEP + str(dx.get('id','ID'))
+			yield minidx
+
+	tools.writegen('data.llp_mini_db.txt', _writegen)
+
+#def get_mini_db():
