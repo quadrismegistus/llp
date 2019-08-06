@@ -16,6 +16,7 @@ PATH_MANIFEST=os.path.join(PATH_TO_CORPUS_CODE,'manifest.txt')
 PATH_MANIFEST_LOCAL=os.path.join(PATH_TO_CORPUS_CODE,'manifest_local.txt')
 PATH_MANIFEST_LOCAL2=os.path.abspath(os.path.join(PATH_TO_CORPUS_CODE,'..','..','llp_manifest.txt'))
 PATH_MANIFEST_LOCAL3=os.path.join(PATH_CORPUS,'manifest.txt')
+PATH_MANIFEST_LOCAL4=os.path.abspath(os.path.join(PATH_HERE,'..','..','config','llp_manifest.txt'))
 PATH_MANIFEST_LAB=os.path.join(PATH_TO_CORPUS_CODE,'manifest_lab.txt')
 PATH_MANIFEST_HOME=os.path.join(HOME,'llp_manifest.txt')
 
@@ -25,6 +26,7 @@ PMT.append(('Local Manifest',PATH_MANIFEST_LOCAL))
 PMT.append(('Local Manifest (2)',PATH_MANIFEST_LOCAL2))
 if PATH_MANIFEST_LOCAL3 not in {PATH_MANIFEST_LOCAL,PATH_MANIFEST_LOCAL2,PATH_MANIFEST}:
 	PMT.append(('Local Manifest (3)',PATH_MANIFEST_LOCAL3))
+PMT.append(('Local Manifest (4)',PATH_MANIFEST_LOCAL4))
 PMT.append(('Lab Manifest',PATH_MANIFEST_LAB))
 PMT.append(('User Manifest',PATH_MANIFEST_HOME))
 
@@ -39,9 +41,9 @@ def load_manifest_list(corpus_name=None):
 	# read config
 	import configparser
 	config_list=[]
-	#print('>> reading config files...')
+	print('>> reading corpus manifest files...')
 	for (pn,path) in PATH_MANIFESTS_TUPLES:
-		#print('  ','reading:',path)
+		print('  ','reading:',path)
 		config = configparser.ConfigParser()
 		config.read(path)
 

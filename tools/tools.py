@@ -29,7 +29,7 @@ def load_config():
 	CONFIG_PATHS.append(os.path.join(os.path.join(HOME,'llp_config.txt')))
 	CONFIG={}
 	for config_path in CONFIG_PATHS:
-		print('## looking for config:',os.path.abspath(config_path))
+		#print('## looking for config:',os.path.abspath(config_path))
 		if not os.path.exists(config_path): continue
 		config = configparser.ConfigParser()
 		config.read(config_path)
