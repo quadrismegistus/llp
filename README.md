@@ -1,6 +1,6 @@
 # llp
 
-Literary Language Processing (LLP) for the Stanford Literary Lab. Corpora, models, and tools for the digital humanities. Written in Python.
+Literary Language Processing (LLP): corpora, models, and tools for the digital humanities.
 
 ## Load corpora in a few lines
 
@@ -11,25 +11,25 @@ Start working with corpora in a few lines:
 import llp
 
 # load the chicago corpus
-chicago = llp.load('Chicago')
+corpus = llp.load('ECCO_TCP')
 
 # don't have it yet?
-chicago.download()
+corpus.download()
 ```
 
 With corpora you can do various things:
 
 ```python
 # get the metadata as a dataframe
-df_meta = chicago.metadata
+df_meta = corpus.metadata
 
 # loop over the texts...
-for text_obj in chicago.texts():
+for text in corpus.texts():
     # get a string of that text
-    text_str = text_obj.txt
+    text_str = text.txt
 
     # get the metadata as a dictionary
-    text_meta = text_obj.meta
+    text_meta = text.meta
 
 ```
 
