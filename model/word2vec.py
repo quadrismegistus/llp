@@ -164,10 +164,16 @@ class Word2Vec(Model):
 		then=time.time()
 		if os.path.exists(self.fnfn_vocab):
 			print('>> loading word2vec model [{0}] [{1}]'.format(self.fnfn,os.path.basename(self.fnfn_vocab)))
-			self._gensim=gensim.models.KeyedVectors.load_word2vec_format(self.fnfn, self.fnfn_vocab, unicode_errors='ignore')
+			try:
+				self._gensim=gensim.models.KeyedVectors.load_word2vec_format(self.fnfn, self.fnfn_vocab, unicode_errors='ignore')
+			except ValueError:
+				self._gensim=gensim.models.KeyedVectors.load_word2vec_format(self.fnfn, self.fnfn_vocab, unicode_errors='ignore',binary=True)
 		else:
 			print('>> loading word2vec model [{0}]'.format(self.fnfn))
-			self._gensim=gensim.models.KeyedVectors.load_word2vec_format(self.fnfn, unicode_errors='ignore')
+			try:
+				self._gensim=gensim.models.KeyedVectors.load_word2vec_format(self.fnfn, unicode_errors='ignore')
+			except ValueError:
+				self._gensim=gensim.models.KeyedVectors.load_word2vec_format(self.fnfn, unicode_errors='ignore',binary=True)
 		self._gensim.init_sims(replace=True)
 		now=time.time()
 		print('>> done loading word2vec model:',os.path.basename(self.fnfn),'['+str(round(now-then,1))+' seconds]')
