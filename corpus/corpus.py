@@ -41,9 +41,9 @@ def load_manifest_list(corpus_name=None):
 	# read config
 	import configparser
 	config_list=[]
-	print('>> reading corpus manifest files...')
+	#print('>> reading corpus manifest files...')
 	for (pn,path) in PATH_MANIFESTS_TUPLES:
-		print('  ','reading:',path)
+		#print('  ','reading:',path)
 		config = configparser.ConfigParser()
 		config.read(path)
 
