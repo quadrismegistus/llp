@@ -140,7 +140,7 @@ path_header = headers.ecco_tcp
 path_metadata = corpus-metadata.ECCO-TCP.xlsx
 path_python = ecco.py
 class_name = ECCO_TCP
-url_download="https://www.dropbox.com/s/mrqof6muiodu67u/ECCO_TCP.metadata+xml+txt.zip?dl=1"
+url_download="https://www.dropbox.com/s/v7p58wmjx7yz2fq/ecco.zip?dl=1"
 
 
 [EEBO_TCP]
