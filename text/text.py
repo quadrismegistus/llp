@@ -722,6 +722,8 @@ class Text(object):
 
 
 	def save_plain_text(self,txt=None,compress=False,force=False):
+		if self.id is None: return
+
 		fnfn_txt = os.path.join(self.corpus.path_txt,self.id+'.txt')
 		if compress: fnfn_txt+='.gz'
 		if not force and os.path.exists(fnfn_txt): return
