@@ -48,8 +48,8 @@ attr2xml={'psmid': 'PSMID',
 
 
 class TextGaleAmericanFiction(Text):
-    @property
-    def meta_by_file(self):
+
+    def get_meta_from_file(self):
         """
         This function mines the XML of the file for metadata, returning it as a dictionary.
         Please make sure to include the id of the text!

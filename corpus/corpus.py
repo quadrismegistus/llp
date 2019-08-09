@@ -709,8 +709,9 @@ class Corpus(object):
 		global ENGLISH
 		from llp import tools
 		if not ofn:
-			timestamp=tools.now().split('.')[0]
-			ofn=os.path.join(self.path,'corpus-metadata.%s.%s.txt' % (self.name,timestamp))
+			#timestamp=tools.now().split('.')[0]
+			#ofn=os.path.join(self.path,'corpus-metadata.%s.%s.txt' % (self.name,timestamp))
+			ofn=self.path_metadata
 
 		print('>> generating metadata...')
 		texts = self.texts()

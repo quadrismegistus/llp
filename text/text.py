@@ -623,6 +623,13 @@ class Text(object):
 	def save_freqs(self,ofolder=None,force=False):
 		return self.save_freqs_json(ofolder=ofolder,force=force)
 
+	@property
+	def meta_by_file(self):
+		return self.get_meta_from_file()
+
+	def get_meta_from_file(self):
+		return {} #self.meta_from_file
+
 	def save_freqs_json(self,ofolder=None,force=False):
 		if not ofolder: ofolder=self.corpus.path_freqs
 		ofnfn=os.path.join(ofolder,self.id+'.json')
@@ -638,6 +645,7 @@ class Text(object):
 		tokd=dict(Counter(toks))
 		with open(ofnfn,'w') as of:
 			json.dump(tokd,of)
+		return tokd
 
 	@property
 	def fnfn_freqs(self):
