@@ -627,12 +627,12 @@ class Text(object):
 	def meta_by_file(self):
 		return self.get_meta_from_file()
 
-	def get_meta_by_file(self):
+	def get_meta_by_file(self,maxstrlen=1000):
 		# @HACKy... Just need a functon version of property version above
 		d=self.meta_by_file
 		for k,v in d.items():
-			if type(v)==str:
-				d[k]=v.replace('\r\n',' / ').replace('\r',' / ').replace('\n',' / ').replace('\t','  ')
+			d[k]=str(v).replace('\r\n',' / ').replace('\r',' / ').replace('\n',' / ').replace('\t','  ')
+			d[k]=d[k][:maxstrlen]
 		return d
 
 	def get_meta_from_file(self):

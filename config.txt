@@ -11,3 +11,8 @@ PATH_TO_FIELDS = data/data.fields.txt.gz
 
 # BookNLP?
 PATH_TO_BOOKNLP_BINARY= ../bin/book-nlp/runjava
+
+
+
+# SBATCH
+SBATCH_OPTS = -p hns

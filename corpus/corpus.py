@@ -126,6 +126,7 @@ def load_corpus(name=None,required_data = ['path_python','class_name','path_root
 	class_class = getattr(module,class_name)
 	class_obj = class_class()
 	class_obj.name = name
+	class_obj.name_module = module_name
 
 	# re-do init?
 	if issubclass(class_class,CorpusMeta):
@@ -304,6 +305,13 @@ class Corpus(object):
 
 	def text(self,idx):
 		return self.textd[idx]
+
+	@property
+	def idx(self):
+		if hasattr(self,'name_module'): return self.name_module
+		return os.path.splitext(os.path.split(__file__)[-1])[0]
+
+
 
 	def texts(self,text_ids=None,combine_matches=True,limit=False,from_files=False):
 		if text_ids:
@@ -618,6 +626,33 @@ class Corpus(object):
 				return [t.meta_by_file for t in self.texts()]
 
 		return self._meta
+
+
+	def zip(self,savedir=None, ask=True, sbatch=False, sbatch_opts=''):
+		if not savedir: savedir=os.path.join(PATH_CORPUS,'llp_corpora')
+		if not os.path.exists(savedir): os.makedirs(savedir)
+
+		def do_zip(path,fname):
+			if not fname.endswith('.zip'): fname+='.zip'
+			opath=os.path.join(savedir,fname)
+
+			path1,path2=os.path.split(path)
+
+			zipcmd='zip -r9 {opath} {path}'.format(path=path2,opath=opath)
+			if sbatch: zipcmd = 'sbatch {sbatch_opts} --wrap="{zipcmd}"'.format(sbatch_opts=sbatch_opts,zipcmd=zipcmd)
+			cmd='cd {cdto} && {zipcmd}'.format(cdto=path1,zipcmd=zipcmd)
+			print(cmd)
+			os.system(cmd)
+
+
+		if not ask or input('>> Zip text files [%s]?\n' % self.path_txt).strip()=='y':
+			do_zip(self.path_txt, self.idx+'_txt.zip')
+
+		if not ask or input('>> Zip XML files [%s]?\n' % self.path_xml).strip()=='y':
+			do_zip(self.path_xml, self.idx+'_xml.zip')
+
+
+
 
 
 
