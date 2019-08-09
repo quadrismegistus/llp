@@ -705,7 +705,7 @@ class Corpus(object):
 			#break
 
 
-	def save_metadata(self,ofn=None,num_words=False,ocr_accuracy=False,genre=False):
+	def save_metadata_extra(self,ofn=None,num_words=False,ocr_accuracy=False,genre=False,use_slingshot=False):
 		global ENGLISH
 		from llp import tools
 		if not ofn:
@@ -750,6 +750,32 @@ class Corpus(object):
 
 		tools.write2(ofn, old)
 		#tools.writegen(os.path.join(self.path,'corpus-metadata.'+self.name+'.txt'), writegen)
+
+
+
+	def save_metadata(self,ofn=None,slingshot=0):
+		from llp import tools
+		if not ofn: ofn=tools.iter_filename(self.path_metadata,force=True)
+		print('>> [%s] saving metadata to: %s...' % (self.name, ofn))
+
+		# get texts
+		texts = self.texts()
+		num_texts = len(texts)
+
+		## loop
+
+		if slingshot:
+			Scmd='slingshot -llp_corpus {corpus} -llp_method get_meta_by_file -parallel {slingshot} -savedir _tmp_save_metadata -progress'.format(corpus=self.name,slingshot=slingshot)
+			if not os.system(Scmd): # success
+				ifn='_tmp_save_metadata/results.txt'
+				os.rename(ifn,ofn)
+		else:
+			from tqdm import tqdm
+			def writegen():
+				for i,text in enumerate(tqdm(texts)):
+					md=text.meta_by_file if hasattr(text,'meta_by_file') else text.meta
+					yield md
+			tools.writegen(ofn, writegen)
 
 
 
@@ -2297,6 +2323,7 @@ class_name = {class_name}
 		print('>> creating:',path_metadata_dir)
 		os.makedirs(path_metadata_dir)
 	if not os.path.exists(path_metadata):
-		print('>> creating:',path_metadata)
-		from pathlib import Path
-		Path(path_metadata).touch()
+		pass
+		#print('>> creating:',path_metadata)
+		#from pathlib import Path
+		#Path(path_metadata).touch()

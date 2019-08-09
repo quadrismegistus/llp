@@ -116,6 +116,14 @@ def get_ocr_corrections():
 			d[old]=new
 	return d
 
+def iter_filename(fn,force=False):
+	if os.path.exists(fn) or force:
+		filename,ext = os.path.splitext(fn)
+		fnum=2 if not force else 1
+		while os.path.exists(filename + str(fnum) + ext):
+			fnum+=1
+		fn = filename + str(fnum) + ext
+	return fn
 
 
 def measure_ocr_accuracy(txt_or_tokens):

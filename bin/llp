@@ -2,6 +2,7 @@
 
 #import llp
 import sys
+args=sys.argv
 if len(sys.argv)<2: exit()
 
 
@@ -17,7 +18,22 @@ elif sys.argv[1]=='list':
     for cname in corpus_names:
         print('>>',cname,'\n'+manifest.get(cname,{}).get('desc','').strip()+'\n')
 
-
 elif sys.argv[1]=='newcorpus':
     from llp.corpus import start_new_corpus_interactive
     start_new_corpus_interactive()
+
+elif len(args)>2:
+    import llp
+    cname=args[2]
+    fname=args[1]
+
+    xargs=list(args[3:])
+    kwargs={}
+
+    if fname=='save_metadata':
+        import multiprocessing as mp
+        kwargs['slingshot']=mp.cpu_count() #int(mp.cpu_count()/2)
+
+    C=llp.load(cname)
+    f=getattr(C,fname)
+    f(*xargs,**kwargs)

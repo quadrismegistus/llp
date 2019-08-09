@@ -635,6 +635,11 @@ class Text(object):
 	def meta_by_file(self):
 		return self.get_meta_from_file()
 
+	def get_meta_by_file(self):
+		# @HACKy... Just need a functon version of property version above
+		
+		return self.meta_by_file
+
 	def get_meta_from_file(self):
 		return {} #self.meta_from_file
 
