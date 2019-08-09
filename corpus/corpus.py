@@ -399,64 +399,82 @@ class Corpus(object):
 		for text in self.texts():
 			text.split()
 
-	def save_plain_text(self,compress=False,use_gen=False,force=False,path_txt=None):
-		from llp import tools
 
-		ext = '.txt' if not compress else '.txt.gz'
-		if not path_txt: path_txt=self.path_txt
+	def save_plain_text(self,compress=False,force=False,slingshot=0):
+		print('>> [%s] saving plain text files to: %s...' % (self.name, self.path_txt))
 
-		def do_text(text_i):
-			text,i=text_i
-			print(i,text.id,'...')
-			fnfn_txt = os.path.join(path_txt,text.id+'.txt')
-			if compress:
-				fnfn_txt+='.gz'
-			#if not force and os.path.exists(fnfn_txt):
-			#	print '>> already exists:',fnfn_txt
-			#	return
-			path_fnfn=os.path.dirname(fnfn_txt)
-			print('>>> need to save:',fnfn_txt)
-
-			if not os.path.exists(path_fnfn):
-				os.makedirs(path_fnfn)
-
-			txt2save = text.text_plain(force_xml=True) if not use_gen else text.lines_txt()
-			if not compress:
-				if not use_gen:
-					tools.write2(fnfn_txt, txt2save)
-				else:
-					tools.writegen(fnfn_txt, txt2save)
-			else:
-				import gzip
-				with gzip.open(fnfn_txt,'wb') as f:
-					if not use_gen:
-						f.write(txt2save.encode('utf-8'))
-					else:
-						for line in txt2save:
-							line=line+'\n'
-							f.write(line.encode('utf-8'))
-				print('>> saved:',fnfn_txt)
-
-		#for i,text in enumerate(self.texts()): pool.spawn(do_text, text, i)
-		texts=self.texts()
-		#texts = [text for text in texts if text.exists]
+		# get texts
+		texts = self.texts()
 		num_texts = len(texts)
-		#print(len(texts))
-		#text=texts[0]
-		#print os.path.join(self.path_txt,text.id+ext)
-		texts = [text for text in texts if (force or not os.path.exists(os.path.join(path_txt,text.id+ext)))]
-		#print len(texts)
-		#texts = [t for t in texts if t.id=='The_Faber_Poetry_Library/fa1801.0048']
-		#print texts[0].text_plain()
-		#print texts
-		texts.sort(key=lambda T: T.id)
-		#texts=texts[:100]
-		num_todo = len(texts)
-		print("DONE:",num_texts-num_todo)
-		print("TODO:",num_todo)
-		text_is=list(zip(texts,list(range(len(texts)))))
-		from llp import tools
-		tools.crunch(text_is, do_text, nprocs=16)
+
+		## loop
+		if slingshot:
+			Scmd='slingshot -llp_corpus {corpus} -llp_method save_plain_text -parallel {slingshot} -nosave -progress'.format(corpus=self.name,slingshot=slingshot)
+			os.system(Scmd)
+		else:
+			from tqdm import tqdm
+			for i,text in enumerate(tqdm(texts)):
+				text.save_plain_text()
+
+
+	# def save_plain_text_old(self,compress=False,use_gen=False,force=False,path_txt=None):
+	# 	from llp import tools
+	#
+	# 	ext = '.txt' if not compress else '.txt.gz'
+	# 	if not path_txt: path_txt=self.path_txt
+	#
+	# 	def do_text(text_i):
+	# 		text,i=text_i
+	# 		print(i,text.id,'...')
+	# 		fnfn_txt = os.path.join(path_txt,text.id+'.txt')
+	# 		if compress:
+	# 			fnfn_txt+='.gz'
+	# 		#if not force and os.path.exists(fnfn_txt):
+	# 		#	print '>> already exists:',fnfn_txt
+	# 		#	return
+	# 		path_fnfn=os.path.dirname(fnfn_txt)
+	# 		print('>>> need to save:',fnfn_txt)
+	#
+	# 		if not os.path.exists(path_fnfn):
+	# 			os.makedirs(path_fnfn)
+	#
+	# 		txt2save = text.text_plain(force_xml=True) if not use_gen else text.lines_txt()
+	# 		if not compress:
+	# 			if not use_gen:
+	# 				tools.write2(fnfn_txt, txt2save)
+	# 			else:
+	# 				tools.writegen(fnfn_txt, txt2save)
+	# 		else:
+	# 			import gzip
+	# 			with gzip.open(fnfn_txt,'wb') as f:
+	# 				if not use_gen:
+	# 					f.write(txt2save.encode('utf-8'))
+	# 				else:
+	# 					for line in txt2save:
+	# 						line=line+'\n'
+	# 						f.write(line.encode('utf-8'))
+	# 			print('>> saved:',fnfn_txt)
+	#
+	# 	#for i,text in enumerate(self.texts()): pool.spawn(do_text, text, i)
+	# 	texts=self.texts()
+	# 	#texts = [text for text in texts if text.exists]
+	# 	num_texts = len(texts)
+	# 	#print(len(texts))
+	# 	#text=texts[0]
+	# 	#print os.path.join(self.path_txt,text.id+ext)
+	# 	texts = [text for text in texts if (force or not os.path.exists(os.path.join(path_txt,text.id+ext)))]
+	# 	#print len(texts)
+	# 	#texts = [t for t in texts if t.id=='The_Faber_Poetry_Library/fa1801.0048']
+	# 	#print texts[0].text_plain()
+	# 	#print texts
+	# 	texts.sort(key=lambda T: T.id)
+	# 	#texts=texts[:100]
+	# 	num_todo = len(texts)
+	# 	print("DONE:",num_texts-num_todo)
+	# 	print("TODO:",num_todo)
+	# 	text_is=list(zip(texts,list(range(len(texts)))))
+	# 	from llp import tools
+	# 	tools.crunch(text_is, do_text, nprocs=16)
 
 
 	def new_grouping(self):
@@ -705,55 +723,55 @@ class Corpus(object):
 			#break
 
 
-	def save_metadata_extra(self,ofn=None,num_words=False,ocr_accuracy=False,genre=False,use_slingshot=False):
-		global ENGLISH
-		from llp import tools
-		if not ofn:
-			#timestamp=tools.now().split('.')[0]
-			#ofn=os.path.join(self.path,'corpus-metadata.%s.%s.txt' % (self.name,timestamp))
-			ofn=self.path_metadata
+	# def save_metadata_extra(self,ofn=None,num_words=False,ocr_accuracy=False,genre=False,use_slingshot=False):
+	# 	global ENGLISH
+	# 	from llp import tools
+	# 	if not ofn:
+	# 		#timestamp=tools.now().split('.')[0]
+	# 		#ofn=os.path.join(self.path,'corpus-metadata.%s.%s.txt' % (self.name,timestamp))
+	# 		ofn=self.path_metadata
+	#
+	# 	print('>> generating metadata...')
+	# 	texts = self.texts()
+	# 	num_texts = len(texts)
+	# 	old=[]
+	# 	if ocr_accuracy:
+	# 		if not ENGLISH:
+	# 			from llp.tools import get_english_wordlist
+	# 			ENGLISH=get_english_wordlist()
+	#
+	# 	old=[]
+	# 	#def writegen():
+	# 	from tqdm import tqdm
+	# 	for i,text in enumerate(tqdm(texts)):
+	# 		#print i,num_texts
+	# 		#if not i%100: print('>> text #%s of %s..' % (i+1,num_texts))
+	# 		#md=text.meta_by_file
+	# 		#@HACK?->
+	# 		md=text.meta_by_file if hasattr(text,'meta_by_file') else text.meta
+	#
+	# 		if num_words or ocr_accuracy:
+	# 			freqs=text.freqs()
+	# 			if num_words:
+	# 				md['num_words']=sum(freqs.values())
+	# 			if ocr_accuracy:
+	# 				num_words_recognized = sum([v for k,v in list(freqs.items()) if k in ENGLISH])
+	# 				#print md['num_words'], num_words_recognized
+	# 				md['ocr_accuracy'] = num_words_recognized / float(md['num_words']) if float(md['num_words']) else 0.0
+	# 			if genre:
+	# 				md['genre']=text.return_genre()
+	# 		#yield md
+	# 		#print md
+	# 		#return
+	# 		#print
+	# 		old+=[md]
+	#
+	# 	tools.write2(ofn, old)
+	# 	#tools.writegen(os.path.join(self.path,'corpus-metadata.'+self.name+'.txt'), writegen)
 
-		print('>> generating metadata...')
-		texts = self.texts()
-		num_texts = len(texts)
-		old=[]
-		if ocr_accuracy:
-			if not ENGLISH:
-				from llp.tools import get_english_wordlist
-				ENGLISH=get_english_wordlist()
-
-		old=[]
-		#def writegen():
-		from tqdm import tqdm
-		for i,text in enumerate(tqdm(texts)):
-			#print i,num_texts
-			#if not i%100: print('>> text #%s of %s..' % (i+1,num_texts))
-			#md=text.meta_by_file
-			#@HACK?->
-			md=text.meta_by_file if hasattr(text,'meta_by_file') else text.meta
-
-			if num_words or ocr_accuracy:
-				freqs=text.freqs()
-				if num_words:
-					md['num_words']=sum(freqs.values())
-				if ocr_accuracy:
-					num_words_recognized = sum([v for k,v in list(freqs.items()) if k in ENGLISH])
-					#print md['num_words'], num_words_recognized
-					md['ocr_accuracy'] = num_words_recognized / float(md['num_words']) if float(md['num_words']) else 0.0
-				if genre:
-					md['genre']=text.return_genre()
-			#yield md
-			#print md
-			#return
-			#print
-			old+=[md]
-
-		tools.write2(ofn, old)
-		#tools.writegen(os.path.join(self.path,'corpus-metadata.'+self.name+'.txt'), writegen)
 
 
-
-	def save_metadata(self,ofn=None,slingshot=0):
+	def save_metadata(self,ofn=None,slingshot=False,slingshot_n=None,slingshot_opts=''):
 		from llp import tools
 		if not ofn: ofn=tools.iter_filename(self.path_metadata,force=True)
 		print('>> [%s] saving metadata to: %s...' % (self.name, ofn))
@@ -765,7 +783,9 @@ class Corpus(object):
 		## loop
 
 		if slingshot:
-			Scmd='slingshot -llp_corpus {corpus} -llp_method get_meta_by_file -parallel {slingshot} -savedir _tmp_save_metadata -progress'.format(corpus=self.name,slingshot=slingshot)
+			Scmd='slingshot -llp_corpus {corpus} -llp_method get_meta_by_file -savedir _tmp_save_metadata -overwrite'.format(corpus=self.name,slingshot=slingshot)
+			if slingshot_n: Scmd+=' -parallel {slingshot_n}'.format(slingshot_n=slingshot_n)
+			if slingshot_opts: Scmd+=' '+slingshot_opts.strip()
 			if not os.system(Scmd): # success
 				ifn='_tmp_save_metadata/results.txt'
 				os.rename(ifn,ofn)

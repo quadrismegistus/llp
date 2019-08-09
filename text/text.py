@@ -629,8 +629,11 @@ class Text(object):
 
 	def get_meta_by_file(self):
 		# @HACKy... Just need a functon version of property version above
-
-		return self.meta_by_file
+		d=self.meta_by_file
+		for k,v in d.items():
+			if type(v)==str:
+				d[k]=v.replace('\r\n',' / ').replace('\r',' / ').replace('\n',' / ').replace('\t','  ')
+		return d
 
 	def get_meta_from_file(self):
 		return {} #self.meta_from_file

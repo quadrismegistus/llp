@@ -1,39 +1,46 @@
 #!/usr/bin/env python
 
-#import llp
-import sys
-args=sys.argv
-if len(sys.argv)<2: exit()
+import os,sys,argparse,multiprocessing as mp
+SLINGSHOT_N=mp.cpu_count()
+
+if __name__ == '__main__':
+	parser = argparse.ArgumentParser()
+	parser.add_argument('cmd',help="Command for corpus (its method name)")
+	parser.add_argument('corpus',help="Corpus name")
+	parser.add_argument('-slingshot',action='store_true',default=False)
+	parser.add_argument('-slingshot_n',help='How many parallel processes to run on, using Slingshot?',default=SLINGSHOT_N)
+	parser.add_argument('-slingshot_opts',help='Additional options to pass to slingshot',default='-progress')
+	args = parser.parse_args()
 
 
-if sys.argv[1]=='download':
-    if len(sys.argv)>2 and sys.argv[2]:
-        import llp
-        llp.download(sys.argv[2])
 
-elif sys.argv[1]=='list':
-    import llp
-    manifest=llp.corpus.load_manifest()
-    corpus_names=sorted(list(set(manifest.keys())))
-    for cname in corpus_names:
-        print('>>',cname,'\n'+manifest.get(cname,{}).get('desc','').strip()+'\n')
+	if args.cmd=='download' and args.corpus:
+		import llp
+		llp.download(args.corpus)
 
-elif sys.argv[1]=='newcorpus':
-    from llp.corpus import start_new_corpus_interactive
-    start_new_corpus_interactive()
+	elif args.cmd=='list':
+		import llp
+		manifest=llp.corpus.load_manifest()
+		corpus_names=sorted(list(set(manifest.keys())))
+		for cname in corpus_names:
+			print('>>',cname,'\n'+manifest.get(cname,{}).get('desc','').strip()+'\n')
 
-elif len(args)>2:
-    import llp
-    cname=args[2]
-    fname=args[1]
+	elif args.cmd=='newcorpus':
+		from llp.corpus import start_new_corpus_interactive
+		start_new_corpus_interactive()
 
-    xargs=list(args[3:])
-    kwargs={}
+	elif args.corpus:
+		import llp
 
-    if fname=='save_metadata':
-        import multiprocessing as mp
-        kwargs['slingshot']=mp.cpu_count() #int(mp.cpu_count()/2)
+		#xargs=list(args[3:])
+		xargs=[]
+		kwargs={}
 
-    C=llp.load(cname)
-    f=getattr(C,fname)
-    f(*xargs,**kwargs)
+		if args.slingshot and args.cmd in {'save_metadata','save_plain_text'}:
+			kwargs['slingshot']=args.slingshot
+			kwargs['slingshot_n']=args.slingshot_n
+			kwargs['slingshot_opts']=args.slingshot_opts
+
+		C=llp.load(args.corpus)
+		f=getattr(C,args.cmd)
+		f(*xargs,**kwargs)
