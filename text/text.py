@@ -708,9 +708,10 @@ class Text(object):
 		return passages
 
 	def lines_xml(self):
-		with open(self.fnfn_xml,errors='ignore') as f:
-			for ln in f:
-				yield ln
+		if os.path.exists(self.fnfn_xml):
+			with open(self.fnfn_xml,errors='ignore') as f:
+				for ln in f:
+					yield ln
 
 	def lines_txt(self):
 		if os.path.exists(self.fnfn_txt,errors='ignore'):
