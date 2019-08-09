@@ -713,10 +713,10 @@ class Text(object):
 				yield ln
 
 
-	def save_plain_text(self,txt=None,compress=False):
+	def save_plain_text(self,txt=None,compress=False,force=False):
 		fnfn_txt = os.path.join(self.corpus.path_txt,self.id+'.txt')
 		if compress: fnfn_txt+='.gz'
-		#if os.path.exists(fnfn_txt): return
+		if not force and os.path.exists(fnfn_txt): return
 
 		if txt is None: txt=self.text_plain()
 

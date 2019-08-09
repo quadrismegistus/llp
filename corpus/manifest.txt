@@ -287,5 +287,3 @@ path_xml = xml
 path_metadata = metadata.txt
 path_python = gale_amfic.py
 class_name = GaleAmericanFiction
-
-
