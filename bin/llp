@@ -8,9 +8,12 @@ if __name__ == '__main__':
 	parser.add_argument('cmd',help="Command for corpus (its method name)")
 	parser.add_argument('corpus',help="Corpus name")
 	parser.add_argument('-slingshot',action='store_true',default=False)
-	parser.add_argument('-slingshot_n',help='How many parallel processes to run on, using Slingshot?',default=SLINGSHOT_N)
-	parser.add_argument('-slingshot_opts',help='Additional options to pass to slingshot',default='-progress')
+	parser.add_argument('-parallel',help='How many parallel processes to run on, using Slingshot?',default=SLINGSHOT_N)
+	parser.add_argument('-sbatch',help='Run on sherlock?',action='store_true')
+	parser.add_argument('-slingshot_opts',help='Other options to pass to slingshot',default='-progress')
 	args = parser.parse_args()
+
+	if args.sbatch and not '-sbatch' in args.slingshot_opts: args.slingshot_opts+=' -sbatch'
 
 
 
@@ -36,9 +39,9 @@ if __name__ == '__main__':
 		xargs=[]
 		kwargs={}
 
-		if args.slingshot and args.cmd in {'save_metadata','save_plain_text'}:
+		if args.slingshot:
 			kwargs['slingshot']=args.slingshot
-			kwargs['slingshot_n']=args.slingshot_n
+			kwargs['slingshot_n']=args.parallel
 			kwargs['slingshot_opts']=args.slingshot_opts
 
 		C=llp.load(args.corpus)

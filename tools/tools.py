@@ -913,6 +913,12 @@ def now(now=None):
 
 	return '{0}-{1}-{2} {3}:{4}:{5}'.format(now.year,str(now.month).zfill(2),str(now.day).zfill(2),str(now.hour).zfill(2),str(now.minute).zfill(2),str(now.second).zfill(2))
 
+def slingshot_cmd_starter(corpus,method,slingshot_n,slingshot_opts):
+	Scmd='slingshot -llp_corpus {corpus} -llp_method {method}'.format(corpus=corpus,method=method)
+	if slingshot_n: Scmd+=' -parallel {slingshot_n}'.format(slingshot_n=slingshot_n)
+	if slingshot_opts: Scmd+=' '+slingshot_opts.strip()
+	return Scmd
+
 
 
 def toks2str(tlist,uni=False):
