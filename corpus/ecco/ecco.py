@@ -115,9 +115,9 @@ class TextECCO_LitLang(Text):
 		md['notes'] = ' | '.join([tag.text for tag in dom('notes')])
 
 		for subjhead in dom('locsubjecthead'):
-			subtype=subjhead['type']
+			subtype=subjhead.get('type','')
 			for subj in subjhead('locsubject'):
-				subfield=subj['subfield']
+				subfield=subj.get('subfield','')
 				val=subj.text
 				md[subtype+'_'+subfield]=val
 
@@ -196,7 +196,7 @@ class TextECCO_LitLang(Text):
 		body = dom.find('text')
 		if not body: return ''
 		for page in body.find_all('page'):
-			if page['type'] in OK_page:
+			if page.get('type','') in OK_page:
 				page_txt=[]
 				para_txt=[]
 				line_txt=[]
@@ -427,7 +427,7 @@ def gale_xml2txt(dom, OK_word=['wd'], OK_page=['bodyPage'], remove_catchwords=Tr
 	body = dom.find('text')
 	if not body: return ''
 	for page in body.find_all('page'):
-		if page['type'] in OK_page:
+		if page.get('type','') in OK_page:
 			page_txt=[]
 			para_txt=[]
 			line_txt=[]

@@ -73,7 +73,7 @@ def get_english_wordlist():
 	ENG_PATH = config.get('PATH_TO_ENGLISH_WORDLIST')
 	if not ENG_PATH: raise Exception('!! PATH_TO_ENGLISH_WORDLIST not set in config.txt')
 	if not ENG_PATH.startswith(os.path.sep): ENG_PATH=os.path.join(LIT_ROOT,ENG_PATH)
-	print('loading english from %s' % ENG_PATH)
+	#print('loading english from %s' % ENG_PATH)
 	#return set(codecs.open(ENG_PATH,encoding='utf-8').read().strip().split('\n'))
 	return set(open(ENG_PATH).read().strip().split('\n'))
 
@@ -82,7 +82,7 @@ def get_spelling_modernizer():
 	if not SPELLING_MODERNIZER_PATH: raise Exception('!! PATH_TO_ENGLISH_SPELLING_MODERNIZER not set in config.txt')
 	if not SPELLING_MODERNIZER_PATH.startswith(os.path.sep): SPELLING_MODERNIZER_PATH=os.path.join(LIT_ROOT,SPELLING_MODERNIZER_PATH)
 
-	print('>> getting spelling modernizer from %s...' % SPELLING_MODERNIZER_PATH)
+	#print('>> getting spelling modernizer from %s...' % SPELLING_MODERNIZER_PATH)
 	d={}
 	#with codecs.open(SPELLING_MODERNIZER_PATH,encoding='utf-8') as f:
 	with open(SPELLING_MODERNIZER_PATH) as f:
@@ -101,7 +101,7 @@ def get_ocr_corrections():
 	if not PATH_TO_ENGLISH_OCR_CORRECTION_RULES: raise Exception('!! PATH_TO_ENGLISH_OCR_CORRECTION_RULES not set in config.txt')
 	if not PATH_TO_ENGLISH_OCR_CORRECTION_RULES.startswith(os.path.sep): PATH_TO_ENGLISH_OCR_CORRECTION_RULES=os.path.join(LIT_ROOT,PATH_TO_ENGLISH_OCR_CORRECTION_RULES)
 
-	print('>> getting corrections from %s...' % PATH_TO_ENGLISH_OCR_CORRECTION_RULES)
+	#print('>> getting corrections from %s...' % PATH_TO_ENGLISH_OCR_CORRECTION_RULES)
 	d={}
 
 
