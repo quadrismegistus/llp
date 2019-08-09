@@ -24,9 +24,17 @@ class Text(object):
 		self._fnfn_txt=path_to_txt
 
 	@property
+	def __repr__(self):
+		return self.addr
+
+	@property
+	def __str__(self):
+		return self.addr
+
+	@property
 	def addr(self):
 		if not hasattr(self,'_addr'):
-			self._addr=self.corpus.name+'|'+self.id
+			self._addr=str(self.corpus.name)+'|'+str(self.id)
 		return self._addr
 
 	@property
