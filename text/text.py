@@ -639,6 +639,7 @@ class Text(object):
 			#print('>> already tokenized:',self.id)
 			return
 		else:
+			pass
 			#print('>> tokenizing:',self.id,ofnfn)
 
 		toks=tokenize_text(self.txt)
