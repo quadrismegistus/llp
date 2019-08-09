@@ -636,10 +636,10 @@ class Text(object):
 		opath = os.path.split(ofnfn)[0]
 		if not os.path.exists(opath): os.makedirs(opath)
 		if not force and os.path.exists(ofnfn) and os.stat(ofnfn).st_size:
-			print('>> already tokenized:',self.id)
+			#print('>> already tokenized:',self.id)
 			return
 		else:
-			print('>> tokenizing:',self.id,ofnfn)
+			#print('>> tokenizing:',self.id,ofnfn)
 
 		toks=tokenize_text(self.txt)
 		tokd=dict(Counter(toks))
