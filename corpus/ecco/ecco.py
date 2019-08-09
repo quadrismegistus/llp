@@ -401,3 +401,106 @@ class ECCO_LitLang(Corpus):
 		from llp.corpus.ecco import ECCO_TCP
 		etcp = ECCO_TCP()
 		self.match_records(etcp, match_by_title=True, match_by_id=True, id_field_1='id_ESTC', id_field_2='id_ESTC')
+
+
+
+
+
+
+OCR_CORREX = None
+def gale_xml2txt(dom, OK_word=['wd'], OK_page=['bodyPage'], remove_catchwords=True, correct_ocr=False):
+	global OCR_CORREX
+	from llp.text import clean_text
+
+	"""
+	Get the plain text from the ECCO xml files.
+	OK_word sets the tags that define a word: in ECCO, <wd>.
+	OK_page sets the tags that define a page we want:
+	- bodyPage are the body pages
+	- frontmatter are frontmatter paggers;
+		-- I've decided not to include them, but you can add them by adding it to the OK_page list
+	"""
+
+	if correct_ocr and not OCR_CORREX: OCR_CORREX = tools.get_ocr_corrections()
+
+	txt=[]
+	body = dom.find('text')
+	if not body: return ''
+	for page in body.find_all('page'):
+		if page['type'] in OK_page:
+			page_txt=[]
+			para_txt=[]
+			line_txt=[]
+			lastParent=None
+			lastLineOffset=None
+			for tag in page.find_all():
+				if tag.name in OK_word:
+
+					## Check for new paragraph
+					if tag.parent != lastParent:
+						if line_txt:
+								para_txt+=[line_txt]
+								line_txt=[]
+						if para_txt:
+							page_txt+=[para_txt]
+							para_txt=[]
+					lastParent=tag.parent
+
+					## Check for new line
+					lineOffset = int(tag['pos'].split(',')[0])
+					if lastLineOffset is None:
+						lastLineOffset=lineOffset
+					elif lineOffset < lastLineOffset:
+						if line_txt:
+							para_txt+=[line_txt]
+							line_txt=[]
+					lastLineOffset = lineOffset
+
+					word=clean_text(tag.text)
+					a,w,b  = tools.gleanPunc2(word)
+					if correct_ocr and w in OCR_CORREX:
+						w=OCR_CORREX.get(w)
+						word=a+w+b
+
+					line_txt+=[word]
+
+			if line_txt:
+				para_txt+=[line_txt]
+			if para_txt:
+				page_txt+=[para_txt]
+			if page_txt:
+				txt+=[page_txt]
+
+	for page_i,page in enumerate(txt):
+		#print '>> page:',page_i
+		if remove_catchwords:
+			last_word_this_page = page[-1][-1][-1]
+			first_word_next_page = txt[page_i+1][0][0][0] if len(txt)>page_i+1 else None
+			if last_word_this_page == first_word_next_page:
+				# if last word is a catchword for first word of next page,
+				# remove the last line
+				page[-1][-1].pop()
+
+		page = [para for para in page if len(para) and sum(len(line) for line in para)>0]
+		txt[page_i] = page
+
+	## otherwise, make plain text
+	plain_text = u"\n\n\n".join(u"\n\n".join(u"\n".join(u" ".join(word for word in line) for line in para) for para in page) for page in txt)
+
+	# fix dangling hyphens
+	plain_text = fix_dangling_hyphens(plain_text,{'¬','-'})
+
+	return plain_text
+
+
+def fix_dangling_hyphens(body,hyphens={'¬'}):
+	lines = [l.rstrip() for l in body.split('\n')]
+	for i,line in enumerate(lines):
+		for hyph in hyphens:
+			if line.endswith(hyph) and i+1<len(lines) and lines[i+1]:
+				first_word_next_line = lines[i+1].split()[0]
+				next_words = lines[i+1].split()[1:]
+				lines[i] = line[:-1]+first_word_next_line.strip()
+				lines[i+1] = ' '.join(next_words)
+				break
+	return '\n'.join(lines)

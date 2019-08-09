@@ -9,6 +9,10 @@ from six.moves import map
 import six
 from six.moves import zip
 nlp=None
+from smart_open import open
+from collections import Counter
+import ujson as json
+
 
 
 class Text(object):
@@ -19,6 +23,11 @@ class Text(object):
 		self._fnfn_xml=path_to_xml
 		self._fnfn_txt=path_to_txt
 
+	@property
+	def addr(self):
+		if not hasattr(self,'_addr'):
+			self._addr=self.corpus.name+'|'+self.id
+		return self._addr
 
 	@property
 	def nation(self):
@@ -131,7 +140,7 @@ class Text(object):
 				yield dict(list(zip(header,dat)))
 
 	def all_tokens(self):
-		words=[]
+		"""words=[]
 		for ln in self.txt.split('\n'):
 			for w in ln.split(' '):
 				a,b,c=tools.gleanPunc2(w)
@@ -140,6 +149,12 @@ class Text(object):
 				if c: words+=[c]
 				words+=[' ']
 			words+=['\n']
+		return words"""
+		#return list(self.fast_tokens())
+		import re
+		txt=self.txt.replace('\n','\\')
+		words=re.findall(r"[\w]+|[^\s\w]", txt)
+		words=[w if w!='\\' else '\n' for w in words]
 		return words
 
 
@@ -454,6 +469,10 @@ class Text(object):
 	def exists_xml(self):
 		return os.path.exists(self.fnfn_xml)
 
+	def xml_soup(self):
+		import bs4
+		return bs4.BeautifulSoup(self.text_xml,'lxml')
+
 	@property
 	def dom(self):
 		import bs4
@@ -485,12 +504,17 @@ class Text(object):
 
 	## GETTING TEXT
 
+	def text_plain_from_txt(self):
+		if not self.exists_txt: return ''
+		txt=tools.read(self.fnfn_txt).replace('\r\n','\n').replace('\r','\n')
+		return txt
+
 	def text_plain(self, OK=['p','l'], BAD=[], body_tag='text', force_xml=False, text_only_within_medium=True):
 		if not self.exists: return ''
 		if not force_xml and os.path.exists(self.fnfn_txt):
 			#print '>> text_plain from stored text file:',self.fnfn_txt
-			txt=tools.read(self.fnfn_txt).replace('\r\n','\n').replace('\r','\n')
-			return txt
+			return self.text_plain_from_txt()
+
 		return self.text_plain_from_xml(OK=OK,BAD=BAD,body_tag=body_tag,text_only_within_medium=text_only_within_medium)
 
 
@@ -596,6 +620,25 @@ class Text(object):
 
 			return dx
 
+	def save_freqs(self,ofolder=None,force=False):
+		return self.save_freqs_json(ofolder=ofolder,force=force)
+
+	def save_freqs_json(self,ofolder=None,force=False):
+		if not ofolder: ofolder=self.corpus.path_freqs
+		ofnfn=os.path.join(ofolder,self.id+'.json')
+		opath = os.path.split(ofnfn)[0]
+		if not os.path.exists(opath): os.makedirs(opath)
+		if not force and os.path.exists(ofnfn) and os.stat(ofnfn).st_size:
+			print('>> already tokenized:',self.id)
+			return
+		else:
+			print('>> tokenizing:',self.id,ofnfn)
+
+		toks=tokenize_text(self.txt)
+		tokd=dict(Counter(toks))
+		with open(ofnfn,'w') as of:
+			json.dump(tokd,of)
+
 	@property
 	def fnfn_freqs(self):
 		#fnfn=os.path.join(self.corpus.path, 'freqs', self.corpus.name, self.id+'.json')
@@ -647,25 +690,15 @@ class Text(object):
 		return passages
 
 	def lines_xml(self):
-		if self.fnfn_xml.endswith('.gz'):
-			with gzip.open(self.fnfn_xml,'rb') as f:
-				for line in f:
-					yield line.decode('utf-8',errors='ignore')
-		else:
-			with codecs.open(self.fnfn_xml,'r','utf-8') as f:
-				for line in f:
-					yield line
+		with open(self.fnfn_xml,errors='ignore') as f:
+			for ln in f:
+				yield ln
 
 	def lines_txt(self):
-		if os.path.exists(self.fnfn_txt):
-			if self.fnfn_txt.endswith('.gz'):
-				with gzip.open(self.fnfn_txt,'rb') as f:
-					for line in f:
-						yield line.decode('utf-8')
-			else:
-				with codecs.open(self.fnfn_txt,'r','utf-8') as f:
-					for line in f:
-						yield line
+		if os.path.exists(self.fnfn_txt,errors='ignore'):
+			with open(self.fnfn_txt) as f:
+				for ln in f:
+					yield ln
 		else:
 			for ln in self.txt.split('\n'):
 				yield ln
@@ -766,7 +799,8 @@ import bleach
 def clean_text(txt,replacements=REPLACEMENTS):
 	for k,v in list(replacements.items()):
 		txt=txt.replace(k,v)
-	return bleach.clean(txt,strip=True)
+	#return bleach.clean(txt,strip=True)
+	return txt
 
 
 
@@ -920,6 +954,12 @@ def get_author_dates(author):
 def tokenize_fast(line):
 	return re.findall("[A-Z]{2,}(?![a-z])|[A-Z][a-z]+(?=[A-Z])|[\'\w\-]+",line.lower())
 
+def tokenize_text(txt):
+	from nltk import word_tokenize
+	txt=txt.lower().strip()
+	toks=word_tokenize(txt)
+	toks=[tok for tok in toks if tok and tok[0].isalpha()]
+	return toks
 
 
 

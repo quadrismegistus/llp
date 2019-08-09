@@ -5,6 +5,7 @@ import six
 from six.moves import range
 from six.moves import zip
 from functools import reduce
+from smart_open import open
 
 from os.path import expanduser
 HOME=expanduser("~")
@@ -60,10 +61,12 @@ def get_stopwords(include_rank=None):
 	STOPWORDS_PATH = config.get('PATH_TO_ENGLISH_STOPWORDS')
 	if not STOPWORDS_PATH: raise Exception('!! PATH_TO_ENGLISH_STOPWORDS not set in config.txt')
 	if not STOPWORDS_PATH.startswith(os.path.sep): STOPWORDS_PATH=os.path.join(LIT_ROOT,STOPWORDS_PATH)
-	sw1=set(codecs.open(STOPWORDS_PATH,encoding='utf-8').read().strip().split('\n'))
+	#sw1=set(codecs.open(STOPWORDS_PATH,encoding='utf-8').read().strip().split('\n'))
+	sw1=set(open(STOPWORDS_PATH).read().strip().split('\n'))
 	if include_rank and type(include_rank)==int:
 		sw2={d['word'] for d in worddb() if int(d['rank'])<=include_rank}
 		sw1|=sw2
+	sw1|={'i','me','my','you','we','us','our','they','them','she','he','her','hers','his','him'}
 	return sw1
 
 def get_english_wordlist():
@@ -71,7 +74,8 @@ def get_english_wordlist():
 	if not ENG_PATH: raise Exception('!! PATH_TO_ENGLISH_WORDLIST not set in config.txt')
 	if not ENG_PATH.startswith(os.path.sep): ENG_PATH=os.path.join(LIT_ROOT,ENG_PATH)
 	print('loading english from %s' % ENG_PATH)
-	return set(codecs.open(ENG_PATH,encoding='utf-8').read().strip().split('\n'))
+	#return set(codecs.open(ENG_PATH,encoding='utf-8').read().strip().split('\n'))
+	return set(open(ENG_PATH).read().strip().split('\n'))
 
 def get_spelling_modernizer():
 	SPELLING_MODERNIZER_PATH = config.get('PATH_TO_ENGLISH_SPELLING_MODERNIZER')
@@ -80,7 +84,8 @@ def get_spelling_modernizer():
 
 	print('>> getting spelling modernizer from %s...' % SPELLING_MODERNIZER_PATH)
 	d={}
-	with codecs.open(SPELLING_MODERNIZER_PATH,encoding='utf-8') as f:
+	#with codecs.open(SPELLING_MODERNIZER_PATH,encoding='utf-8') as f:
+	with open(SPELLING_MODERNIZER_PATH) as f:
 		for ln in f:
 			ln=ln.strip()
 			if not ln: continue
@@ -90,6 +95,27 @@ def get_spelling_modernizer():
 				continue
 			d[old]=new
 	return d
+
+def get_ocr_corrections():
+	PATH_TO_ENGLISH_OCR_CORRECTION_RULES = config.get('PATH_TO_ENGLISH_OCR_CORRECTION_RULES')
+	if not PATH_TO_ENGLISH_OCR_CORRECTION_RULES: raise Exception('!! PATH_TO_ENGLISH_OCR_CORRECTION_RULES not set in config.txt')
+	if not PATH_TO_ENGLISH_OCR_CORRECTION_RULES.startswith(os.path.sep): PATH_TO_ENGLISH_OCR_CORRECTION_RULES=os.path.join(LIT_ROOT,PATH_TO_ENGLISH_OCR_CORRECTION_RULES)
+
+	print('>> getting corrections from %s...' % PATH_TO_ENGLISH_OCR_CORRECTION_RULES)
+	d={}
+
+
+	with open(PATH_TO_ENGLISH_OCR_CORRECTION_RULES) as f:
+		for ln in f:
+			ln=ln.strip()
+			if not ln: continue
+			try:
+				old,new,count=ln.split('\t')
+			except ValueError:
+				continue
+			d[old]=new
+	return d
+
 
 
 def measure_ocr_accuracy(txt_or_tokens):

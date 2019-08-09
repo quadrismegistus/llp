@@ -16,6 +16,7 @@ PATH_MANIFEST=os.path.join(PATH_TO_CORPUS_CODE,'manifest.txt')
 PATH_MANIFEST_LOCAL=os.path.join(PATH_TO_CORPUS_CODE,'manifest_local.txt')
 PATH_MANIFEST_LOCAL2=os.path.abspath(os.path.join(PATH_TO_CORPUS_CODE,'..','..','llp_manifest.txt'))
 PATH_MANIFEST_LOCAL3=os.path.abspath(os.path.join(PATH_CORPUS,'manifest.txt'))
+PATH_MANIFEST_LOCAL5=os.path.abspath(os.path.join(PATH_CORPUS,'manifest_local.txt'))
 PATH_MANIFEST_LOCAL4=os.path.abspath(os.path.join(PATH_HERE,'..','..','config','llp_manifest.txt'))
 PATH_MANIFEST_LAB=os.path.join(PATH_TO_CORPUS_CODE,'manifest_lab.txt')
 PATH_MANIFEST_HOME=os.path.join(HOME,'llp_manifest.txt')
@@ -27,6 +28,7 @@ PMT.append(('Local Manifest (2)',PATH_MANIFEST_LOCAL2))
 if PATH_MANIFEST_LOCAL3 not in {PATH_MANIFEST_LOCAL,PATH_MANIFEST_LOCAL2,PATH_MANIFEST}:
 	PMT.append(('Local Manifest (3)',PATH_MANIFEST_LOCAL3))
 PMT.append(('Local Manifest (4)',PATH_MANIFEST_LOCAL4))
+PMT.append(('Local Manifest (5)',PATH_MANIFEST_LOCAL5))
 PMT.append(('Lab Manifest',PATH_MANIFEST_LAB))
 PMT.append(('User Manifest',PATH_MANIFEST_HOME))
 
@@ -195,7 +197,8 @@ class Corpus(object):
 			col_id='id',
 			col_fn='',
 			path_root='',
-			path_freqs=os.path.join('freqs',name),
+			#path_freqs=os.path.join('freqs',name),
+			path_freqs='freqs',
 			manifest={},
 			path_python='',
 			manifest_override=True)
@@ -702,7 +705,7 @@ class Corpus(object):
 			#break
 
 
-	def save_metadata(self,ofn=None,num_words=True,ocr_accuracy=True,genre=False):
+	def save_metadata(self,ofn=None,num_words=False,ocr_accuracy=False,genre=False):
 		global ENGLISH
 		from llp import tools
 		if not ofn:
@@ -720,9 +723,10 @@ class Corpus(object):
 
 		old=[]
 		#def writegen():
-		for i,text in enumerate(texts):
+		from tqdm import tqdm
+		for i,text in enumerate(tqdm(texts)):
 			#print i,num_texts
-			if not i%100: print('>> text #%s of %s..' % (i+1,num_texts))
+			#if not i%100: print('>> text #%s of %s..' % (i+1,num_texts))
 			#md=text.meta_by_file
 			#@HACK?->
 			md=text.meta_by_file if hasattr(text,'meta_by_file') else text.meta
@@ -1099,7 +1103,9 @@ class Corpus(object):
 	### TOKENIZING
 
 	def gen_freqs(self,force=False):
-		for i,text in enumerate(self.texts()):
+		texts=self.texts()
+		from tqdm import tqdm
+		for i,text in enumerate(tqdm(texts)):
 			save_tokenize_text(text,force=force)
 
 	"""
@@ -2143,3 +2149,153 @@ def get_freq_async(text):
 
 # Add new name for function
 load = load_corpus
+
+
+
+
+
+
+def start_new_corpus_interactive():
+	import os
+	import llp
+
+	try:
+		print('### LLP: Start up a new corpus ###')
+
+		print ('\n####\n## Step 1. Names\n####\n')
+
+		name=input('\n>> Nice, upper-case, one-word name of new corpus? (e.g. ChadwyckPoetry or OldBailey)\n').strip()
+		idx=input('\n>> Lower-case, ID-like name of new corpus (e.g chadwyck_poetry or oldbailey):\n').strip()
+
+
+		## Set defaults
+		path_root_default=idx
+		path_code_default=idx+'.py'
+		path_txt_default='txt'
+		path_xml_default='xml'
+		path_metadata_default='metadata.txt'
+		class_name_default = ''.join([x for x in name if x.isalnum() or x=='_'])
+
+
+
+		## Get paths ##
+		print ('\n####\n## Step 2. Paths to data files\n####\n')
+		print('Relative paths are relative to the corpus folder, set as PATH_TO_CORPORA in config:\n%s\n' % PATH_CORPUS)
+
+		# path root
+		path_root=input('>> Path to corpus data folder [%s]: ' % path_root_default).strip()
+		if not path_root: path_root=path_root_default
+
+		# path txt
+		path_txt=input('>> Path to txt folder [%s/%s]: ' % (path_root,path_txt_default)).strip()
+		if not path_txt: path_txt=path_txt_default
+
+		# xml
+		path_xml=input('>> Path to xml folder [%s/%s]: ' % (path_root,path_xml_default)).strip()
+		if not path_xml: path_xml=path_xml_default
+
+		# metadata
+		path_metadata=input('>> Path to metadata file [%s/%s]: ' % (path_root,path_metadata_default)).strip()
+		if not path_metadata: path_metadata=path_metadata_default
+
+
+
+
+		print ('\n####\n## Step 3. Path to code\n####\n')
+		print('Relative paths are relative to the code folder: %s\n' % PATH_TO_CORPUS_CODE)
+
+		# path python
+		path_python=input('>> Path to code [%s/%s]: ' % (idx,path_code_default)).strip()
+		if not path_python: path_python=path_code_default
+
+		# class name
+		class_name=input('>> Name of corpus class within code [%s]: ' % class_name_default).strip()
+		if not class_name: class_name=class_name_default
+
+
+		# optional
+		print ('\n####\n## Step 4. Optional info\n####\n')
+		desc=input('>> (Optional) Description of corpus: ').strip()
+		if not desc: desc='--'
+		link=input('>> (Optional) Web link to/about corpus: ').strip()
+		if not link: link='--'
+	except KeyboardInterrupt:
+		print()
+		exit()
+
+
+	attrs={'name':name,'id':idx,'desc':desc,'link':link,
+	'path_root':path_root,'path_txt':path_txt,'path_xml':path_xml,'path_metadata':path_metadata,
+	'path_python':path_python,'class_name':class_name}
+	manifeststr="""[{name}]
+name = {name}
+id = {id}
+desc = {desc}
+link = {link}
+path_root = {path_root}
+path_txt = {path_txt}
+path_xml = {path_xml}
+path_metadata = {path_metadata}
+path_python = {path_python}
+class_name = {class_name}
+""".format(**attrs)
+
+	print('\n')
+
+	### WRITE MANIFEST
+	with open(PATH_MANIFEST) as f:
+		global_manifest_txt = f.read()
+
+	if not '[%s]' % name in global_manifest_txt:
+		print('>> Adding to corpus manifest [%s]' % PATH_MANIFEST)
+		with open(PATH_MANIFEST,'a+') as f:
+			f.write('\n\n'+manifeststr+'\n\n')
+		print(manifeststr)
+
+
+	### Create new code folder
+	path_python_dir,path_python_fn=os.path.split(path_python)
+	python_module=os.path.splitext(path_python_fn)[0]
+	if not path_python_dir: path_python_dir=os.path.join(PATH_TO_CORPUS_CODE,python_module)
+
+	if not os.path.exists(path_python_dir):
+		print('>> creating:',path_python_dir)
+		os.makedirs(path_python_dir)
+
+	python_fnfn=os.path.join(path_python_dir,path_python_fn)
+	python_fnfn2=os.path.join(path_python_dir,'__init__.py')
+	python_ifnfn=os.path.join(PATH_TO_CORPUS_CODE,'default','newcorpus.txt')
+
+	if not os.path.exists(python_fnfn) and not os.path.exists(python_fnfn2) and os.path.exists(python_ifnfn):
+		with open(python_fnfn,'w') as of, open(python_fnfn2,'w') as of2, open(python_ifnfn) as f:
+			itxt=f.read()
+			itxt=itxt.replace('[[class_name]]',class_name)
+
+			of.write(itxt)
+			of2.write('from .%s import *\n' % python_module)
+			print('>> created a new corpus code template:',python_fnfn)
+
+
+	## create new data folders
+	path_root = os.path.join(PATH_CORPUS,path_root) if not os.path.isabs(path_root) else path_root
+	path_txt = os.path.join(path_root,path_txt) if not os.path.isabs(path_txt) else path_txt
+	path_xml = os.path.join(path_root,path_xml) if not os.path.isabs(path_xml) else path_xml
+	path_metadata = os.path.join(path_root,path_metadata) if not os.path.isabs(path_metadata) else path_metadata
+	path_metadata_dir,path_metadata_fn=os.path.split(path_metadata)
+
+	if not os.path.exists(path_root):
+		print('>> creating:',path_root)
+		os.makedirs(path_root)
+	if not os.path.exists(path_txt):
+		print('>> creating:',path_txt)
+		os.makedirs(path_txt)
+	if not os.path.exists(path_xml):
+		print('>> creating:',path_xml)
+		os.makedirs(path_xml)
+	if not os.path.exists(path_metadata_dir):
+		print('>> creating:',path_metadata_dir)
+		os.makedirs(path_metadata_dir)
+	if not os.path.exists(path_metadata):
+		print('>> creating:',path_metadata)
+		from pathlib import Path
+		Path(path_metadata).touch()

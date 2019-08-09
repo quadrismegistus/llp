@@ -16,3 +16,8 @@ elif sys.argv[1]=='list':
     corpus_names=sorted(list(set(manifest.keys())))
     for cname in corpus_names:
         print('>>',cname,'\n'+manifest.get(cname,{}).get('desc','').strip()+'\n')
+
+
+elif sys.argv[1]=='newcorpus':
+    from llp.corpus import start_new_corpus_interactive
+    start_new_corpus_interactive()

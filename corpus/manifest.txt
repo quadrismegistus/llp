@@ -274,3 +274,18 @@ path_root = lithist
 path_python = lithist.py
 class_name = LitHistProse
 path_metadata = corpus-metadata.LitHistProse.txt
+
+
+[GaleAmericanFiction]
+name = GaleAmericanFiction
+id = gale_amfic
+desc = Gale American Fiction, 1774-1920
+link = https://www.gale.com/c/american-fiction-1774-1920
+path_root = gale_amfic
+path_txt = txt
+path_xml = xml
+path_metadata = metadata.txt
+path_python = gale_amfic.py
+class_name = GaleAmericanFiction
+
+
