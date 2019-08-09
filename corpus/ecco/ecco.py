@@ -457,7 +457,6 @@ def gale_xml2txt(dom, OK_word=['wd'], OK_page=['bodyPage'], remove_catchwords=Tr
 								line_txt=[]
 						lastLineOffset = lineOffset
 					except (KeyError,ValueError) as e:
-						print("!?",tag)
 						pass
 
 					word=clean_text(tag.text)
