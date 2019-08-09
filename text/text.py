@@ -713,7 +713,7 @@ class Text(object):
 				yield ln
 
 
-	def save_plain_text(self,txt=None,compress=True):
+	def save_plain_text(self,txt=None,compress=False):
 		fnfn_txt = os.path.join(self.corpus.path_txt,self.id+'.txt')
 		if compress: fnfn_txt+='.gz'
 		#if os.path.exists(fnfn_txt): return
@@ -723,13 +723,9 @@ class Text(object):
 		path_fnfn=os.path.dirname(fnfn_txt)
 		if not os.path.exists(path_fnfn): os.makedirs(path_fnfn)
 
-		if not compress:
-			tools.write2(fnfn_txt, txt)
-		else:
-			import gzip
-			with gzip.open(fnfn_txt,'wb') as f:
-				f.write(txt.encode('utf-8'))
-			print('>> saved:',fnfn_txt)
+		with open(fnfn_txt,'w') as of:
+			of.write(txt)
+			#print('>> saved:',fnfn_txt)
 
 
 
