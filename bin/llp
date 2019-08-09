@@ -13,6 +13,7 @@ if __name__ == '__main__':
 	parser.add_argument('-slingshot_opts',help='Other options to pass to slingshot',default='-progress')
 	parser.add_argument('-savedir',help='Directory to save to (if applicable)',default='')
 	parser.add_argument('-hours',help='Number of hours to run on Sherlock',default=2)
+	parser.add_argument('-quiet',help='No interactive mode',action='store_true')
 	args = parser.parse_args()
 
 	if args.sbatch and not '-sbatch' in args.slingshot_opts: args.slingshot_opts+=' -sbatch'
@@ -29,7 +30,7 @@ if __name__ == '__main__':
 		corpus = llp.load(args.corpus)
 		ofolder = args.savedir
 		sbatch_opts = llp.config['SBATCH_OPTS']+' -t {mins}'.format(mins=60*int(args.hours))
-		corpus.zip(savedir=ofolder,sbatch=args.sbatch, sbatch_opts=sbatch_opts)
+		corpus.zip(savedir=ofolder,sbatch=args.sbatch, sbatch_opts=sbatch_opts, ask=not args.quiet)
 
 	elif args.cmd=='list':
 		import llp

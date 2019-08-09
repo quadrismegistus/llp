@@ -628,16 +628,19 @@ class Corpus(object):
 		return self._meta
 
 
-	def zip(self,savedir=None, ask=True, sbatch=False, sbatch_opts=''):
+	def zip(self,savedir=None, ask=True, sbatch=False, sbatch_opts='', default={'txt','freqs','metadata'}): #,'xml'}):
 		if not savedir: savedir=os.path.join(PATH_CORPUS,'llp_corpora')
 		if not os.path.exists(savedir): os.makedirs(savedir)
 
-		def do_zip(path,fname):
+		def do_zip(path,fname,msg='Zipping files',default=False):
+			if not os.path.exists(path): return
+			if ask and input('>> {msg}? [{path}]\n'.format(msg=msg,path=path)).strip()!='y': return
+			if not default: return
+
 			if not fname.endswith('.zip'): fname+='.zip'
 			opath=os.path.join(savedir,fname)
 
 			path1,path2=os.path.split(path)
-
 			zipcmd='zip -r9 {opath} {path}'.format(path=path2,opath=opath)
 			if sbatch: zipcmd = 'sbatch {sbatch_opts} --wrap="{zipcmd}"'.format(sbatch_opts=sbatch_opts,zipcmd=zipcmd)
 			cmd='cd {cdto} && {zipcmd}'.format(cdto=path1,zipcmd=zipcmd)
@@ -645,12 +648,10 @@ class Corpus(object):
 			os.system(cmd)
 
 
-		if not ask or input('>> Zip text files [%s]?\n' % self.path_txt).strip()=='y':
-			do_zip(self.path_txt, self.idx+'_txt.zip')
-
-		if not ask or input('>> Zip XML files [%s]?\n' % self.path_xml).strip()=='y':
-			do_zip(self.path_xml, self.idx+'_xml.zip')
-
+		do_zip(self.path_txt, self.idx+'_txt.zip','Zip txt files','txt' in default)
+		do_zip(self.path_freqs, self.idx+'_freqs.zip','Zip freqs files','freqs' in default)
+		do_zip(self.path_metadata, self.idx+'_metadata.zip','Zip metadata file','metadata' in default)
+		do_zip(self.path_xml, self.idx+'_xml.zip','Zip xml files','xml' in default)
 
 
 
