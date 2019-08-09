@@ -783,12 +783,10 @@ class Corpus(object):
 		## loop
 
 		if slingshot:
-			Scmd='slingshot -llp_corpus {corpus} -llp_method get_meta_by_file -savedir _tmp_save_metadata -overwrite'.format(corpus=self.name,slingshot=slingshot)
+			Scmd='slingshot -llp_corpus {corpus} -llp_method get_meta_by_file -savedir _tmp_save_metadata -overwrite -savecsv {savecsv}'.format(corpus=self.name,slingshot=slingshot,savecsv=ofn)
 			if slingshot_n: Scmd+=' -parallel {slingshot_n}'.format(slingshot_n=slingshot_n)
 			if slingshot_opts: Scmd+=' '+slingshot_opts.strip()
-			if not os.system(Scmd): # success
-				ifn='_tmp_save_metadata/results.txt'
-				os.rename(ifn,ofn)
+			os.system(Scmd)
 		else:
 			from tqdm import tqdm
 			def writegen():
