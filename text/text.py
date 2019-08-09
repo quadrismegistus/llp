@@ -639,6 +639,7 @@ class Text(object):
 		return {} #self.meta_from_file
 
 	def save_freqs_json(self,ofolder=None,force=False):
+		if not self.id: return {}
 		if not ofolder: ofolder=self.corpus.path_freqs
 		ofnfn=os.path.join(ofolder,self.id+'.json')
 		opath = os.path.split(ofnfn)[0]
