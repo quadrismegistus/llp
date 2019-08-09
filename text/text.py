@@ -24,14 +24,6 @@ class Text(object):
 		self._fnfn_txt=path_to_txt
 
 	@property
-	def __repr__(self):
-		return self.addr
-
-	@property
-	def __str__(self):
-		return self.addr
-
-	@property
 	def addr(self):
 		if not hasattr(self,'_addr'):
 			self._addr=str(self.corpus.name)+'|'+str(self.id)
@@ -637,7 +629,7 @@ class Text(object):
 
 	def get_meta_by_file(self):
 		# @HACKy... Just need a functon version of property version above
-		
+
 		return self.meta_by_file
 
 	def get_meta_from_file(self):
