@@ -447,8 +447,7 @@ def gale_xml2txt(dom, OK_word=['wd'], OK_page=['bodyPage'], remove_catchwords=Tr
 					lastParent=tag.parent
 
 					## Check for new line
-					tag_pos=tag.get('pos')
-					if tag_pos:
+					try:
 						lineOffset = int(tag['pos'].split(',')[0])
 						if lastLineOffset is None:
 							lastLineOffset=lineOffset
@@ -457,6 +456,9 @@ def gale_xml2txt(dom, OK_word=['wd'], OK_page=['bodyPage'], remove_catchwords=Tr
 								para_txt+=[line_txt]
 								line_txt=[]
 						lastLineOffset = lineOffset
+					except (KeyError,ValueError) as e:
+						print("!?",tag)
+						pass
 
 					word=clean_text(tag.text)
 					a,w,b  = tools.gleanPunc2(word)
