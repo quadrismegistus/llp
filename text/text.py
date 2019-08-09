@@ -727,6 +727,7 @@ class Text(object):
 		fnfn_txt = os.path.join(self.corpus.path_txt,self.id+'.txt')
 		if compress: fnfn_txt+='.gz'
 		if not force and os.path.exists(fnfn_txt): return
+		if not os.path.exists(self.fnfn_xml): return
 
 		if txt is None: txt=self.text_plain()
 
