@@ -26,7 +26,7 @@ class Text(object):
 	@property
 	def addr(self):
 		if not hasattr(self,'_addr'):
-			self._addr=str(self.corpus.name)+'|'+str(self.id)
+			self._addr=str(self.corpus.id)+'|'+str(self.id)
 		return self._addr
 
 	@property

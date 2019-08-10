@@ -658,7 +658,7 @@ class Corpus(object):
 		return self._meta
 
 
-	def zip(self,savedir=None, ask=True, sbatch=False, sbatch_opts='', default={'txt','freqs','metadata'}): #,'xml'}):
+	def zip(self,savedir=None, ask=True, sbatch=False, sbatch_opts='', default={'txt','freqs','metadata','xml'}):
 		if not savedir: savedir=os.path.join(PATH_CORPUS,'llp_corpora')
 		if not os.path.exists(savedir): os.makedirs(savedir)
 
