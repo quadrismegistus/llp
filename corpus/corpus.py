@@ -702,6 +702,21 @@ class Corpus(object):
 		import os
 		os.system(cmd)
 
+	def install(self,parts=['metadata','txt','freqs'],force=False,slingshot=False,slingshot_n=None,slingshot_opts=''):
+		"""
+		Consider overwriting this
+		"""
+
+		# metadata
+		for part in parts:
+			if part=='metadata':
+				if force or not os.path.exists(self.path_metadata):
+					self.save_metadata(slingshot=slingshot,slingshot_n=slingshot_n,slingshot_opts=slingshot_opts)
+			elif part=='txt':
+				self.save_plain_text(force=force,slingshot=slingshot,slingshot_n=slingshot_n,slingshot_opts=slingshot_opts)
+			elif part=='freqs':
+				self.save_freqs(force=force,slingshot=slingshot,slingshot_n=slingshot_n,slingshot_opts=slingshot_opts)
+
 
 
 
