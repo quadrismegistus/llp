@@ -688,6 +688,7 @@ class Corpus(object):
 				with zipfile.ZipFile(opath,'w',zipfile.ZIP_DEFLATED) as zipf:
 					print('>> compressing to:',opath)
 					paths=list(_paths(path2)) if os.path.isdir(path2) else [path2]
+					print(type(paths),paths[:3])
 					zipper = zipdir(path2, zipf, paths=paths)
 					for ofnfn in tqdm(zipper, total=len(paths)):
 						pass
