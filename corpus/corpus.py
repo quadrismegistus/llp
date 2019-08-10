@@ -5,6 +5,7 @@ import tools
 import six
 from six.moves import range
 from six.moves import zip
+from collections import defaultdict
 
 from os.path import expanduser
 HOME=expanduser("~")
@@ -259,29 +260,33 @@ class Corpus(object):
 		import inspect
 		#class_path = inspect.getmodule(os.path.join(self.__class__)).__file__
 		#print(class_path)
-		opts_list = [('Default',default_kwargs), (self.__class__.__name__,input_kwargs)]
+		# opts_list = [('Default',default_kwargs), (self.__class__.__name__,input_kwargs)]
+		#
+		# if input_kwargs.get('manifest_override',True):
+		# 	opts_list.extend(load_manifest_list(corpus_name=name))
+		#
+		# opts={}
+		# for (opts_name,opts_d) in reversed(opts_list):
+		# 	#
+		# 	if [v for v in opts_d.values() if v] and opts_name!='Default':
+		# 		#print('\n>> setting attributes from:',opts_name)
+		# 		pass
+		# 	for opt_k,opt_v in sorted(opts_d.items()):
+		# 		# Don't overwrrite (in reverse)
+		# 		if opt_k in opts: continue
+		#
+		# 		opts[opt_k]=opt_v
+		# 		if opt_v and opts_name!='Default':
+		# 			#print('--',opt_k,'=',opt_v)#,'(%s)' % opts_name)
+		# 			pass
 
-		if input_kwargs.get('manifest_override',True):
-			opts_list.extend(load_manifest_list(corpus_name=name))
-
-		opts={}
-		for (opts_name,opts_d) in reversed(opts_list):
-			#
-			if [v for v in opts_d.values() if v] and opts_name!='Default':
-				#print('\n>> setting attributes from:',opts_name)
-				pass
-			for opt_k,opt_v in sorted(opts_d.items()):
-				# Don't overwrrite (in reverse)
-				if opt_k in opts: continue
-
-				opts[opt_k]=opt_v
-				if opt_v and opts_name!='Default':
-					#print('--',opt_k,'=',opt_v)#,'(%s)' % opts_name)
-					pass
-
+		opts = input_kwargs
 		self.opts = opts
 
+		#print(input_kwargs)
+		#print(self.opts)
 		path_root = self.opts.get('path_root','')
+		#print('!?',path_root)
 
 
 		# Set as attributes
@@ -712,7 +717,8 @@ class Corpus(object):
 		do_zip(self.path_xml, self.id+'_xml.zip','Zip xml files','xml' in defaults)
 
 
-	def upload(self,uploader='dbu upload',dest=DEST_LLP_CORPORA,zipdir=None):
+	def upload(self,ask=True,uploader='dbu upload',dest=DEST_LLP_CORPORA,zipdir=None,overwrite=False):
+		if not overwrite: uploader+=' -s'
 		if not zipdir: zipdir=os.path.join(PATH_CORPUS,'llp_corpora')
 		os.chdir(zipdir)
 		for fn in os.listdir('.'):
@@ -720,7 +726,8 @@ class Corpus(object):
 			if not fn.startswith(self.id): continue
 			cmd='{upload} {file} {dest}'.format(upload=uploader,file=fn,dest=dest)
 			print('>>',cmd)
-			os.system(cmd)
+			if not ask or input('>> ok? ').strip().lower().startswith('y'):
+				os.system(cmd)
 
 	def share(self,cmd_share='dbu share',dest=DEST_LLP_CORPORA):
 		import subprocess
@@ -731,6 +738,7 @@ class Corpus(object):
 			try:
 				out=str(subprocess.check_output(cmd.split()))
 			except (subprocess.CalledProcessError,ValueError,TypeError) as e:
+				print('!!',e)
 				continue
 			link=out.strip().replace('\n','').split('http')[-1].split('?')[0]
 			if link: link='http'+link+'?dl=1'
@@ -745,9 +753,33 @@ class Corpus(object):
 	def chdir_root(self):
 		os.chdir(self.path_root)
 
-	def download(self):
+	def urls(self):
+		urls=[(x[4:], getattr(self,x)) for x in dir(self) if x.startswith('url_') and getattr(self,x)]
+		return urls
+
+	def download(self, ask=True):
 		self.mkdir_root()
 		self.chdir_root()
+
+		URLS=self.urls()
+
+		if ask:
+			url2ok=defaultdict(None)
+			for urltype,url in URLS:
+				url2ok[urltype]=input('>> [%s] Download %s file(s)?: ' % (self.name, urltype)).strip().lower().startswith('y')
+		else:
+			url2ok=defaultdict(True)
+
+		for (urltype,url) in URLS:
+			if not url2ok[urltype]: continue
+			tmpfn='_tmp_%s_%s.zip' % (self.id, urltype)
+			print('>> downloading:',tmpfn)
+			tools.download(url,tmpfn)
+
+			print('>> unzipping:',tmpfn)
+			tools.unzip(tmpfn)
+			os.unlink(tmpfn)
+
 		"""cmd='cd {p1} && wget -O {p3} {p2} && unzip -n {p3} -x "*.py*" -x "*.DS_Store" -x "*__pycache__*" && rm {p3}'.format(
 		p1=PATH_CORPUS,
 		p2=self.url_download,

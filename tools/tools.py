@@ -240,9 +240,10 @@ def writegen(fnfn,generator,header=None,args=[],kwargs={}):
 		writer = csv.DictWriter(csvfile,fieldnames=header,extrasaction='ignore',delimiter='\t')
 		writer.writeheader()
 		for i,dx in enumerate(iterator):
-			#for k,v in dx.items():
+			for k,v in dx.items():
 				#if type(v) in [str]:
 				#	dx[k]=v.encode('utf-8')
+				dx[k] = str(v).replace('\r\n',' ').replace('\r',' ').replace('\n',' ').replace('\t',' ')
 			writer.writerow(dx)
 	print('>> saved:',fnfn)
 
@@ -1277,3 +1278,43 @@ def linreg(X, Y):
 	#print "R^2= %g" % RR
 	#print "s^2= %g" % ss
 	return a, b, RR
+
+
+def download_wget(url, save_to):
+	import wget
+	save_to_dir,save_to_fn=os.path.split(save_to)
+	if save_to_dir: os.chdir(save_to_dir)
+	fn=wget.download(url)#,bar=wget.bar_thermometer)
+	os.rename(fn,save_to_fn)
+	print('\n>> downloaded to:',save_to)
+
+def download(url,save_to):
+	return download_wget(url,save_to)
+
+def download_tqdm(url, save_to):
+	import requests
+	from tqdm import tqdm
+
+	r = requests.get(url, stream=True)
+	total_size = int(r.headers.get('content-length', 0))
+
+	with open(save_to, 'wb') as f:
+		for chunk in tqdm(r.iter_content(32*1024), total=total_size, unit='B',unit_scale=True):
+			if chunk:
+				f.write(chunk)
+
+	return save_to
+
+def unzip(zipfn, dest='.'):
+	from zipfile import ZipFile
+	from tqdm import tqdm
+
+	# Open your .zip file
+	with ZipFile(zipfn) as zip_file:
+		namelist=zip_file.namelist()
+
+		# Loop over each file
+		for file in tqdm(iterable=namelist, total=len(namelist)):
+			# Extract each file to another directory
+			# If you want to extract to current working directory, don't specify path
+			zip_file.extract(member=file, path=dest)
