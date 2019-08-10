@@ -48,6 +48,11 @@ if __name__ == '__main__':
 		sbatch_opts = llp.config['SBATCH_OPTS']+' -t {mins}'.format(mins=60*int(args.hours))
 		corpus.zip(savedir=ofolder,sbatch=args.sbatch, sbatch_opts=sbatch_opts, ask=not args.quiet)
 
+	elif args.cmd=='upload' and args.corpus:
+		import llp
+		corpus = llp.load(args.corpus)
+		corpus.upload(ask=not args.quiet)
+
 	elif args.cmd=='list':
 		import llp
 		manifest=llp.corpus.load_manifest()
