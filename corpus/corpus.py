@@ -693,7 +693,7 @@ class Corpus(object):
 
 					os.chdir(path1)
 					paths=list(_paths(path2)) if os.path.isdir(path2) else [path2]
-					print(type(paths),paths[:3])
+					#print(type(paths),paths[:3])
 					zipper = zipdir(path2, zipf, paths=paths)
 					for ofnfn in tqdm(zipper, total=len(paths)):
 						pass
