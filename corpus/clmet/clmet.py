@@ -17,15 +17,15 @@ class TextCLMET(Text):
 		md['medium']='Prose'
 
 		txt=self.text_xml
-		meta,text = txt.split('<text>')
+		meta = txt.split('<text>')[0]
 		dom=bs4.BeautifulSoup(meta,'lxml')
 		for tag in dom():
 			if tag.name in bad_tags: continue
 			md[tag.name]=tag.text
 
-		md['id_orig']=md['id']
+		md['id_orig']=md.get('id','')
 		md['id']=self.id
-		md['genre']=self.genre2Genre[md['genre']]
+		md['genre']=self.genre2Genre.get(md.get('genre'),'')
 		return md
 
 

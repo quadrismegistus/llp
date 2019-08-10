@@ -9,6 +9,9 @@ from six.moves import zip
 from os.path import expanduser
 HOME=expanduser("~")
 
+ZIP_PART_DEFAULTS={'txt','freqs','metadata','xml'}
+DEST_LLP_CORPORA='/Share/llp_corpora'
+
 MANIFEST_REQUIRED_DATA=['name','id']
 
 MANIFEST_DEFAULTS=dict(
@@ -146,8 +149,8 @@ def load_corpus(name=None,required_data = MANIFEST_REQUIRED_DATA, manifest=None)
 	class_name = cd['class_name'] if cd['class_name'] else c_name
 	cd['path_root'] = path_root = cd['path_root'] if cd['path_root'] else c_id
 
-	#if not os.path.isabs(path_root): path_root=os
-	#	path_root=os.path.join(PATH_TO_CORPUS_CODE,path_root)
+	if not os.path.isabs(path_root):# path_root=os
+		cd['path_root'] = path_root=os.path.join(PATH_CORPUS,path_root)
 
 	if not os.path.isabs(path_python):
 		cd['path_python'] = path_python=os.path.join(PATH_TO_CORPUS_CODE,path_python)  # if not path_python.startswith(os.path.sep) else path_python
@@ -277,13 +280,6 @@ class Corpus(object):
 					pass
 
 		self.opts = opts
-
-
-		# Manifest override:
-
-		# Get root
-
-
 
 		path_root = self.opts.get('path_root','')
 
@@ -658,9 +654,22 @@ class Corpus(object):
 		return self._meta
 
 
-	def zip(self,savedir=None, ask=True, sbatch=False, sbatch_opts='', default={'txt','freqs','metadata','xml'}):
+	def zip(self,savedir=None, ask=True, sbatch=False, sbatch_opts='', default=ZIP_PART_DEFAULTS):
 		if not savedir: savedir=os.path.join(PATH_CORPUS,'llp_corpora')
 		if not os.path.exists(savedir): os.makedirs(savedir)
+
+		def _paths(path):
+			for root, dirs, files in os.walk(path):
+				for file in files:
+					ofnfn=os.path.join(root, file)
+					yield ofnfn
+
+		def zipdir(path, ziph, paths=None):
+			# ziph is zipfile handle
+			if not paths: paths=_paths(paths)
+			for ofnfn in paths:
+				ziph.write(ofnfn)
+				yield ofnfn
 
 		def do_zip(path,fname,msg='Zipping files',default=False):
 			if not os.path.exists(path): return
@@ -671,24 +680,69 @@ class Corpus(object):
 			opath=os.path.join(savedir,fname)
 
 			path1,path2=os.path.split(path)
-			zipcmd='zip -r9 {opath} {path}'.format(path=path2,opath=opath)
-			if sbatch: zipcmd = 'sbatch {sbatch_opts} --wrap="{zipcmd}"'.format(sbatch_opts=sbatch_opts,zipcmd=zipcmd)
-			cmd='cd {cdto} && {zipcmd}'.format(cdto=path1,zipcmd=zipcmd)
-			print(cmd)
+
+			if not sbatch:
+				import zipfile
+				from tqdm import tqdm
+				os.chdir(path1)
+				with zipfile.ZipFile(opath,'w',zipfile.ZIP_DEFLATED) as zipf:
+					print('>> compressing to:',opath)
+					paths=list(_paths(path2)) if os.path.isdir(path2) else [path2]
+					zipper = zipdir(path2, zipf, paths=paths)
+					for ofnfn in tqdm(zipper, total=len(paths)):
+						pass
+
+			else:
+				zipcmd='zip -r9 {opath} {path}'.format(path=path2,opath=opath)
+				if sbatch: zipcmd = 'sbatch {sbatch_opts} --wrap="{zipcmd}"'.format(sbatch_opts=sbatch_opts,zipcmd=zipcmd)
+				cmd='cd {cdto} && {zipcmd}'.format(cdto=path1,zipcmd=zipcmd)
+				print(cmd)
+				os.system(cmd)
+
+
+		do_zip(self.path_txt, self.id+'_txt.zip','Zip txt files','txt' in default)
+		do_zip(self.path_freqs, self.id+'_freqs.zip','Zip freqs files','freqs' in default)
+		do_zip(self.path_metadata, self.id+'_metadata.zip','Zip metadata file','metadata' in default)
+		do_zip(self.path_xml, self.id+'_xml.zip','Zip xml files','xml' in default)
+
+
+	def upload(self,uploader='dbu upload',dest=DEST_LLP_CORPORA,zipdir=None):
+		if not zipdir: zipdir=os.path.join(PATH_CORPUS,'llp_corpora')
+		os.chdir(zipdir)
+		for fn in os.listdir('.'):
+			if not fn.endswith('.zip'): continue
+			if not fn.startswith(self.id): continue
+			cmd='{upload} {file} {dest}'.format(upload=uploader,file=fn,dest=dest)
+			print('>>',cmd)
 			os.system(cmd)
 
+	def share(self,cmd_share='dbu share',dest=DEST_LLP_CORPORA):
+		import subprocess
+		print('['+self.name+']')
+		for part in ZIP_PART_DEFAULTS:
+			fnzip = self.id+'_'+part+'.zip'
+			cmd=cmd_share+' '+os.path.join(dest,fnzip)
+			try:
+				out=str(subprocess.check_output(cmd.split()))
+			except (subprocess.CalledProcessError,ValueError,TypeError) as e:
+				continue
+			link=out.strip().replace('\n','').split('http')[-1].split('?')[0]
+			if link: link='http'+link+'?dl=1'
 
-		do_zip(self.path_txt, self.idx+'_txt.zip','Zip txt files','txt' in default)
-		do_zip(self.path_freqs, self.idx+'_freqs.zip','Zip freqs files','freqs' in default)
-		do_zip(self.path_metadata, self.idx+'_metadata.zip','Zip metadata file','metadata' in default)
-		do_zip(self.path_xml, self.idx+'_xml.zip','Zip xml files','xml' in default)
+			url='url_'+part+'="'+link+'"'
+			print(url)
 
 
+	def mkdir_root(self):
+		if not os.path.exists(self.path_root): os.makedirs(self.path_root)
 
-
+	def chdir_root(self):
+		os.chdir(self.path_root)
 
 	def download(self):
-		cmd='cd {p1} && wget -O {p3} {p2} && unzip -n {p3} -x "*.py*" -x "*.DS_Store" -x "*__pycache__*" && rm {p3}'.format(
+		self.mkdir_root()
+		self.chdir_root()
+		"""cmd='cd {p1} && wget -O {p3} {p2} && unzip -n {p3} -x "*.py*" -x "*.DS_Store" -x "*__pycache__*" && rm {p3}'.format(
 		p1=PATH_CORPUS,
 		p2=self.url_download,
 		p3='_download.zip')
@@ -700,12 +754,14 @@ class Corpus(object):
 
 		print(cmd)
 		import os
-		os.system(cmd)
+		os.system(cmd)"""
 
 	def install(self,parts=['metadata','txt','freqs'],force=False,slingshot=False,slingshot_n=None,slingshot_opts=''):
 		"""
 		Consider overwriting this
 		"""
+		self.mkdir_root()
+		self.chdir_root()
 
 		# metadata
 		for part in parts:
