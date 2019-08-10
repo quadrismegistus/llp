@@ -237,7 +237,7 @@ def writegen(fnfn,generator,header=None,args=[],kwargs={}):
 	first=next(iterator)
 	if not header: header=sorted(first.keys())
 	with open(fnfn, 'w') as csvfile:
-		writer = csv.DictWriter(csvfile,fieldnames=header,delimiter='\t')
+		writer = csv.DictWriter(csvfile,fieldnames=header,extrasaction='ignore',delimiter='\t')
 		writer.writeheader()
 		for i,dx in enumerate(iterator):
 			#for k,v in dx.items():
@@ -1277,9 +1277,3 @@ def linreg(X, Y):
 	#print "R^2= %g" % RR
 	#print "s^2= %g" % ss
 	return a, b, RR
-
-
-
-
-
-	

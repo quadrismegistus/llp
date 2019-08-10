@@ -16,7 +16,8 @@ if __name__ == '__main__':
 	parser.add_argument('-quiet',help='No interactive mode',action='store_true')
 	args = parser.parse_args()
 
-	if args.sbatch and not '-sbatch' in args.slingshot_opts: args.slingshot_opts+=' -sbatch'
+	if args.sbatch and not '-sbatch' in args.slingshot_opts:
+		args.slingshot_opts+=' -sbatch'
 
 
 
@@ -25,7 +26,17 @@ if __name__ == '__main__':
 		corpus = llp.load(args.corpus)
 		corpus.download()
 
-	if args.cmd=='zip' and args.corpus:
+	elif args.cmd=='status' and args.corpus:
+		import llp
+		corpus = llp.load(args.corpus)
+		print('['+corpus.name+']')
+		for x in sorted(dir(corpus)):
+			if x.startswith('path_'):
+				v=getattr(corpus,x)
+				if v and type(v)==str: print(x,'-->',v,'!' if not os.path.exists(v) else '')
+
+
+	elif args.cmd=='zip' and args.corpus:
 		import llp
 		corpus = llp.load(args.corpus)
 		ofolder = args.savedir

@@ -162,31 +162,31 @@ class ChadwyckPoetry(Corpus):
 		pool=mp.Pool()
 		pool.map(save_poems_from_raw_author_folder, objects)
 
-	def save_metadata(self,save=True,nproc=1,
-							guess_gender=False,detect_posthumous=False,fudge_dates=False):
-		texts=self.texts()
-		if nproc>1:
-			paths=[t.path_xml for t in texts]
-			import multiprocessing as mp
-			pool=mp.Pool(nproc)
-			old=[]
-			num=0
-			for i,metadx in enumerate(pool.imap_unordered(meta_by_file, paths)):
-				if not i % 100: print('>>',i,'...')
-				old+=[metadx]
-		else:
-			for i,t in enumerate(texts):
-				if not i%10: print('>> processing text #',i,'...')
-				metad=meta_by_file(t)
-				old+=[metad]
-
-		# add Id
-		for metad,text in zip(old,texts):
-			metad['idz']=metad['id']
-			metad['id']=text.id
-
-		timestamp=tools.now().split('.')[0]
-		tools.write2(os.path.join(self.path,'corpus-metadata.%s.%s.txt' % (self.name,timestamp)), old)
+	# def save_metadata(self,save=True,nproc=1,
+	# 						guess_gender=False,detect_posthumous=False,fudge_dates=False):
+	# 	texts=self.texts()
+	# 	if nproc>1:
+	# 		paths=[t.path_xml for t in texts]
+	# 		import multiprocessing as mp
+	# 		pool=mp.Pool(nproc)
+	# 		old=[]
+	# 		num=0
+	# 		for i,metadx in enumerate(pool.imap_unordered(meta_by_file, paths)):
+	# 			if not i % 100: print('>>',i,'...')
+	# 			old+=[metadx]
+	# 	else:
+	# 		for i,t in enumerate(texts):
+	# 			if not i%10: print('>> processing text #',i,'...')
+	# 			metad=meta_by_file(t)
+	# 			old+=[metad]
+	#
+	# 	# add Id
+	# 	for metad,text in zip(old,texts):
+	# 		metad['idz']=metad['id']
+	# 		metad['id']=text.id
+	#
+	# 	timestamp=tools.now().split('.')[0]
+	# 	tools.write2(os.path.join(self.path,'corpus-metadata.%s.%s.txt' % (self.name,timestamp)), old)
 
 
 	## word2vec

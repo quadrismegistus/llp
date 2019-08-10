@@ -1905,6 +1905,7 @@ class CorpusMeta(Corpus):
 					texts+=[t]
 					text_ids+=[t.id]
 
+	"""
 	def save_metadata(self,ofn=None):
 		#return super(CorpusMeta,self).save_metadata(ofn=ofn,num_words=False,ocr_accuracy=False)
 		from llp import tools
@@ -1913,6 +1914,7 @@ class CorpusMeta(Corpus):
 			ofn=os.path.join(self.path,'corpus-metadata.%s.%s.txt' % (self.name,timestamp))
 
 		tools.write2(ofn,self.meta)
+	"""
 
 
 
