@@ -6,6 +6,8 @@ import six
 from six.moves import range
 from six.moves import zip
 from collections import defaultdict
+from tqdm import tqdm
+
 
 from os.path import expanduser
 HOME=expanduser("~")
@@ -38,6 +40,7 @@ MANIFEST_DEFAULTS=dict(
 	manifest={},
 	path_python='',
 	manifest_override=True,
+	path_data='data',
 	is_meta = '')
 
 PATH_HERE=os.path.abspath(os.path.dirname(__file__))
@@ -187,18 +190,24 @@ def corpora(load=True,incl_meta_corpora=True):
 def check_corpora(paths=['path_xml','path_txt','path_freqs','path_metadata'],incl_meta_corpora=False):
 	old=[]
 	for cname,corpus in corpora(load=True,incl_meta_corpora=incl_meta_corpora):
+		print('{:30s}'.format(cname),end="\t")
 		for path in paths:
+			pathtype=path.replace('path_','')
 			pathval = getattr(corpus,path)
 			#pathval = corpus.get(path,'')
 			exists = os.path.exists(pathval)
 			if not exists:
-				print(cname,path,pathval,'!' if not exists else '')
-			odx={'name':cname,'id':corpus.id,'path_type':path, 'path_value':pathval, 'exists':exists}
-			old+=[odx]
-	import pandas as pd
-	df=pd.DataFrame(old)
-	print(df)
-	return df
+				print(' ',pathtype,end="\t")
+				#print(cname,path,pathval,'!' if not exists else '')
+			else:
+				print('✓',pathtype,end="\t")
+		print()
+			#odx={'name':cname,'id':corpus.id,'path_type':path, 'path_value':pathval, 'exists':exists}
+			#old+=[odx]
+	#import pandas as pd
+	#df=pd.DataFrame(old)
+	#print(df)
+	#return df
 
 
 
@@ -428,10 +437,11 @@ class Corpus(object):
 
 	###########################################################################
 	## SLINGSHOT OR SOLO!!
-	def slingshot_or_solo(self,method_name,force=False,slingshot=False,slingshot_n=None,slingshot_opts='',cmd_args=[],cmd_kwargs={}):
+	def slingshot_or_solo(self,method_name,force=False,slingshot=False,slingshot_n=None,slingshot_opts='',cmd_args=[],cmd_kwargs={},force_slingshot=False):
 		print('>> %s.%s() ...' % (self.name, method_name))
 		## loop
-		if slingshot:
+		if slingshot or force_slingshot:
+			if not slingshot: slingshot_n=1
 			Scmd=tools.slingshot_cmd_starter(self.name,method_name,slingshot_n,slingshot_opts)
 			#Scmd+=' -nosave'
 
@@ -446,8 +456,10 @@ class Corpus(object):
 				f(*cmd_args,**cmd_kwargs)
 
 	def save_freqs(self,force=False,slingshot=False,slingshot_n=None,slingshot_opts=''):
-		slingshot_opts+=' -savedir _tmp_save_freqs -overwrite -savecsv %s' % self.get_path_freq_table()
-		return self.slingshot_or_solo('save_freqs',force=force,slingshot=slingshot,slingshot_n=slingshot_n,slingshot_opts=slingshot_opts)
+		print(slingshot,slingshot_n,slingshot_opts)
+		#slingshot_opts+=' -savedir _tmp_save_freqs -overwrite -savecsv %s' % self.get_path_freq_table()
+		slingshot_opts+=' -nosave'
+		return self.slingshot_or_solo('save_freqs',force=force,slingshot=slingshot,slingshot_n=slingshot_n,slingshot_opts=slingshot_opts,force_slingshot=False)
 
 	def save_plain_text(self,force=False,slingshot=False,slingshot_n=None,slingshot_opts=''):
 		slingshot_opts+=' -nosave'
@@ -648,6 +660,9 @@ class Corpus(object):
 				yield d2
 		tools.writegen(fn,writegen)
 
+	def get_metadata(self):
+		return self.meta
+
 	@property
 	def meta(self):
 		if not hasattr(self,'_meta'):
@@ -743,7 +758,7 @@ class Corpus(object):
 			link=out.strip().replace('\n','').split('http')[-1].split('?')[0]
 			if link: link='http'+link+'?dl=1'
 
-			url='url_'+part+'="'+link+'"'
+			url='url_'+part+' = '+link
 			print(url)
 
 
@@ -870,7 +885,10 @@ class Corpus(object):
 	### FREQS
 
 	def get_path_freq_table(self,n=None,force=False,discover=True):
-		return os.path.join(self.path_root,'dtm.txt')
+		if not os.path.exists(self.path_data): os.makedirs(self.path_data)
+		return os.path.join(self.path_data,'dtm.txt.gz')
+
+
 
 	# def get_path_freq_table(self,n=None,force=False,discover=True):
 	# 	if force:
@@ -1008,7 +1026,29 @@ class Corpus(object):
 		print('   done [{0} seconds]'.format(round(nownow-now,1)))
 		return df
 
-	def gen_freq_table(self,n=25000,words=None,only_english=False,path=None):
+
+	def save_dtm(self,n=10000,words=None,only_english=False,path=None):
+		words = list(self.mfw(n=n,only_english=only_english)) if not words else words
+		path = self.get_path_freq_table(n=n,force=True) if not path else path
+		path_path = os.path.split(path)[0]
+		if not os.path.exists(path_path): os.makedirs(path_path)
+
+		texts=list(self.texts())
+		texts.sort(key=lambda t: t.id)
+
+		def writegen():
+			for t in tqdm(texts):
+				tfreqs=t.freqs()
+				odx=dict((w,tfreqs.get(w,0)) for w in words)
+				odx['_addr']=t.addr
+				yield odx
+
+		print('>> [%s] building DTM:' % self.name,path)
+		tools.writegen(path, writegen, header=['_addr']+words)
+
+
+
+	def gen_freq_table1(self,n=25000,words=None,only_english=False,path=None):
 		from llp import tools
 		if words:
 			n=len(words)
@@ -1047,7 +1087,7 @@ class Corpus(object):
 
 	@property
 	def path_mfw(self):
-		return os.path.join(self.path, 'data.mfw.%s.txt' % self.name)
+		return os.path.join(self.path_data, 'mfw.txt')
 
 
 	def mfw_df(self,**attrs):
@@ -1134,6 +1174,11 @@ class Corpus(object):
 					if eng and not w in ENGLISH: continue
 					num+=1
 					yield w if not with_count else (w,c)
+		else:
+
+			# recursively try again
+			self.gen_mfw()
+			for x in self.mfw_simple(**attrs): yield x
 
 	def mfw(self,**attrs):
 		func=self.mfw_simple(**attrs)
@@ -1150,7 +1195,7 @@ class Corpus(object):
 		return Grouping.groups
 
 
-	def gen_mfw(self,yearbin=None,year_min=None,year_max=None,include_freq=True,gen_total=True):
+	def gen_mfw(self,yearbin=None,year_min=None,year_max=None,include_freq=True,gen_total=False):
 		"""
 		From tokenize_texts()
 		"""
@@ -1168,17 +1213,17 @@ class Corpus(object):
 				countd = bounter(1024)
 				#countd = Counter()
 			else:
-
 				countd = Counter()
 
-			texts=texts
-			for i,text in enumerate(texts):
+			from tqdm import tqdm
+			for i,text in enumerate(tqdm(texts)):
 				#if not i%100: print '>>',i,len(texts),'...'
 				freqs = text.freqs(use_text_if_nec=False)
 				if freqs: countd.update(freqs)
 
-			path_mfw_period=os.path.splitext(self.path_mfw)[0]+'.'+period+'.txt'
-			with codecs.open(path_mfw_period,'w',encoding='utf-8') as f:
+			mfwfn1=os.path.splitext(self.path_mfw)[0]
+			path_mfw_period=mfwfn1+'.'+period+'.txt' if period!='all' else self.path_mfw
+			with open(path_mfw_period,'w') as f:
 				for i,(word,val) in enumerate(sorted(six.iteritems(countd), key=lambda _t: -_t[1])):
 					line=word if not include_freq else word+'\t'+str(val)
 					f.write(line+'\n')
@@ -1190,6 +1235,7 @@ class Corpus(object):
 
 
 		if gen_total:
+			print('>> generating total...')
 			all_words = set()
 			totals={}
 			for period,countd in list(period2bounter.items()):
@@ -1199,7 +1245,7 @@ class Corpus(object):
 			num_words=len(all_words)
 			COUNTD={}
 
-			for i,word in enumerate(all_words):
+			for i,word in enumerate(tqdm(all_words)):
 				#if not i%1000: print '>>',i,num_words,'...'
 				vals = [float(countd[word])/totals[period]*1000000 for period,countd in list(period2bounter.items())]
 				median_val = np.mean(vals)
@@ -1208,7 +1254,7 @@ class Corpus(object):
 
 			del period2bounter
 
-			with codecs.open(self.path_mfw,'w',encoding='utf-8') as f:
+			with open(self.path_mfw,'w',encoding='utf-8') as f:
 				for i,(word,val) in enumerate(sorted(six.iteritems(COUNTD), key=lambda _t: -_t[1])):
 					#if not i%1000: print '>>',i,num_words,'...'
 					line=word if not include_freq else word+'\t'+str(val)
@@ -1865,6 +1911,7 @@ class CorpusMeta(Corpus):
 			#	self._meta+=[dx]
 
 		self.merge()
+
 
 	@property
 	def meta(self):

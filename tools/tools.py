@@ -282,7 +282,7 @@ def readgen_csv(fnfn,sep='\t',encoding='utf-8',errors='ignore'):
 
 	f.close()
 
-def readgen(fnfn,header=None,tsep='\t',keymap={},keymap_all=six.text_type,encoding='utf-8',as_list=False,as_tuples=False,as_dict=True,toprint=True):
+def readgen(fnfn,header=None,tsep='\t',keymap={},keymap_all=six.text_type,encoding='utf-8',as_list=False,as_tuples=False,as_dict=True,toprint=True,progress=True):
 	if 'jsonl' in fnfn.split('.'):
 		for dx in readgen_jsonl(fnfn):
 			yield dx
@@ -295,41 +295,15 @@ def readgen(fnfn,header=None,tsep='\t',keymap={},keymap_all=six.text_type,encodi
 		elif tsep==',' and toprint:
 			print('>> streaming as csv:',fnfn)
 
-		for dx in readgen_csv(fnfn):
-			yield dx
-
-		nownow=time.time()
-		if toprint: print('   done ['+str(round(nownow-now,1))+' seconds]')
-
-		"""
-
-		if fnfn.endswith('.gz'):
-			import gzip
-			of=gzip.open(fnfn)
-		#of = codecs.open(fnfn,encoding=encoding)
+		if progress:
+			num_lines = get_num_lines(fnfn)
+			from tqdm import tqdm
+			for dx in tqdm(readgen_csv(fnfn),total = num_lines): yield dx
 		else:
-			of=open(fnfn)
+			for dx in readgen_csv(fnfn): yield dx
 
-		for line in of:
-			line=line.decode(encoding=encoding).strip() #.replace('\r\n','').replace('\r')
-			if not header:
-				header=line.split(tsep)
-				continue
-
-			r=data=line.split(tsep)
-			if as_list:
-				yield r
-				continue
-
-			if as_tuples or as_dict:
-				r=tuples=zip(header,data)
-			if as_dict:
-				r=d=dict(tuples)
-			yield r
-		of.close()
 		nownow=time.time()
-		if toprint: print '   done ['+str(round(nownow-now,1))+' seconds]'
-		"""
+		if not progress and toprint: print('   done ['+str(round(nownow-now,1))+' seconds]')
 
 def header(fnfn,tsep='\t',encoding='utf-8'):
 	header=[]
@@ -1318,3 +1292,18 @@ def unzip(zipfn, dest='.'):
 			# Extract each file to another directory
 			# If you want to extract to current working directory, don't specify path
 			zip_file.extract(member=file, path=dest)
+
+
+def get_num_lines(filename):
+	from smart_open import open
+
+	def blocks(files, size=65536):
+		while True:
+			b = files.read(size)
+			if not b: break
+			yield b
+
+	with open(filename, 'r', errors='ignore') as f:
+		numlines=sum(bl.count("\n") for bl in blocks(f))
+
+	return numlines

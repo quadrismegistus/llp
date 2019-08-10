@@ -8,7 +8,7 @@ if __name__ == '__main__':
 	parser.add_argument('cmd',help="Command for corpus (its method name)")
 	parser.add_argument('corpus',help="Corpus name")
 	parser.add_argument('-slingshot',action='store_true',default=False)
-	parser.add_argument('-parallel',help='How many parallel processes to run on, using Slingshot?',default=SLINGSHOT_N)
+	parser.add_argument('-parallel',help='How many parallel processes to run on, using Slingshot?',default=None)
 	parser.add_argument('-sbatch',help='Run on sherlock?',action='store_true')
 	parser.add_argument('-slingshot_opts',help='Other options to pass to slingshot',default='-progress')
 	parser.add_argument('-savedir',help='Directory to save to (if applicable)',default='')
@@ -24,12 +24,10 @@ if __name__ == '__main__':
 
 
 
-
-
 	if args.cmd=='download' and args.corpus:
 		import llp
 		corpus = llp.load(args.corpus)
-		corpus.download()
+		corpus.download
 
 	elif args.cmd=='status' and args.corpus:
 		import llp
@@ -73,18 +71,24 @@ if __name__ == '__main__':
 		from llp.corpus import start_new_corpus_interactive
 		start_new_corpus_interactive()
 
-	elif args.corpus:
+	elif args.corpus and args.cmd in {'save_freqs','save_plain_text','save_metadata'}:
 		import llp
 
 		#xargs=list(args[3:])
 		xargs=[]
 		kwargs={}
 
-		if args.slingshot:
-			kwargs['slingshot']=args.slingshot
-			kwargs['slingshot_n']=args.parallel
-			kwargs['slingshot_opts']=args.slingshot_opts
+		#if args.slingshot:
+		kwargs['slingshot']=args.slingshot
+		kwargs['slingshot_n']=args.parallel
+		kwargs['slingshot_opts']=args.slingshot_opts
 
 		C=llp.load(args.corpus)
 		f=getattr(C,args.cmd)
 		f(*xargs,**kwargs)
+
+	else:
+		import llp
+		C=llp.load(args.corpus)
+		f=getattr(C,args.cmd)
+		f()
