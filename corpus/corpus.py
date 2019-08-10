@@ -684,12 +684,14 @@ class Corpus(object):
 			if not sbatch:
 				import zipfile
 				from tqdm import tqdm
-				os.chdir(path1)
+
 				with zipfile.ZipFile(opath,'w',zipfile.ZIP_DEFLATED) as zipf:
 					print('>> compressing...')
 					print('\tto:',opath)
 					print('\tfrom:',path2)
-					
+					print('\tin:',path1)
+
+					os.chdir(path1)
 					paths=list(_paths(path2)) if os.path.isdir(path2) else [path2]
 					print(type(paths),paths[:3])
 					zipper = zipdir(path2, zipf, paths=paths)
