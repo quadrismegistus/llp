@@ -53,6 +53,11 @@ if __name__ == '__main__':
 		corpus = llp.load(args.corpus)
 		corpus.upload(ask=not args.quiet)
 
+	elif args.cmd=='share' and args.corpus:
+		import llp
+		corpus = llp.load(args.corpus)
+		corpus.share()
+
 	elif args.cmd=='list':
 		import llp
 		manifest=llp.corpus.load_manifest()
