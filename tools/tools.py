@@ -1277,3 +1277,9 @@ def linreg(X, Y):
 	#print "R^2= %g" % RR
 	#print "s^2= %g" % ss
 	return a, b, RR
+
+
+
+
+
+	

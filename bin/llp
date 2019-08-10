@@ -39,6 +39,10 @@ if __name__ == '__main__':
 		for cname in corpus_names:
 			print('>>',cname,'\n'+manifest.get(cname,{}).get('desc','').strip()+'\n')
 
+	elif args.cmd=='check' and args.corpus=='corpora':
+		from llp.corpus import check_corpora
+		check_corpora()
+
 	elif args.cmd=='newcorpus':
 		from llp.corpus import start_new_corpus_interactive
 		start_new_corpus_interactive()

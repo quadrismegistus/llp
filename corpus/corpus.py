@@ -9,6 +9,33 @@ from six.moves import zip
 from os.path import expanduser
 HOME=expanduser("~")
 
+MANIFEST_REQUIRED_DATA=['name','id']
+
+MANIFEST_DEFAULTS=dict(
+	path_txt='txt',
+	path_xml='xml',
+	path_index='',
+	ext_xml='.xml',
+	ext_txt='.txt',
+
+	path_model='',
+	path_header=None,
+	path_metadata='metadata.txt',
+	paths_text_data=[],
+	paths_rel_data=[],
+	class_name='',
+
+	path_freq_table={},
+	col_id='id',
+	col_fn='',
+	path_root='',
+	#path_freqs=os.path.join('freqs',name),
+	path_freqs='freqs',
+	manifest={},
+	path_python='',
+	manifest_override=True,
+	is_meta = '')
+
 PATH_HERE=os.path.abspath(os.path.dirname(__file__))
 PATH_CORPUS = tools.config.get('PATH_TO_CORPORA', PATH_HERE )
 PATH_TO_CORPUS_CODE = tools.config.get('PATH_TO_CORPUS_CODE', PATH_HERE )
@@ -81,15 +108,16 @@ def load_manifest(force=True,corpus_name=None):
 		if not corpus_name or corpus==corpus_name:
 			if corpus=='DEFAULT': continue
 			MANIFEST[corpus]=cd={}
-			for k,v in list(config[corpus].items()):
-				cd[k]=v
+			for k,v in MANIFEST_DEFAULTS.items(): cd[k]=v
+			for k,v in list(config[corpus].items()): cd[k]=v
 
 	return MANIFEST if not corpus_name else MANIFEST.get(corpus_name,{})
 
 
 
-def load_corpus(name=None,required_data = ['path_python','class_name','path_root'], manifest=None):
+def load_corpus(name=None,required_data = MANIFEST_REQUIRED_DATA, manifest=None):
 	manifest=load_manifest() if not manifest else manifest
+	manifest_byid = dict((cd['id'],cd) for cd in manifest.values())
 
 	if not name:
 		print(">> Printing available corpora")
@@ -97,12 +125,12 @@ def load_corpus(name=None,required_data = ['path_python','class_name','path_root
 			print(cname)
 		return
 
-	if not name in manifest:
+	if (name not in manifest) and (name not in manifest_byid):
 		print('!! Corpus not found in manifests:')
 		for (pn,path) in PATH_MANIFESTS_TUPLES: print('\t'+path)
 		return
 
-	corpus_manifest=manifest[name]
+	corpus_manifest=manifest[name] if name in manifest else manifest_byid[name]
 
 	for rd in required_data:
 		if not corpus_manifest.get(rd):
@@ -111,21 +139,23 @@ def load_corpus(name=None,required_data = ['path_python','class_name','path_root
 
 	# load and configure corpus
 	import imp
-	path_python = corpus_manifest['path_python']
-	class_name = corpus_manifest['class_name']
-	path_root = corpus_manifest['path_root']
+	cd=corpus_manifest
+	c_id=cd['id']
+	c_name=cd['name']
+	cd['path_python'] = path_python = cd['path_python'] if cd['path_python'] else os.path.join(c_id,c_id+'.py')
+	class_name = cd['class_name'] if cd['class_name'] else c_name
+	cd['path_root'] = path_root = cd['path_root'] if cd['path_root'] else c_id
 
-	if not path_root.startswith(os.path.sep):
-		path_root=os.path.join(PATH_TO_CORPUS_CODE,path_root)
+	#if not os.path.isabs(path_root): path_root=os
+	#	path_root=os.path.join(PATH_TO_CORPUS_CODE,path_root)
 
-	#path_python = os.path.join(PATH_CORPUS,path_python) if not path_python[0] in {'\\','/'} else path_python
-	path_python = os.path.join(path_root,path_python) if not path_python.startswith(os.path.sep) else path_python
+	if not os.path.isabs(path_python):
+		cd['path_python'] = path_python=os.path.join(PATH_TO_CORPUS_CODE,path_python)  # if not path_python.startswith(os.path.sep) else path_python
 
-	module_name = os.path.basename(path_python).replace('.py','')
+	module_name = os.path.splitext(os.path.basename(path_python))[0]
 	module = imp.load_source(module_name, path_python)
 	class_class = getattr(module,class_name)
 	class_obj = class_class()
-	class_obj.name = name
 	class_obj.name_module = module_name
 
 	# re-do init?
@@ -143,11 +173,30 @@ def download(name):
 	corpus.download()
 
 
-def corpora(load=True):
+def corpora(load=True,incl_meta_corpora=True):
 	manifest=load_manifest()
 	for corpus_name in sorted(manifest):
+		if not incl_meta_corpora and manifest[corpus_name]['is_meta']: continue
 		corpus_obj=load_corpus(corpus_name, manifest=manifest) if load else manifest[corpus_name]
 		yield (corpus_name, corpus_obj)
+
+def check_corpora(paths=['path_xml','path_txt','path_freqs','path_metadata'],incl_meta_corpora=False):
+	old=[]
+	for cname,corpus in corpora(load=True,incl_meta_corpora=incl_meta_corpora):
+		for path in paths:
+			pathval = getattr(corpus,path)
+			#pathval = corpus.get(path,'')
+			exists = os.path.exists(pathval)
+			#if not exists:
+			print(cname,'\t',path,'\t',pathval,'\t',exists,'\t','!' if not exists else '')
+			odx={'name':cname,'id':corpus.id,'path_type':path, 'path_value':pathval, 'exists':exists}
+			old+=[odx]
+	import pandas as pd
+	df=pd.DataFrame(old)
+	print(df)
+	return df
+
+
 
 def string_import(name):
 	m = __import__(name)
@@ -169,10 +218,12 @@ def name2text(name):
 	classx = getattr(module,classname)
 	return classx
 
-class Corpus(object):
 
+
+class Corpus(object):
 	EXT_TXT='.txt'
 	EXT_XML='.xml'
+	TYPE='Corpus'
 
 
 	def __init__(self,name,**input_kwargs):
@@ -181,28 +232,7 @@ class Corpus(object):
 		self.name = name
 
 		# Set defaults
-		default_kwargs=dict(
-			path_txt='txt',
-			path_xml='xml',
-			path_index='',
-			ext_xml='.xml',
-			ext_txt='.txt',
-
-			path_model='',
-			path_header=None,
-			path_metadata='metadata.txt',
-			paths_text_data=[],
-			paths_rel_data=[],
-
-			path_freq_table={},
-			col_id='id',
-			col_fn='',
-			path_root='',
-			#path_freqs=os.path.join('freqs',name),
-			path_freqs='freqs',
-			manifest={},
-			path_python='',
-			manifest_override=True)
+		default_kwargs=MANIFEST_DEFAULTS
 
 		# Default important settings
 		#print(default_kwargs)
@@ -1750,6 +1780,8 @@ class Corpus(object):
 ## CORPUS META
 
 class CorpusMeta(Corpus):
+	TYPE='CorpusMeta'
+
 	def __init__(self,name,corpora,**kwargs):
 		self.name=name
 		self.path = os.path.dirname(__file__)
@@ -1815,6 +1847,8 @@ class CorpusMeta(Corpus):
 
 ## Corpus in Sections
 class Corpus_in_Sections(Corpus):
+	TYPE='Corpus_in_Sections'
+
 	def __init__(self,name,parent,col_id='id',**kwargs):
 		self.name=name
 		self.parent=parent
@@ -1842,6 +1876,20 @@ class Corpus_in_Sections(Corpus):
 
 	@property
 	def path(self): return self.parent.path
+
+	@property
+	def path_xml(self): return self.parent.path_xml
+
+	@property
+	def path_txt(self): return self.parent.path_txt
+
+	@property
+	def ext_xml(self): return self.parent.ext_xml
+
+	@property
+	def ext_txt(self): return self.parent.ext_txt
+
+
 
 	#@property
 	#def path_freq_table(self): return self.parent.path_freq_table
@@ -1890,6 +1938,8 @@ class Corpus_in_Sections(Corpus):
 
 ## CorpusGroups
 class CorpusGroups(Corpus):
+	TYPE='CorpusGroups'
+
 	def __init__(self,corpus,texts=None,name=None):
 		self.corpus=corpus
 		self._groups={}

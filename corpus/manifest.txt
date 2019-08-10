@@ -8,240 +8,153 @@
 
 [BPO]
 name = BPO
+id = bpo
 desc = British Periodicals Online
 link = https://proquest.libguides.com/britishperiodicals
-path_root = bpo
-path_txt = _txt_bpo
-path_xml = _xml_bpo
-path_metadata = corpus-metadata.BPO.txt
-path_python = bpo.py
-class_name = BPO
-
 
 [Chadwyck]
 name = Chadwyck
+id = chadwyck
 desc = Chadwyck-Healey Fiction Collections
 link = http://collections.chadwyck.co.uk/marketing/list_of_all.jsp
-path_root = chadwyck
-path_txt = _txt_chadwyck
-path_xml = _xml_chadwyck
-path_metadata = corpus-metadata.Chadwyck.xlsx
-path_python = chadwyck.py
-class_name = Chadwyck
-ext_xml = .new
-
 
 [ChadwyckDrama]
 name = ChadwyckDrama
 desc = Chadwyck-Healey Drama Collections
 link = http://collections.chadwyck.co.uk/marketing/list_of_all.jsp
-path_root = chadwyck_drama
-path_txt = _txt_chadwyck_drama
-path_xml = _xml_chadwyck_drama
-path_metadata = corpus-metadata.ChadwyckDrama.txt
-path_python = chadwyck_drama.py
-class_name = ChadwyckDrama
-
+id = chadwyck_drama
 
 [ChadwyckPoetry]
 name = ChadwyckPoetry
 desc = Chadwyck-Healey Poetry Collections
 link = http://collections.chadwyck.co.uk/marketing/list_of_all.jsp
-path_root = chadwyck_poetry
-path_txt = _txt_chadwyck_poetry
-path_xml = _xml_chadwyck_poetry
-#path_metadata = corpus-metadata.ChadwyckPoetry.txt
+id = chadwyck_poetry
 path_metadata = metadata.txt.gz
-path_python = chadwyck_poetry.py
-class_name = ChadwyckPoetry
-
 
 [Chicago]
 name = Chicago
 desc = The University of Chicago Corpus of Twentieth Century Novels
-path_txt = _txt_chicago
-path_root = chicago
-path_metadata = corpus-metadata.Chicago.txt
-path_python = chicago.py
-class_name = Chicago
+id = chicago
 
 
 [CLMET]
 name = CLMET
 desc = Corpus of Late Modern English Texts
 link = https://perswww.kuleuven.be/~u0044428/clmet.htm
-path_root = clmet
-path_txt = _txt_clmet
-path_xml = _xml_clmet
-ext_xml='.txt'
-path_metadata = corpus-metadata.CLMET.txt
-path_python = clmet.py
-class_name = CLMET
-
+id = clmet
+ext_xml = .txt
 
 [COHA]
 name = COHA
 desc = Corpus of Historical American English
-path_root = coha
-path_txt = _txt_coha
-path_metadata = corpus-metadata.COHA.txt
-path_python = coha.py
-class_name = COHA
-
+id = coha
 
 [DialNarr]
 name = DialNarr
 desc = Separated Dialogue and Narration Portions of Chadwyck-Healey Novels
-path_root = dialnarr
-path_txt = _txt_dialnarr
-path_metadata = corpus-metadata.DialNarr.txt
-path_python = dialnarr.py
-class_name = DialNarr
+id = dialnarr
 
 
 [EnglishDialogues]
 name = EnglishDialogues
 desc = A Corpus of English Dialogues, 1560-1760
-path_root = dialogues
-path_xml = _xml_corpus_english_dialogues
-path_metadata = corpus-metadata.EnglishDialogues.txt
-path_python = dialogues.py
-class_name = EnglishDialogues
+id = dialogues
 
 
 [ECCO]
 name = ECCO
 desc = Eighteenth Century Collections Online
-path_root = ecco
-path_txt = _txt_ecco
-path_metadata = corpus-metadata.ECCO.txt
-path_python = ecco.py
-class_name = ECCO
+id = ecco
 
 
 [ECCO_LitLang]
 name = ECCO_LitLang
 desc = Eighteenth Century Collections Online (Literature and Language section)
+id = ecco_litlang
 path_root = ecco
-path_txt = _txt_ecco_litlang
-path_xml = _xml_ecco_litlang
-path_metadata = corpus-metadata.ECCO_LitLang.xlsx
-path_python = ecco.py
+path_python = ecco/ecco.py
 class_name = ECCO_LitLang
 
 
 [ECCO_TCP]
-name = ECCO-TCP
+name = ECCO_TCP
 desc = Eighteenth Century Collections Online (curated by the Text Creation Partnership)
-path_root = ecco
-path_txt = _txt_ecco_tcp
-path_xml = _xml_ecco_tcp
+id = ecco_tcp
 path_header = headers.ecco_tcp
-path_metadata = corpus-metadata.ECCO-TCP.xlsx
-path_python = ecco.py
+url_download = "https://www.dropbox.com/s/v7p58wmjx7yz2fq/ecco.zip?dl=1"
+path_root = ecco
+path_python = ecco/ecco.py
 class_name = ECCO_TCP
-url_download="https://www.dropbox.com/s/v7p58wmjx7yz2fq/ecco.zip?dl=1"
 
 
 [EEBO_TCP]
-name = EEBO-TCP
+name = EEBO_TCP
 desc = Early English Books Online (curated by the Text Creation Partnership)
+id = eebo_tcp
 path_root = eebo
-path_xml = _xml_eebo_tcp
-path_txt = _txt_eebo_tcp
-path_metadata = corpus-metadata.EEBO-TCP.txt
-path_python = eebo.py
+path_python = eebo/eebo.py
 class_name = EEBO_TCP
 
 
 [ESTC]
 name = ESTC
 desc = English Short Title Catalogue
-path_root = estc
-path_txt = _json_estc
-path_metadata = corpus-metadata.ESTC.txt
-path_python = estc.py
-class_name = ESTC
+id = estc
+path_txt = json
+
+[GaleAmericanFiction]
+name = GaleAmericanFiction
+id = gale_amfic
+desc = Gale American Fiction, 1774-1920
+link = https://www.gale.com/c/american-fiction-1774-1920
 
 
 [GildedAge]
 name = GildedAge
 desc = U.S. Fiction of the Gilded Age
-path_root = gildedage
-path_txt = _txt_gildedage
-path_metadata = corpus-metadata.GildedAge.xlsx
-path_python = gildedage.py
-class_name = GildedAge
-
+id = gildedage
 
 [LitLab]
 name = LitLab
 desc = Literary Lab Corpus of 18th and 19th Century Novels
-path_root = litlab
-path_xml = _txt_litlab
-path_metadata = corpus-metadata.LitLab.xlsx
-path_python = litlab.py
-class_name = LitLab
+id = litlab
+path_xml = txt
 
 
 [MarkMark]
 name = MarkMark
 desc = Mark Algee-Hewitt's and Mark McGurl's 20th Century Corpus
-path_root = markmark
-path_txt = _txt_markmark
-path_metadata = corpus-metadata.MarkMark.txt
-path_python = markmark.py
-class_name = MarkMark
+id = markmark
 
 
 [OldBailey]
 name = OldBailey
 desc = Old Bailey Online
-path_root = oldbailey
-path_xml = _xml_parsed_old_bailey
-path_txt = _txt_parsed_old_bailey
-path_metadata = corpus-metadata.OldBailey.xlsx
-path_python = oldbailey.py
-class_name = OldBailey
+id = oldbailey
 
 
 [RavenGarside]
 name = RavenGarside
 desc = Raven & Garside's Bibliography of English Novels, 1770-1830
-path_root = ravengarside
-path_metadata = corpus-metadata.RavenGarside.xlsx
-path_python = ravengarside.py
-class_name = RavenGarside
+id = ravengarside
 
 
 [Sellars]
 name = Sellars
 desc = 19th Century Texts compiled by Jordan Sellars
-path_root = sellars
-path_txt = _txt_sellars
-path_metadata = corpus-metadata.Sellars.xls
-path_python = sellars.py
-class_name = Sellars
+id = sellars
 
 
 [Spectator]
 name = Spectator
 desc = The Spectator (1711-1714)
-path_root = spectator
-path_txt = txt
-path_metadata = corpus-metadata.Spectator.txt
-path_python = spectator.py
-class_name = Spectator
+id = spectator
 
 
 [TedJDH]
 name = TedJDH
 desc = Corpus used by Ted Underwood in the 2012 Journal of Digital Humanities piece
-path_root = tedjdh
-path_txt = _txt_tedjdh
-path_metadata = corpus-metadata.TedJDH.xls
-path_python = tedjdh.py
-class_name = TedJDH
+id = tedjdh
 
 
 
@@ -253,37 +166,29 @@ class_name = TedJDH
 name = LitHistAuthors
 desc = Literary-historical texts with known author DOB
 sources = Chadwyck, ChadwyckPoetry, ChadwyckDrama, COHA, ECCO_TCP, EEBO_TCP
+id = lithist_authors
 path_root = lithist
-path_python = lithist.py
+path_python = lithist/lithist.py
 class_name = LitHistAuthors
 path_metadata = corpus-metadata.LitHistAuthors.txt
+is_meta = True
 
 [LitHist]
 name = LitHist
 desc = Literary-historical texts from a wide variety of sources
 sources = ['Chadwyck','ChadwyckPoetry','ChadwyckDrama', 'ECCO-TCP','EEBO-TCP','TedJDH','Sellars', 'DialNarr', 'MarkMark','Chicago', 'COHA','CLMET','OldBailey','EnglishDialogues', 'Spectator']
+id = lithist
 path_root = lithist
-path_python = lithist.py
+path_python = lithist/lithist.py
 class_name = LitHist
 path_metadata = corpus-metadata.LitHist.txt
+is_meta = True
 
 [LitHistProse]
 name = LitHistProse
 desc = Literary-historical texts from a wide variety of sources (PROSE)
-path_root = lithist
-path_python = lithist.py
+id = lithist
+path_python = lithist/lithist.py
 class_name = LitHistProse
 path_metadata = corpus-metadata.LitHistProse.txt
-
-
-[GaleAmericanFiction]
-name = GaleAmericanFiction
-id = gale_amfic
-desc = Gale American Fiction, 1774-1920
-link = https://www.gale.com/c/american-fiction-1774-1920
-path_root = gale_amfic
-path_txt = txt
-path_xml = xml
-path_metadata = metadata.txt
-path_python = gale_amfic.py
-class_name = GaleAmericanFiction
+is_meta = True
