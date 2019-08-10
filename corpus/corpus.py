@@ -187,8 +187,8 @@ def check_corpora(paths=['path_xml','path_txt','path_freqs','path_metadata'],inc
 			pathval = getattr(corpus,path)
 			#pathval = corpus.get(path,'')
 			exists = os.path.exists(pathval)
-			#if not exists:
-			print(cname,'\t',path,'\t',pathval,'\t',exists,'\t','!' if not exists else '')
+			if not exists:
+				print(cname,path,pathval,'!' if not exists else '')
 			odx={'name':cname,'id':corpus.id,'path_type':path, 'path_value':pathval, 'exists':exists}
 			old+=[odx]
 	import pandas as pd
