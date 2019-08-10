@@ -446,7 +446,7 @@ class Corpus(object):
 				f(*cmd_args,**cmd_kwargs)
 
 	def save_freqs(self,force=False,slingshot=False,slingshot_n=None,slingshot_opts=''):
-		slingshot_opts+=' -nosave'
+		slingshot_opts+=' -savedir _tmp_save_freqs -overwrite -savecsv %s' % self.get_path_freq_table()
 		return self.slingshot_or_solo('save_freqs',force=force,slingshot=slingshot,slingshot_n=slingshot_n,slingshot_opts=slingshot_opts)
 
 	def save_plain_text(self,force=False,slingshot=False,slingshot_n=None,slingshot_opts=''):
@@ -718,7 +718,7 @@ class Corpus(object):
 
 
 	def upload(self,ask=True,uploader='dbu upload',dest=DEST_LLP_CORPORA,zipdir=None,overwrite=False):
-		if not overwrite: uploader+=' -s'
+		#if not overwrite: uploader+=' -s'
 		if not zipdir: zipdir=os.path.join(PATH_CORPUS,'llp_corpora')
 		os.chdir(zipdir)
 		for fn in os.listdir('.'):
@@ -863,55 +863,6 @@ class Corpus(object):
 			#break
 
 
-	# def save_metadata_extra(self,ofn=None,num_words=False,ocr_accuracy=False,genre=False,use_slingshot=False):
-	# 	global ENGLISH
-	# 	from llp import tools
-	# 	if not ofn:
-	# 		#timestamp=tools.now().split('.')[0]
-	# 		#ofn=os.path.join(self.path,'corpus-metadata.%s.%s.txt' % (self.name,timestamp))
-	# 		ofn=self.path_metadata
-	#
-	# 	print('>> generating metadata...')
-	# 	texts = self.texts()
-	# 	num_texts = len(texts)
-	# 	old=[]
-	# 	if ocr_accuracy:
-	# 		if not ENGLISH:
-	# 			from llp.tools import get_english_wordlist
-	# 			ENGLISH=get_english_wordlist()
-	#
-	# 	old=[]
-	# 	#def writegen():
-	# 	from tqdm import tqdm
-	# 	for i,text in enumerate(tqdm(texts)):
-	# 		#print i,num_texts
-	# 		#if not i%100: print('>> text #%s of %s..' % (i+1,num_texts))
-	# 		#md=text.meta_by_file
-	# 		#@HACK?->
-	# 		md=text.meta_by_file if hasattr(text,'meta_by_file') else text.meta
-	#
-	# 		if num_words or ocr_accuracy:
-	# 			freqs=text.freqs()
-	# 			if num_words:
-	# 				md['num_words']=sum(freqs.values())
-	# 			if ocr_accuracy:
-	# 				num_words_recognized = sum([v for k,v in list(freqs.items()) if k in ENGLISH])
-	# 				#print md['num_words'], num_words_recognized
-	# 				md['ocr_accuracy'] = num_words_recognized / float(md['num_words']) if float(md['num_words']) else 0.0
-	# 			if genre:
-	# 				md['genre']=text.return_genre()
-	# 		#yield md
-	# 		#print md
-	# 		#return
-	# 		#print
-	# 		old+=[md]
-	#
-	# 	tools.write2(ofn, old)
-	# 	#tools.writegen(os.path.join(self.path,'corpus-metadata.'+self.name+'.txt'), writegen)
-
-
-
-
 
 
 
@@ -919,32 +870,35 @@ class Corpus(object):
 	### FREQS
 
 	def get_path_freq_table(self,n=None,force=False,discover=True):
-		if force:
-			if not n:
-				return os.path.join(self.path,'freqs','data.freqs.%s.worddb.table.txt.gz' % self.name)
-			else:
-				return os.path.join(self.path,'freqs','data.freqs.%s.worddb.table.%s.txt.gz' % (self.name,str(n)+'MFW'))
+		return os.path.join(self.path_root,'dtm.txt')
 
-		pathd=self.path_freq_table if hasattr(self,'path_freq_table') else {}
-		if not pathd and not discover: return ''
-		if not pathd and discover:
-			freqdir=os.path.join(self.path,'freqs')
-			candidates = [fn for fn in os.listdir(freqdir) if fn.endswith('.txt.gz') and self.name in fn]
-			for cfn in candidates:
-				size=cfn.split('.table.')[1].split('.txt.gz')[0]
-				if 'MFW' in size:
-					size=int(size.replace('MFW',''))
-					pathd[size]=os.path.join(freqdir,cfn)
-				else:
-					pathd[1000000]=os.path.join(freqdir,cfn)
-			if not candidates: return ''
-
-		sizes = sorted(pathd.keys())
-		if not n: return pathd[max(sizes)]
-		for size in sizes:
-			if size>=n:
-				return pathd[size]
-		return pathd[max(sizes)]
+	# def get_path_freq_table(self,n=None,force=False,discover=True):
+	# 	if force:
+	# 		if not n:
+	# 			return os.path.join(self.path,'freqs','data.freqs.%s.worddb.table.txt.gz' % self.name)
+	# 		else:
+	# 			return os.path.join(self.path,'freqs','data.freqs.%s.worddb.table.%s.txt.gz' % (self.name,str(n)+'MFW'))
+	#
+	# 	pathd=self.path_freq_table if hasattr(self,'path_freq_table') else {}
+	# 	if not pathd and not discover: return ''
+	# 	if not pathd and discover:
+	# 		freqdir=os.path.join(self.path,'freqs')
+	# 		candidates = [fn for fn in os.listdir(freqdir) if fn.endswith('.txt.gz') and self.name in fn]
+	# 		for cfn in candidates:
+	# 			size=cfn.split('.table.')[1].split('.txt.gz')[0]
+	# 			if 'MFW' in size:
+	# 				size=int(size.replace('MFW',''))
+	# 				pathd[size]=os.path.join(freqdir,cfn)
+	# 			else:
+	# 				pathd[1000000]=os.path.join(freqdir,cfn)
+	# 		if not candidates: return ''
+	#
+	# 	sizes = sorted(pathd.keys())
+	# 	if not n: return pathd[max(sizes)]
+	# 	for size in sizes:
+	# 		if size>=n:
+	# 			return pathd[size]
+	# 	return pathd[max(sizes)]
 
 
 	def freqs(self,n=5000,toks=[],text_ids=[],sep='\t',encoding='utf-8',tf=False,fpm=True,z=False):

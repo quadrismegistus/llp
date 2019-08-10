@@ -16,8 +16,13 @@ if __name__ == '__main__':
 	parser.add_argument('-quiet',help='No interactive mode',action='store_true')
 	args = parser.parse_args()
 
+	if args.parallel: args.slingshot=True
+
 	if args.sbatch and not '-sbatch' in args.slingshot_opts:
 		args.slingshot_opts+=' -sbatch'
+		args.slingshot_opts= args.slingshot_opts.replace('-progress','')
+
+
 
 
 
