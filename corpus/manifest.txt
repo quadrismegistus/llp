@@ -80,11 +80,14 @@ class_name = ECCO_LitLang
 name = ECCO_TCP
 desc = Eighteenth Century Collections Online (curated by the Text Creation Partnership)
 id = ecco_tcp
-path_header = headers.ecco_tcp
 url_download = "https://www.dropbox.com/s/v7p58wmjx7yz2fq/ecco.zip?dl=1"
 path_root = ecco
 path_python = ecco/ecco.py
 class_name = ECCO_TCP
+path_txt = txt_tcp
+path_xml = xml_tcp
+path_header = headers_tcp
+path_schema = schemas_tcp
 
 
 [EEBO_TCP]
