@@ -654,7 +654,7 @@ class Corpus(object):
 		return self._meta
 
 
-	def zip(self,savedir=None, ask=True, sbatch=False, sbatch_opts='', default=ZIP_PART_DEFAULTS):
+	def zip(self,savedir=None, ask=True, sbatch=False, sbatch_opts='', defaults=ZIP_PART_DEFAULTS):
 		if not savedir: savedir=os.path.join(PATH_CORPUS,'llp_corpora')
 		if not os.path.exists(savedir): os.makedirs(savedir)
 
@@ -686,10 +686,10 @@ class Corpus(object):
 				from tqdm import tqdm
 
 				with zipfile.ZipFile(opath,'w',zipfile.ZIP_DEFLATED) as zipf:
-					print('>> compressing...')
-					print('\tto:',opath)
-					print('\tfrom:',path2)
-					print('\tin:',path1)
+					print('>> compressing: {a} --> {b}'.format(a=path,b=opath))
+					#print('\tto:',opath)
+					#print('\tfrom:',path2)
+					#print('\tin:',path1)
 
 					os.chdir(path1)
 					paths=list(_paths(path2)) if os.path.isdir(path2) else [path2]
@@ -706,10 +706,10 @@ class Corpus(object):
 				os.system(cmd)
 
 
-		do_zip(self.path_txt, self.id+'_txt.zip','Zip txt files','txt' in default)
-		do_zip(self.path_freqs, self.id+'_freqs.zip','Zip freqs files','freqs' in default)
-		do_zip(self.path_metadata, self.id+'_metadata.zip','Zip metadata file','metadata' in default)
-		do_zip(self.path_xml, self.id+'_xml.zip','Zip xml files','xml' in default)
+		do_zip(self.path_txt, self.id+'_txt.zip','Zip txt files','txt' in defaults)
+		do_zip(self.path_freqs, self.id+'_freqs.zip','Zip freqs files','freqs' in defaults)
+		do_zip(self.path_metadata, self.id+'_metadata.zip','Zip metadata file','metadata' in defaults)
+		do_zip(self.path_xml, self.id+'_xml.zip','Zip xml files','xml' in defaults)
 
 
 	def upload(self,uploader='dbu upload',dest=DEST_LLP_CORPORA,zipdir=None):

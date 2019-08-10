@@ -88,6 +88,7 @@ path_txt = txt_tcp
 path_xml = xml_tcp
 path_header = headers_tcp
 path_schema = schemas_tcp
+path_metadata = metadata_tcp.txt
 
 
 [EEBO_TCP]
