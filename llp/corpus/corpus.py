@@ -13,7 +13,7 @@ from os.path import expanduser
 HOME=expanduser("~")
 
 ZIP_PART_DEFAULTS={'txt','freqs','metadata','xml'}
-DEST_LLP_CORPORA='/Share/llp_corpora'
+DEST_LLP_CORPORA=tools.config.get('CLOUD_DEST','')
 
 MANIFEST_REQUIRED_DATA=['name','id']
 
