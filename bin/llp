@@ -4,23 +4,119 @@ import os,sys,argparse,multiprocessing as mp
 SLINGSHOT_N=mp.cpu_count()
 
 
-commands_with_no_object = ['list', 'status', 'new', 'links', 'configure']
-commands_with_corpus_as_only_object = ['info','download','zip','upload','share']
+COMMANDS = [
+	dict(name='list', help='List names and descriptions of all corpora', takes_corpus_obj=False, group='Corpus status'),
+	dict(name='status', help='Get download/installation status for all corpora', takes_corpus_obj=False, group='Corpus status'),
+	dict(name='info', help='Get information about a corpus', takes_corpus_obj=True, group='Corpus status'),
+
+	dict(name='create', help='Create a corpus with LLP', takes_corpus_obj=False, group='New corpora'),
+	dict(name='import', help='Import an existing corpus into LLP', takes_corpus_obj=False, group='New corpora'),
+
+	dict(name='download', help='Download files of corpus (TXT/XML/metadata/data)', takes_corpus_obj=True, group='Downloading corpora'),
+
+	dict(name='zip', help='Zip and archive a corpus', takes_corpus_obj=True, group='Archiving and sharing'),
+	dict(name='upload', help='Upload to a cloud the zip archives', takes_corpus_obj=True, group='Archiving and sharing'),
+	dict(name='share', help='Get cloud share links for a corpus', takes_corpus_obj=True, group='Archiving and sharing'),
+	dict(name='links', help='Get cloud share links for all corpora',takes_corpus_obj=False, group='Archiving and sharing'),
+	dict(name='configure', help='Check LLP configuration', takes_corpus_obj=False, group='Configuration')
+	]
+
+#SUBCOMMANDS={}
+#SUBCOMMANDS['create']
 
 
-if __name__ == '__main__':
+LOGO="""
+#####################################
+# LLP: Literary Language Processing #
+#####################################
+"""
+
+def usage():
+	groups=set()
+	lines=[]
+	for cmd_d in COMMANDS:
+		cmd=cmd_d['name']
+		help=cmd_d['help']
+		takes_corpus = cmd_d['takes_corpus_obj']
+		arggroup_name = cmd_d['group']
+
+		if not arggroup_name in groups:
+			groups|={arggroup_name}
+			lines.append('\n\t# '+arggroup_name)
+
+		lines.append('\t{cmd:30s} '.format(cmd=cmd))
+
+	return LOGO + '\n'.join(lines)
+
+
+def main():
+	import llp
+	from llp.lib.tab_completer import tabCompleter
+	import readline
+	tabber=tabCompleter()
+
 	parser = argparse.ArgumentParser()
 	subparsers = parser.add_subparsers(dest='cmd')
 
-	#download_group = subparsers.add_parser('download')
-	#download_group.add_argument('corpus',help='Which corpus to download?')
+	readline.set_completer_delims('\t')
+	if 'libedit' in readline.__doc__:
+		readline.parse_and_bind("bind ^I rl_complete")
+	else:
+		readline.parse_and_bind("tab: complete")
+	readline.set_completer(tabber.pathCompleter)
 
-	for cmd in commands_with_no_object:
-		group = subparsers.add_parser(cmd)
+	name='CorpusName'
+	idx='corpus_id'
 
-	for cmd in commands_with_corpus_as_only_object:
-		group = subparsers.add_parser(cmd)
-		group.add_argument('corpus',help='A corpus, specified by name or ID (in manifest)')
+	## Set defaults
+	path_root_default=os.path.join(llp.PATH_CORPUS,idx)
+	path_code_default=idx+'.py'
+	path_txt_default=os.path.join(path_root_default,'txt')
+	path_xml_default=os.path.join(path_root_default,'xml')
+	path_metadata_default=os.path.join(path_root_default,'metadata.txt')
+	class_name_default = ''.join([x for x in name if x.isalnum() or x=='_'])
+	default_col_id='id'
+	default_col_fn='fn'
+
+	## ADD SUBPARSERS
+	groups={}
+	arggroups = {}
+
+	for cmd_d in COMMANDS:
+		cmd=cmd_d['name']
+		help=cmd_d['help']
+		takes_corpus = cmd_d['takes_corpus_obj']
+		arggroup_name = cmd_d['group']
+
+		groups[cmd] = group = subparsers.add_parser(cmd,help=help)
+		if takes_corpus:
+			groups[cmd].add_argument('corpus',help='A corpus, specified by name or ID (in manifest)')
+
+
+	## CUSTOMIZE SUBPARSERS
+
+	### CREATE
+	groups['create'].add_argument('-name',help='Name of corpus, in CamelCase (e.g. ChadwyckPoetry): ')
+	groups['create'].add_argument('-id',help='ID of corpus, in lowercase (e.g. chadwyck_poetry)')
+	groups['create'].add_argument('-path_root',help='Path to root folder for corpus ee [default: %s]' % path_root_default)
+	groups['create'].add_argument('-path_txt',help='Path to folder of corpus text files [default: %s]' % path_txt_default)
+	groups['create'].add_argument('-path_xml',help='Path to folder of corpus xml files [default: %s]' % path_xml_default)
+	groups['create'].add_argument('-path_metadata',help='Path to corpus metadata (CSV/TSV/XLS/XLSX) [default: %s]' % path_metadata_default)
+	groups['create'].add_argument('-path_python',help='Path to python file [default: %s]' % path_code_default)
+	groups['create'].add_argument('-class_name',help='Name of corpus class within code [default: %s]' % class_name_default)
+
+
+	## IMPORT
+	groups['import'].add_argument('-name',help='Name of corpus, in CamelCase (e.g. ChadwyckPoetry): ')
+	groups['import'].add_argument('-id',help='ID of corpus, in lowercase (e.g. chadwyck_poetry)')
+	groups['import'].add_argument('-path_root',help='Path to root folder for corpus ee [default: %s]' % path_root_default)
+	groups['import'].add_argument('-path_txt',help='Path to folder of corpus text files [default: %s]' % path_txt_default)
+	groups['import'].add_argument('-path_xml',help='Path to folder of corpus xml files [default: %s]' % path_xml_default)
+	groups['import'].add_argument('-path_metadata',help='Path to corpus metadata (CSV/TSV/XLS/XLSX) [default: %s]' % path_metadata_default)
+	groups['import'].add_argument('-col_fn',help='Column in metadata to look for TXT or XML filename [default: %s]' % default_col_fn)
+	groups['import'].add_argument('-col_id',help='Column in metadata to look for ID (the TXT or XML filename, but without a filename extension) [default: %s]' % default_col_fn)
+
+
 
 	parser.add_argument('-slingshot',action='store_true',default=False)
 	parser.add_argument('-parallel',help='How many parallel processes to run on, using Slingshot?',default=None)
@@ -63,6 +159,14 @@ if __name__ == '__main__':
 		import llp
 		llp.configure_prompt()
 
+	elif args.cmd=='create':
+		start_new_corpus_interactive(args)
+
+	elif args.cmd=='create':
+		start_new_corpus_interactive(args)
+
+	elif args.cmd=='import':
+		start_new_corpus_interactive(args,import_existing=True)
 
 	## COMMANDS ON CORPORA
 	if args.cmd=='download' and args.corpus:
@@ -118,3 +222,171 @@ if __name__ == '__main__':
 	#	C=llp.load(args.corpus)
 	#	f=getattr(C,args.cmd)
 	#	f()
+
+
+
+
+
+
+
+
+
+
+
+
+def start_new_corpus_interactive(args,import_existing=False):
+	import os
+	import llp
+	from llp import tools
+
+	keys_mentioned =['path_root','path_xml','path_txt','path_python','path_metadata','class_name','name','id']
+	for k in keys_mentioned:
+		if not hasattr(args,k):
+			setattr(args,k,'')
+
+	try:
+		print('### LLP: Start up a new corpus ###')
+
+		name,idx=args.name,args.id
+		if not name: name=input('\n>> NAME (CamelCase, e.g. ChadwyckPoetry or OldBailey): ').strip()
+		if not idx: idx=input('>> ID (Lower-case, e.g chadwyck_poetry or oldbailey): ').strip()
+
+
+		## Set defaults
+		path_root_default=idx
+		path_code_default=idx+'.py'
+		path_txt_default='txt'
+		path_xml_default='xml'
+		path_metadata_default='metadata.txt'
+		class_name_default = ''.join([x for x in name if x.isalnum() or x=='_'])
+
+		# import vs create
+		# if importing, we're finding an existing directory
+		# if creating, we're specifying a future directory
+		sources = ['.',llp.PATH_CORPUS] if import_existing else [llp.PATH_CORPUS,'.']
+
+		def get_path_abs(path,sources=sources,rel_to=None):
+			if not path: return ''
+			if os.path.isabs(path):
+				rpath=path
+			else:
+				rpath=''
+				for source in sources:
+					spath=os.path.join(source,path)
+					#if os.path.isabs(spath): return spath
+					if os.path.exists(spath):
+						rpath=os.path.abspath(spath)
+						break
+
+			if rel_to:
+				return os.path.relpath(rpath,rel_to)
+			else:
+				return os.path.abspath(rpath)
+
+
+
+
+		attrs={}
+		def do_path(path,path_name,msg,root,default):
+			if not path: path=get_path_abs(input(msg).strip())
+			path=get_path_abs(path)
+			if not path:
+				path=default
+				path_abs=os.path.join(root,path)
+			tools.check_make_dir(path_abs)
+			if os.path.exists(path_abs):
+				print('setting: %s =' % path_name,path,' # (relative to {path_root})' if not os.path.isabs(path) else '')
+			return path
+
+
+		# path root
+		# path_root=args.path_root
+		# if not path_root: path_root=get_path_abs(input('\n>> Path to corpus root data folder [%s]:\n' % path_root_default).strip(),sources=sources)
+		# path_root_abs=path_root=get_path_abs(path_root)
+		# #if not path_root: path_root=os.path.join(llp.PATH_CORPUS,path_root_default)
+		# if not path_root:
+		# 	path_root=path_root_default
+		# 	path_root_abs=os.path.join(llp.PATH_CORPUS,path_root_default)
+		# print('>> setting: path_root =',path_root)
+		# if not path_root in sources: sources.insert(0,path_root)
+
+		# # path txt
+		# path_txt=args.path_txt
+		# if not path_txt: path_txt=get_path_abs(input(,sources=sources)
+		# path_txt=get_path_abs(path_txt)#,rel_to=path_root_abs)
+		# if not path_txt: path_txt=path_txt_default
+		# print('setting: path_txt =',path_txt)
+		# #if tools.check_make_dir(path_txt)
+
+		msg='\n>> Path to corpus root data folder [%s]:\n' % path_root_default)
+		attrs['path_root'] = do_path(args.path_root, 'path_root', msg, llp.PATH_CORPUS, path_root_default)
+
+		msg='\n>> Path to txt folder (Optional, if xml folder)\n[%s/%s]:\n' % (path_root,path_txt_default)
+		attrs['path_txt'] = do_path(args.path_txt, 'path_txt', msg, path_root, path_txt_default)
+
+		msg='\n>> Path to xml folder (Optional, if txt folder)\n[%s/%s]:\n' % (path_root,path_xml_default)
+		attrs['path_xml'] = do_path(args.path_xml, 'path_xml', msg, path_root, path_xml_default)
+
+		msg='\n>> (Optional) Path to .py file defining corpus object [%s/%s]:\n' % (idx,path_code_default
+		attrs['path_python'] = do_path(args.path_python, 'path_python', msg, path_root, path_code_default)
+
+
+		# # xml
+		# path_xml=args.path_xml
+		# if not path_xml: path_xml=get_path_abs(input('\n>> Path to xml folder (Optional, if txt folder)\n[%s/%s]:\n' % (path_root,path_xml_default)).strip(),sources=sources)
+		# path_xml=get_path_abs(path_xml)#,rel_to=path_root_abs)
+		# if not path_xml: path_xml=path_xml_default
+		# print('setting: path_xml =',path_xml)
+		#
+		# # metadata
+		# path_metadata=args.path_metadata
+		# if not path_metadata: path_metadata=get_path_abs(input('\n>> Path to metadata file [%s/%s]:\n' % (path_root,path_metadata_default)).strip(),sources=sources)
+		# path_metadata=get_path_abs(path_metadata)#,rel_to=path_root_abs)
+		# if not path_metadata: path_metadata=path_metadata_default
+		# print('setting: path_metadata =',path_metadata)
+		#
+		# # path python
+		# path_python=args.path_python
+		# if not path_python: path_python=input('\n>> (Optional) Path to .py file defining corpus object [%s/%s]:\n' % (idx,path_code_default)).strip()
+		# path_python=get_path_abs(path_python)#,rel_to=path_root_abs)
+		# if not path_python: path_python=path_code_default
+		# print('setting: path_python =',path_python)
+
+		# class name
+		class_name=args.class_name
+		if not class_name: class_name=input('\n>> (Optional) Name of corpus class within code [%s]:\n' % class_name_default).strip()
+		if not class_name: class_name=class_name_default
+		print('setting: class_name =',class_name)
+
+		# optional
+		print ('\n####\n## Step 4. Optional info\n####\n')
+		desc=input('>> (Optional) Description of corpus: ').strip()
+		if not desc: desc='--'
+		link=input('>> (Optional) Web link to/about corpus: ').strip()
+		if not link: link='--'
+	except KeyboardInterrupt:
+		print()
+		exit()
+
+	attrs={'name':name,'id':idx,'desc':desc,'link':link,
+	'path_root':path_root,'path_txt':path_txt,'path_xml':path_xml,'path_metadata':path_metadata,
+	'path_python':path_python,'class_name':class_name}
+
+	from llp.corpus import start_new_corpus
+	return start_new_corpus(attrs)
+
+
+#def import_corpus_interactive():
+
+
+
+
+
+
+
+
+
+
+
+### RUN
+if __name__ == '__main__': main()

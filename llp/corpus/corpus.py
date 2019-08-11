@@ -65,9 +65,11 @@ PMT.append(('Local Manifest (4)',PATH_MANIFEST_LOCAL4))
 PMT.append(('Local Manifest (5)',PATH_MANIFEST_LOCAL5))
 PMT.append(('Lab Manifest',PATH_MANIFEST_LAB))
 PMT.append(('Home Manifest',PATH_MANIFEST_HOME))
-
 PATH_MANIFEST_USER = tools.config.get('PATH_TO_MANIFEST','')
-if PATH_MANIFEST_USER: PMT.append(('User Manifest',PATH_MANIFEST_USER))
+if PATH_MANIFEST_USER:
+	PMT.append(('User Manifest',PATH_MANIFEST_USER))
+
+from pprint import pprint
 
 nlp=None
 ENGLISH=None
@@ -76,31 +78,6 @@ MANIFEST={}
 
 
 #### LOAD CORPUS FROM MANIFEST
-def load_manifest_list(corpus_name=None):
-	# read config
-	import configparser
-	config_list=[]
-	#print('>> reading corpus manifest files...')
-	for (pn,path) in PATH_MANIFESTS_TUPLES:
-		#print('  ','reading:',path)
-		config = configparser.ConfigParser()
-		config.read(path)
-
-		# empty manifest
-		MANIFEST={}
-
-		# convert config
-		for corpus in list(config.keys()):
-			if not corpus_name or corpus==corpus_name:
-				if corpus=='DEFAULT': continue
-				MANIFEST[corpus]=cd={}
-				for k,v in list(config[corpus].items()):
-					cd[k]=v
-
-		pn=pn+' ('+path+')'
-		config_list+=[(pn,MANIFEST)] if not corpus_name else [(pn,MANIFEST.get(corpus_name,{}))]
-
-	return config_list
 
 def load_manifest(force=True,corpus_name=None):
 	if MANIFEST and not force: return MANIFEST
@@ -242,23 +219,19 @@ class Corpus(object):
 	TYPE='Corpus'
 
 
-	def __init__(self,name,**input_kwargs):
+	def __init__(self,name='Corpus',id='corpus',**input_kwargs):
 		#print('>> building corpus:',name)
-
 		self.name = name
+		self.id = id
 
 		# Set defaults
 		default_kwargs=MANIFEST_DEFAULTS
-
-		# Default important settings
-		#print(default_kwargs)
 
 		# Pathmaker
 		def get_path(path_corpus, path_root, path_rel):
 			path_corpus=path_corpus.strip()
 			path_rel=path_rel.strip()
 			path_root=path_root.strip()
-
 			if os.path.isabs(path_rel) or path_rel.startswith('http'):
 				return path_rel
 			elif os.path.isabs(path_root) or path_root.startswith('http'):
@@ -270,51 +243,15 @@ class Corpus(object):
 
 		### Configs
 		import inspect
-		#class_path = inspect.getmodule(os.path.join(self.__class__)).__file__
-		#print(class_path)
-		# opts_list = [('Default',default_kwargs), (self.__class__.__name__,input_kwargs)]
-		#
-		# if input_kwargs.get('manifest_override',True):
-		# 	opts_list.extend(load_manifest_list(corpus_name=name))
-		#
-		# opts={}
-		# for (opts_name,opts_d) in reversed(opts_list):
-		# 	#
-		# 	if [v for v in opts_d.values() if v] and opts_name!='Default':
-		# 		#print('\n>> setting attributes from:',opts_name)
-		# 		pass
-		# 	for opt_k,opt_v in sorted(opts_d.items()):
-		# 		# Don't overwrrite (in reverse)
-		# 		if opt_k in opts: continue
-		#
-		# 		opts[opt_k]=opt_v
-		# 		if opt_v and opts_name!='Default':
-		# 			#print('--',opt_k,'=',opt_v)#,'(%s)' % opts_name)
-		# 			pass
-
 		opts = input_kwargs
 		self.opts = opts
-
-		#print(input_kwargs)
-		#print(self.opts)
 		path_root = self.opts.get('path_root','')
-		#print('!?',path_root)
-
-
 		# Set as attributes
-		#if not self.opts.get('path_freqs'): self.opts['path_freqs'] = os.path.join('freqs',self.name)
 		for opt_name,opt_val in sorted(self.opts.items()):
 			# Set abs path
-			#print(opt_name,opt_val,opt_val,type(opt_val))
 			if opt_name.startswith('path_') and opt_val and type(opt_val)==str:
-				#print(opt_name,'\n',opt_val)
 				opt_val=get_path(PATH_CORPUS,path_root,opt_val)
-				#print(opt_val,'\n')
 			setattr(self,opt_name,opt_val)
-
-		# Individual
-		#if not self.opts.get('path_freqs'): self.opts['path_freqs'] = get_path(PATH_CORPUS, )
-
 
 
 
@@ -1226,6 +1163,8 @@ class Corpus(object):
 
 			mfwfn1=os.path.splitext(self.path_mfw)[0]
 			path_mfw_period=mfwfn1+'.'+period+'.txt' if period!='all' else self.path_mfw
+			path_mfw_period_dir=os.path.dirname(path_mfw_period)
+			if not os.path.exists(path_mfw_period_dir): os.makedirs(path_mfw_period_dir)
 			with open(path_mfw_period,'w') as f:
 				for i,(word,val) in enumerate(sorted(six.iteritems(countd), key=lambda _t: -_t[1])):
 					line=word if not include_freq else word+'\t'+str(val)
@@ -2338,83 +2277,16 @@ def get_freq_async(text):
 # Add new name for function
 load = load_corpus
 
+class Bunch(object):
+	def __init__(self, adict):
+		self.__dict__.update(adict)
 
 
+def start_new_corpus(attrs):
+	from argparse import Namespace
+	#ns = Bunch(**attrs)
+	ns=Namespace(**attrs)
 
-
-
-def start_new_corpus_interactive():
-	import os
-	import llp
-
-	try:
-		print('### LLP: Start up a new corpus ###')
-
-		print ('\n####\n## Step 1. Names\n####\n')
-
-		name=input('\n>> Nice, upper-case, one-word name of new corpus? (e.g. ChadwyckPoetry or OldBailey)\n').strip()
-		idx=input('\n>> Lower-case, ID-like name of new corpus (e.g chadwyck_poetry or oldbailey):\n').strip()
-
-
-		## Set defaults
-		path_root_default=idx
-		path_code_default=idx+'.py'
-		path_txt_default='txt'
-		path_xml_default='xml'
-		path_metadata_default='metadata.txt'
-		class_name_default = ''.join([x for x in name if x.isalnum() or x=='_'])
-
-
-
-		## Get paths ##
-		print ('\n####\n## Step 2. Paths to data files\n####\n')
-		print('Relative paths are relative to the corpus folder, set as PATH_TO_CORPORA in config:\n%s\n' % PATH_CORPUS)
-
-		# path root
-		path_root=input('>> Path to corpus data folder [%s]: ' % path_root_default).strip()
-		if not path_root: path_root=path_root_default
-
-		# path txt
-		path_txt=input('>> Path to txt folder [%s/%s]: ' % (path_root,path_txt_default)).strip()
-		if not path_txt: path_txt=path_txt_default
-
-		# xml
-		path_xml=input('>> Path to xml folder [%s/%s]: ' % (path_root,path_xml_default)).strip()
-		if not path_xml: path_xml=path_xml_default
-
-		# metadata
-		path_metadata=input('>> Path to metadata file [%s/%s]: ' % (path_root,path_metadata_default)).strip()
-		if not path_metadata: path_metadata=path_metadata_default
-
-
-
-
-		print ('\n####\n## Step 3. Path to code\n####\n')
-		print('Relative paths are relative to the code folder: %s\n' % PATH_TO_CORPUS_CODE)
-
-		# path python
-		path_python=input('>> Path to code [%s/%s]: ' % (idx,path_code_default)).strip()
-		if not path_python: path_python=path_code_default
-
-		# class name
-		class_name=input('>> Name of corpus class within code [%s]: ' % class_name_default).strip()
-		if not class_name: class_name=class_name_default
-
-
-		# optional
-		print ('\n####\n## Step 4. Optional info\n####\n')
-		desc=input('>> (Optional) Description of corpus: ').strip()
-		if not desc: desc='--'
-		link=input('>> (Optional) Web link to/about corpus: ').strip()
-		if not link: link='--'
-	except KeyboardInterrupt:
-		print()
-		exit()
-
-
-	attrs={'name':name,'id':idx,'desc':desc,'link':link,
-	'path_root':path_root,'path_txt':path_txt,'path_xml':path_xml,'path_metadata':path_metadata,
-	'path_python':path_python,'class_name':class_name}
 	manifeststr="""[{name}]
 name = {name}
 id = {id}
@@ -2428,23 +2300,40 @@ path_python = {path_python}
 class_name = {class_name}
 """.format(**attrs)
 
-	print('\n')
+	print('-'*40)
+	print('>> Initializing corpus with manifest:')
+	print(manifeststr)
 
 	### WRITE MANIFEST
-	with open(PATH_MANIFEST) as f:
+	path_manifest = PATH_MANIFEST_USER if os.path.exists(PATH_MANIFEST_USER) else PATH_MANIFEST
+	with open(path_manifest) as f:
 		global_manifest_txt = f.read()
 
-	if not '[%s]' % name in global_manifest_txt:
-		print('>> Adding to corpus manifest [%s]' % PATH_MANIFEST)
-		with open(PATH_MANIFEST,'a+') as f:
+	if not '[%s]' % ns.name in global_manifest_txt:
+		print('>> Adding to corpus manifest [%s]' % path_manifest)
+		with open(path_manifest,'a+') as f:
 			f.write('\n\n'+manifeststr+'\n\n')
 		print(manifeststr)
 
+	## create new data folders
+	ns.path_root = os.path.join(PATH_CORPUS,ns.path_root) if not os.path.isabs(ns.path_root) else ns.path_root
+	ns.path_txt = os.path.join(ns.path_root,ns.path_txt) if not os.path.isabs(ns.path_txt) else ns.path_txt
+	ns.path_xml = os.path.join(ns.path_root,ns.path_xml) if not os.path.isabs(ns.path_xml) else ns.path_xml
+	ns.path_metadata = os.path.join(ns.path_root,ns.path_metadata) if not os.path.isabs(ns.path_metadata) else ns.path_metadata
+	ns.path_metadata_dir,ns.path_metadata_fn=os.path.split(ns.path_metadata)
+
+
+
+
+	#check_make_dirs([ns.path_root,ns.path_txt,ns.path_xml,ns.path_metadata_dir],consent=True)
+
 
 	### Create new code folder
-	path_python_dir,path_python_fn=os.path.split(path_python)
+	ns.path_python=os.path.join(ns.path_root,ns.path_python) if not os.path.isabs(ns.path_python) else ns.path_python
+	path_python_dir,path_python_fn=os.path.split(ns.path_python)
 	python_module=os.path.splitext(path_python_fn)[0]
-	if not path_python_dir: path_python_dir=os.path.join(PATH_TO_CORPUS_CODE,python_module)
+	#if not path_python_dir: path_python_dir=os.path.join(PATH_TO_CORPUS_CODE,python_module)
+	#if not path_python_dir: path_python_dir=os.path.abspath(os.path.join(ns.path_root,python_module))
 
 	if not os.path.exists(path_python_dir):
 		print('>> creating:',path_python_dir)
@@ -2457,34 +2346,14 @@ class_name = {class_name}
 	if not os.path.exists(python_fnfn) and not os.path.exists(python_fnfn2) and os.path.exists(python_ifnfn):
 		with open(python_fnfn,'w') as of, open(python_fnfn2,'w') as of2, open(python_ifnfn) as f:
 			itxt=f.read()
-			itxt=itxt.replace('[[class_name]]',class_name)
+			itxt=itxt.replace('[[class_name]]',ns.class_name)
 
 			of.write(itxt)
 			of2.write('from .%s import *\n' % python_module)
-			print('>> created a new corpus code template:',python_fnfn)
+			print('>> creating:',python_fnfn)
 
 
-	## create new data folders
-	path_root = os.path.join(PATH_CORPUS,path_root) if not os.path.isabs(path_root) else path_root
-	path_txt = os.path.join(path_root,path_txt) if not os.path.isabs(path_txt) else path_txt
-	path_xml = os.path.join(path_root,path_xml) if not os.path.isabs(path_xml) else path_xml
-	path_metadata = os.path.join(path_root,path_metadata) if not os.path.isabs(path_metadata) else path_metadata
-	path_metadata_dir,path_metadata_fn=os.path.split(path_metadata)
 
-	if not os.path.exists(path_root):
-		print('>> creating:',path_root)
-		os.makedirs(path_root)
-	if not os.path.exists(path_txt):
-		print('>> creating:',path_txt)
-		os.makedirs(path_txt)
-	if not os.path.exists(path_xml):
-		print('>> creating:',path_xml)
-		os.makedirs(path_xml)
-	if not os.path.exists(path_metadata_dir):
-		print('>> creating:',path_metadata_dir)
-		os.makedirs(path_metadata_dir)
-	if not os.path.exists(path_metadata):
-		pass
-		#print('>> creating:',path_metadata)
+		#print('>> creating:',ns.path_metadata)
 		#from pathlib import Path
-		#Path(path_metadata).touch()
+		#Path(ns.path_metadata).touch()

@@ -1463,3 +1463,25 @@ def cloud_list(tmpfn='.tmp_llp_cloud_list'):
 def cloud_share_all():
 	sharecmd=config['CLOUD_SHARE_CMD']
 	dest=config['CLOUD_DEST']
+
+
+
+
+
+
+
+def check_make_dir(path,consent=True,default='y'):
+	if not os.path.exists(path):
+		ans=input('>> create this path?: '+path+'\n[Y/n]').strip().lower()
+		if not ans: ans=default
+		if ans.startswith('n'):
+			return False
+		print('creating:',path)
+		os.makedirs(path)
+		return True
+
+def check_make_dirs(paths,consent=True):
+	l=[]
+	for path in paths:
+		l+=[check_make_dir(path,consent=consent)]
+	return l
