@@ -3,6 +3,7 @@
 import os,sys,argparse,multiprocessing as mp
 SLINGSHOT_N=mp.cpu_count()
 
+
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
 	parser.add_argument('cmd',help="Command for corpus (its method name)")
@@ -51,12 +52,19 @@ if __name__ == '__main__':
 		corpus = llp.load(args.corpus)
 		corpus.upload(ask=not args.quiet)
 
+	elif args.cmd=='share' and args.corpus=='corpora':
+		from llp import tools
+		print(tools.cloud_list())
+
+
+
+
 	elif args.cmd=='share' and args.corpus:
 		import llp
 		corpus = llp.load(args.corpus)
 		corpus.share()
 
-	elif args.cmd=='list':
+	elif args.cmd=='list' and args.corpus=='corpora':
 		import llp
 		manifest=llp.corpus.load_manifest()
 		corpus_names=sorted(list(set(manifest.keys())))
@@ -67,7 +75,7 @@ if __name__ == '__main__':
 		from llp.corpus import check_corpora
 		check_corpora()
 
-	elif args.cmd=='newcorpus':
+	elif args.cmd=='inits' and args.corpus=='corpus':
 		from llp.corpus import start_new_corpus_interactive
 		start_new_corpus_interactive()
 

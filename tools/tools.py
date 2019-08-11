@@ -1263,6 +1263,8 @@ def download_wget(url, save_to):
 	print('\n>> downloaded to:',save_to)
 
 def download(url,save_to):
+	# ValueError: unknown url type: '%22https%3A//www.dropbox.com/s/wz3igeqzx3uu5j1/markmark.zip?dl=1"'
+	url='https://' + url.split('//',1)[-1].replace('"','')
 	return download_wget(url,save_to)
 
 def download_tqdm(url, save_to):
@@ -1307,3 +1309,23 @@ def get_num_lines(filename):
 		numlines=sum(bl.count("\n") for bl in blocks(f))
 
 	return numlines
+
+
+
+#print('>>>>',config)
+
+
+def cloud_list(tmpfn='.tmp_llp_cloud_list'):
+	import subprocess
+	try:
+		#out=subprocess.check_output(config['PATH_CLOUD_LIST_CMD'],shell=True)
+		os.system(config['PATH_CLOUD_LIST_CMD'] +' > '+tmpfn)
+		with open(tmpfn) as f: txt = f.read()
+		os.unlink(tmpfn)
+		return txt
+	except Exception:
+		return ''
+
+def cloud_share_all():
+	sharecmd=config['CLOUD_SHARE_CMD']
+	dest=config['CLOUD_DEST']

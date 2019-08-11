@@ -13,6 +13,7 @@ PATH_TO_FIELDS = data/data.fields.txt.gz
 PATH_TO_BOOKNLP_BINARY= ../bin/book-nlp/runjava
 
 
-
-# SBATCH
-SBATCH_OPTS = -p hns
+# uploaders
+PATH_CLOUD_SHARE_CMD=bin/dropbox_uploader.sh share
+PATH_CLOUD_UPLOAD_CMD=bin/dropbox_uploader.sh upload
+PATH_CLOUD_LIST_CMD=bin/dropbox_uploader.sh list
