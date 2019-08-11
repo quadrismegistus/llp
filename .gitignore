@@ -20,3 +20,4 @@ MANIFEST.in
 build/
 dist/
 mpi_slingshot.egg-info/
+llp.egg-info/
