@@ -13,7 +13,7 @@ with open("requirements.txt", "r") as fh:
 
 setup(
     name='llp',
-    version='0.1.1',
+    version='0.1.4',
     description=('Literary Language Processing (LLP): corpora, models, and tools for the digital humanities'),
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -32,3 +32,15 @@ setup(
         #'Programming Language :: Python :: 3.6'
     ],
     )
+
+
+
+from setuptools.command.install import install
+from subprocess import check_call
+
+class PostInstallCommand(install):
+    """Post-installation for installation mode."""
+    def run(self):
+        install.run(self)
+
+        check_call('llp configure'.split())

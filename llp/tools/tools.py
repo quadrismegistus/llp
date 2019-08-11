@@ -7,10 +7,16 @@ from six.moves import zip
 from functools import reduce
 from smart_open import open
 
+try:
+    input = raw_input
+except NameError:
+    pass
+
+
 from os.path import expanduser
 HOME=expanduser("~")
 
-LIT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+LLP_ROOT = LIT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
 
 ### SET THE CONFIG
@@ -21,13 +27,14 @@ def hash(x):
 
 ### SET THE CONFIGS
 
-def load_config():
+def load_config(pathhack=True):
 	CONFIG_PATHS = [os.path.join(LIT_ROOT,'config.txt')]
 	CONFIG_PATHS += [os.path.join(LIT_ROOT,'config_local.txt')]
 	CONFIG_PATHS.append(os.path.join(os.path.join(LIT_ROOT,'..','llp_config.txt')))
 	CONFIG_PATHS.append(os.path.join(os.path.join(LIT_ROOT,'..','config','llp_config.txt')))
 	#CONFIG_PATHS.append(os.path.join(os.path.join(HOME,'litlab','llp_config.txt')))
 	CONFIG_PATHS.append(os.path.join(os.path.join(HOME,'llp_config.txt')))
+	CONFIG_PATHS.append(os.path.join(os.path.join(HOME,'.llp_config.txt')))
 	CONFIG={}
 	for config_path in CONFIG_PATHS:
 		#print('## looking for config:',os.path.abspath(config_path))
@@ -37,7 +44,7 @@ def load_config():
 		config = dict([(k.upper(),v) for k,v in list(config['Default'].items())])
 		for k,v in config.items():
 			## PATHHACK?
-			if 'path' in k.lower() and not os.path.isabs(v):
+			if pathhack and 'path' in k.lower() and not os.path.isabs(v):
 				newpath=os.path.abspath(os.path.join(os.path.dirname(config_path), v))
 				#print(v,'-->',newpath)
 				v=newpath
@@ -46,8 +53,69 @@ def load_config():
 	#print(CONFIG)
 	return CONFIG
 
+
 # load config
 config=load_config()
+
+
+def configure(default_config='~/llp/config.txt',default_corpora='~/llp/corpora',default_manifest='~/llp/manifest.txt'):
+	print('## Literary Language Processing (LLP) configuration')
+
+	current_config=config.get('PATH_TO_CONFIG','(none)')
+	current_corpora=config.get('PATH_TO_CORPORA','(none)')
+	current_manifest=config.get('PATH_TO_CORPUS_MANIFEST','(none)')
+
+	path_config=input('>> Where should the config file be stored? [default: {default}]: '.format(default=default_config,current=current_config)).strip()
+	path_corpora=input('>> Where should corpora be stored? [default: {default}]: '.format(default=default_corpora,current=current_corpora)).strip()
+	path_manifest=input('>> Where should the corpus manifest be stored? [default: {default}] '.format(default=default_manifest,current=current_manifest)).strip()
+
+	if not path_config: path_config=default_config
+	if not path_corpora: path_corpora=default_corpora
+	if not path_manifest: path_manifest=default_manifest
+
+	path_config=path_config.replace('~',HOME)
+	path_corpora=path_corpora.replace('~',HOME)
+	path_manifest=path_manifest.replace('~',HOME)
+
+	var2path = {}
+	var2path['PATH_TO_CORPORA'] = path_corpora
+	var2path['PATH_TO_MANIFEST'] = path_manifest
+
+	for var,path in var2path.items():
+		var2path[var] = path = path.replace('~',HOME)  #os.path.expanduser(path)
+
+		# make dir if needed
+		if not os.path.exists(path):
+			if os.path.splitext(path)[0]==path:
+				os.makedirs(path)
+			else:
+				dirname=os.path.dirname(path)
+				if not os.path.exists(dirname):
+					os.makedirs(dirname)
+
+	config_obj = configparser.ConfigParser()
+
+	newconfig=dict(load_config())
+	for k,v in var2path.items(): newconfig[k]=v
+	config_obj['Default'] = newconfig
+
+	with open(path_config,'w') as of:
+		config_obj.write(of)
+
+	sym_path = os.path.join(HOME,'.llp_config')
+	if os.path.exists(sym_path): os.remove(sym_path)
+	#os.symlink(path_config, sym_path)
+	os.system('rm -f {link}; ln -s {real} {link}'.format(real=path_config, link=sym_path))
+	#with open(os.path.join(HOME,'.llp_config'),'w') as of:
+	#	of.write('[Default]\nPATH_TO_CONFIG = '+path_config.replace('~',HOME)+'\n')
+
+
+
+
+
+
+
+
 
 WORDDB_FN = config.get('PATH_TO_WORDDB')
 

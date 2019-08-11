@@ -4,10 +4,24 @@ import os,sys,argparse,multiprocessing as mp
 SLINGSHOT_N=mp.cpu_count()
 
 
+commands_with_no_object = ['list', 'status', 'new', 'links', 'configure']
+commands_with_corpus_as_only_object = ['info','download','zip','upload','share']
+
+
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
-	parser.add_argument('cmd',help="Command for corpus (its method name)")
-	parser.add_argument('corpus',help="Corpus name")
+	subparsers = parser.add_subparsers(dest='cmd')
+
+	#download_group = subparsers.add_parser('download')
+	#download_group.add_argument('corpus',help='Which corpus to download?')
+
+	for cmd in commands_with_no_object:
+		group = subparsers.add_parser(cmd)
+
+	for cmd in commands_with_corpus_as_only_object:
+		group = subparsers.add_parser(cmd)
+		group.add_argument('corpus',help='A corpus, specified by name or ID (in manifest)')
+
 	parser.add_argument('-slingshot',action='store_true',default=False)
 	parser.add_argument('-parallel',help='How many parallel processes to run on, using Slingshot?',default=None)
 	parser.add_argument('-sbatch',help='Run on sherlock?',action='store_true')
@@ -17,6 +31,10 @@ if __name__ == '__main__':
 	parser.add_argument('-quiet',help='No interactive mode',action='store_true')
 	args = parser.parse_args()
 
+	if not hasattr(args,'corpus'): args.corpus=None
+	if not hasattr(args,'cmd'): args.corpus=None
+
+
 	if args.parallel: args.slingshot=True
 
 	if args.sbatch and not '-sbatch' in args.slingshot_opts:
@@ -25,12 +43,34 @@ if __name__ == '__main__':
 
 
 
+	## SOLO COMMANDS
+	if args.cmd=='list':
+		import llp
+		manifest=llp.corpus.load_manifest()
+		corpus_names=sorted(list(set(manifest.keys())))
+		for cname in corpus_names:
+			print('>>',cname,'\n'+manifest.get(cname,{}).get('desc','').strip()+'\n')
+
+	elif args.cmd=='status':
+		from llp.corpus import check_corpora
+		check_corpora()
+
+	elif args.cmd=='links':
+		from llp import tools
+		print(tools.cloud_list())
+
+	elif args.cmd=='configure':
+		import llp
+		llp.configure()
+
+
+	## COMMANDS ON CORPORA
 	if args.cmd=='download' and args.corpus:
 		import llp
 		corpus = llp.load(args.corpus)
 		corpus.download
 
-	elif args.cmd=='status' and args.corpus:
+	elif args.cmd=='info' and args.corpus:
 		import llp
 		corpus = llp.load(args.corpus)
 		print('['+corpus.name+']')
@@ -52,32 +92,10 @@ if __name__ == '__main__':
 		corpus = llp.load(args.corpus)
 		corpus.upload(ask=not args.quiet)
 
-	elif args.cmd=='share' and args.corpus=='corpora':
-		from llp import tools
-		print(tools.cloud_list())
-
-
-
-
 	elif args.cmd=='share' and args.corpus:
 		import llp
 		corpus = llp.load(args.corpus)
 		corpus.share()
-
-	elif args.cmd=='list' and args.corpus=='corpora':
-		import llp
-		manifest=llp.corpus.load_manifest()
-		corpus_names=sorted(list(set(manifest.keys())))
-		for cname in corpus_names:
-			print('>>',cname,'\n'+manifest.get(cname,{}).get('desc','').strip()+'\n')
-
-	elif args.cmd=='check' and args.corpus=='corpora':
-		from llp.corpus import check_corpora
-		check_corpora()
-
-	elif args.cmd=='inits' and args.corpus=='corpus':
-		from llp.corpus import start_new_corpus_interactive
-		start_new_corpus_interactive()
 
 	elif args.corpus and args.cmd in {'save_freqs','save_plain_text','save_metadata'}:
 		import llp
@@ -95,8 +113,8 @@ if __name__ == '__main__':
 		f=getattr(C,args.cmd)
 		f(*xargs,**kwargs)
 
-	else:
-		import llp
-		C=llp.load(args.corpus)
-		f=getattr(C,args.cmd)
-		f()
+	#else:
+	#	import llp
+	#	C=llp.load(args.corpus)
+	#	f=getattr(C,args.cmd)
+	#	f()
