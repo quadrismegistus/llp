@@ -17,14 +17,20 @@ from os.path import expanduser
 HOME=expanduser("~")
 LLP_ROOT = LIT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
+if not 'llp.py' in os.listdir(LLP_ROOT):
+	LLP_ROOT = LIT_ROOT = os.path.join(LLP_ROOT,'llp')
+
+if not 'llp.py' in os.listdir(LLP_ROOT):
+	print('!?',LLP_ROOT)
+
 #print('LLP root:',LIT_ROOT)
 
 
 
 PATH_BASE_CONF=os.path.join(HOME,'.llp_config')
-PATH_DEFAULT_CONF=os.path.join(LIT_ROOT,'config_default.txt')
+PATH_DEFAULT_CONF=os.path.abspath(os.path.join(LIT_ROOT,'..','config_default.txt'))
 
-PATH_MANIFEST_GLOBAL = os.path.join(LIT_ROOT,'llp','corpus','manifest.txt')
+PATH_MANIFEST_GLOBAL = os.path.join(LIT_ROOT,'corpus','manifest.txt')
 #print(PATH_MANIFEST_GLOBAL, os.path.exists(PATH_MANIFEST_GLOBAL))
 
 
@@ -59,7 +65,7 @@ def load_config(pathhack=True,prompt_for_base_conf=True):
 
 	CONFIG={}
 	for f in [load_default_config,load_global_config,load_user_config]:
-		for k,v in f().items(): CONFIG[k]=v
+		for k,v in f().items(): CONFIG[k.upper()]=v
 
 	#print('>> loaded config:',CONFIG)
 	return CONFIG
