@@ -64,7 +64,10 @@ if PATH_MANIFEST_LOCAL3 not in {PATH_MANIFEST_LOCAL,PATH_MANIFEST_LOCAL2,PATH_MA
 PMT.append(('Local Manifest (4)',PATH_MANIFEST_LOCAL4))
 PMT.append(('Local Manifest (5)',PATH_MANIFEST_LOCAL5))
 PMT.append(('Lab Manifest',PATH_MANIFEST_LAB))
-PMT.append(('User Manifest',PATH_MANIFEST_HOME))
+PMT.append(('Home Manifest',PATH_MANIFEST_HOME))
+
+PATH_MANIFEST_USER = tools.config.get('PATH_TO_MANIFEST','')
+if PATH_MANIFEST_USER: PMT.append(('User Manifest',PATH_MANIFEST_USER))
 
 nlp=None
 ENGLISH=None
@@ -788,10 +791,10 @@ class Corpus(object):
 		for (urltype,url) in URLS:
 			if not url2ok[urltype]: continue
 			tmpfn='_tmp_%s_%s.zip' % (self.id, urltype)
-			print('>> downloading:',tmpfn)
+			print('\n>> downloading:',tmpfn)
 			tools.download(url,tmpfn)
 
-			print('>> unzipping:',tmpfn)
+			print('\n>> unzipping:',tmpfn)
 			tools.unzip(tmpfn)
 			os.unlink(tmpfn)
 

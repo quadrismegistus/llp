@@ -16,7 +16,7 @@ model/_models_word2vec/
 
 .ipynb_checkpoints
 .pypirc
-MANIFEST.in
+#MANIFEST.in
 build/
 dist/
 mpi_slingshot.egg-info/

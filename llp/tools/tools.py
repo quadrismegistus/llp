@@ -15,8 +15,19 @@ except NameError:
 
 from os.path import expanduser
 HOME=expanduser("~")
-
 LLP_ROOT = LIT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+
+#print('LLP root:',LIT_ROOT)
+
+
+
+PATH_BASE_CONF=os.path.join(HOME,'.llp_config')
+PATH_DEFAULT_CONF=os.path.join(LIT_ROOT,'config_default.txt')
+
+PATH_MANIFEST_GLOBAL = os.path.join(LIT_ROOT,'llp','corpus','manifest.txt')
+#print(PATH_MANIFEST_GLOBAL, os.path.exists(PATH_MANIFEST_GLOBAL))
+
+
 
 
 ### SET THE CONFIG
@@ -27,47 +38,82 @@ def hash(x):
 
 ### SET THE CONFIGS
 
-def load_config(pathhack=True):
-	CONFIG_PATHS = [os.path.join(LIT_ROOT,'config.txt')]
+
+def config_obj2dict(config_obj,keys=['Default','User'],pathhack_root=LIT_ROOT,pathhack=True):
+	config_dict = {}
+
+	#dict([(k.upper(),v) for k,v in list(config[key].items())])
+	for key in keys:
+		if key not in config_obj: continue
+		for attr,val in config_obj[key].items():
+			if pathhack and 'path' in attr.lower() and not os.path.isabs(val):
+				val=os.path.abspath(os.path.join(os.path.dirname(pathhack_root), val))
+			config_dict[attr.upper()]=val
+
+	return config_dict
+
+
+def load_config(pathhack=True,prompt_for_base_conf=True):
+	if prompt_for_base_conf and not os.path.exists(PATH_BASE_CONF):
+		configure_prompt()
+
+	CONFIG={}
+	for f in [load_default_config,load_global_config,load_user_config]:
+		for k,v in f().items(): CONFIG[k]=v
+
+	#print('>> loaded config:',CONFIG)
+	return CONFIG
+
+
+
+def load_global_config(pathhack=True,prompt_for_base_conf=True):
+	#CONFIG_PATHS = [PATH_DEFAULT_CONF]
+	CONFIG_PATHS=[]
 	CONFIG_PATHS += [os.path.join(LIT_ROOT,'config_local.txt')]
 	CONFIG_PATHS.append(os.path.join(os.path.join(LIT_ROOT,'..','llp_config.txt')))
 	CONFIG_PATHS.append(os.path.join(os.path.join(LIT_ROOT,'..','config','llp_config.txt')))
-	#CONFIG_PATHS.append(os.path.join(os.path.join(HOME,'litlab','llp_config.txt')))
 	CONFIG_PATHS.append(os.path.join(os.path.join(HOME,'llp_config.txt')))
-	CONFIG_PATHS.append(os.path.join(os.path.join(HOME,'.llp_config.txt')))
+
 	CONFIG={}
 	for config_path in CONFIG_PATHS:
 		#print('## looking for config:',os.path.abspath(config_path))
 		if not os.path.exists(config_path): continue
 		config = configparser.ConfigParser()
 		config.read(config_path)
-		config = dict([(k.upper(),v) for k,v in list(config['Default'].items())])
-		for k,v in config.items():
-			## PATHHACK?
-			if pathhack and 'path' in k.lower() and not os.path.isabs(v):
-				newpath=os.path.abspath(os.path.join(os.path.dirname(config_path), v))
-				#print(v,'-->',newpath)
-				v=newpath
+
+		for k,v in config_obj2dict(config,pathhack_root=config_path).items():
 			CONFIG[k]=v
+
 
 	#print(CONFIG)
 	return CONFIG
 
 
-# load config
-config=load_config()
+def load_default_config():
+	config=configparser.ConfigParser()
+	config.read(PATH_DEFAULT_CONF)
+	return config_obj2dict(config,pathhack_root=LIT_ROOT)
+
+def load_user_config():
+	config=configparser.ConfigParser()
+	if os.path.exists(PATH_BASE_CONF):
+		with open(PATH_BASE_CONF) as f:
+			path_base_conf_value = f.read().strip()
+			if os.path.exists(path_base_conf_value):
+				config.read(path_base_conf_value)
+				configd=config_obj2dict(config,pathhack_root=path_base_conf_value)
+				return configd
+	return {}
 
 
-def configure(default_config='~/llp/config.txt',default_corpora='~/llp/corpora',default_manifest='~/llp/manifest.txt'):
+
+
+def configure_prompt(default_config='~/llp/config.txt',default_corpora='~/llp/corpora',default_manifest='~/llp/manifest.txt'):
 	print('## Literary Language Processing (LLP) configuration')
 
-	current_config=config.get('PATH_TO_CONFIG','(none)')
-	current_corpora=config.get('PATH_TO_CORPORA','(none)')
-	current_manifest=config.get('PATH_TO_CORPUS_MANIFEST','(none)')
-
-	path_config=input('>> Where should the config file be stored? [default: {default}]: '.format(default=default_config,current=current_config)).strip()
-	path_corpora=input('>> Where should corpora be stored? [default: {default}]: '.format(default=default_corpora,current=current_corpora)).strip()
-	path_manifest=input('>> Where should the corpus manifest be stored? [default: {default}] '.format(default=default_manifest,current=current_manifest)).strip()
+	path_config=input('>> Where should the config file be stored? [default: {default}]: '.format(default=default_config)).strip()
+	path_corpora=input('>> Where should corpora be stored? [default: {default}]: '.format(default=default_corpora)).strip()
+	path_manifest=input('>> Where should the corpus manifest be stored? [default: {default}] '.format(default=default_manifest)).strip()
 
 	if not path_config: path_config=default_config
 	if not path_corpora: path_corpora=default_corpora
@@ -95,24 +141,38 @@ def configure(default_config='~/llp/config.txt',default_corpora='~/llp/corpora',
 
 	config_obj = configparser.ConfigParser()
 
-	newconfig=dict(load_config())
+	newconfig={} #dict(load_config())
+	#for k,v in load_default_config().items(): newconfig[k]=v
 	for k,v in var2path.items(): newconfig[k]=v
-	config_obj['Default'] = newconfig
+	config_obj['User'] = newconfig
 
 	with open(path_config,'w') as of:
 		config_obj.write(of)
+		print('>> saved:',path_config)
 
-	sym_path = os.path.join(HOME,'.llp_config')
-	if os.path.exists(sym_path): os.remove(sym_path)
-	#os.symlink(path_config, sym_path)
-	os.system('rm -f {link}; ln -s {real} {link}'.format(real=path_config, link=sym_path))
-	#with open(os.path.join(HOME,'.llp_config'),'w') as of:
-	#	of.write('[Default]\nPATH_TO_CONFIG = '+path_config.replace('~',HOME)+'\n')
+	with open(PATH_BASE_CONF,'w') as of:
+		of.write(path_config)
+
+	if not os.path.exists(path_manifest):
+		import shutil
+		shutil.copyfile(PATH_MANIFEST_GLOBAL,path_manifest)
+		print('>> saved:',path_manifest)
 
 
 
 
 
+
+
+
+
+
+
+
+
+
+# load config
+config=load_config()
 
 
 
@@ -1328,7 +1388,7 @@ def download_wget(url, save_to):
 	if save_to_dir: os.chdir(save_to_dir)
 	fn=wget.download(url)#,bar=wget.bar_thermometer)
 	os.rename(fn,save_to_fn)
-	print('\n>> downloaded to:',save_to)
+	print('\n>> saved:',save_to)
 
 def download(url,save_to):
 	# ValueError: unknown url type: '%22https%3A//www.dropbox.com/s/wz3igeqzx3uu5j1/markmark.zip?dl=1"'

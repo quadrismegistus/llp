@@ -61,14 +61,14 @@ if __name__ == '__main__':
 
 	elif args.cmd=='configure':
 		import llp
-		llp.configure()
+		llp.configure_prompt()
 
 
 	## COMMANDS ON CORPORA
 	if args.cmd=='download' and args.corpus:
 		import llp
 		corpus = llp.load(args.corpus)
-		corpus.download
+		corpus.download()
 
 	elif args.cmd=='info' and args.corpus:
 		import llp
