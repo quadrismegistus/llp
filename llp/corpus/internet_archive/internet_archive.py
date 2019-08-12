@@ -214,6 +214,7 @@ class InternetArchive(Corpus):
 		print(f'>> [{self.name}] found',total,'items')
 
 		# move
+		if not os.path.exists(self.path_txt): os.makedirs(self.path_txt)
 		os.chdir(self.path_txt)
 
 		# loop
