@@ -413,6 +413,19 @@ class Text(object):
 		return self.corpus._metad.get(self.id)
 
 	def get_metadata(self,from_metadata=True,from_files=True):
+		"""
+		This function is called by the corpus class to construct...
+			corpus.meta:          a list of dictionaries
+			corpus.metad:         a dictionary, keyed {text_id:text_metadata dictionary}
+			corpus.metadata:      a pandas dataframe
+			corpus.get_text_ids   (only if path_metadata exists)
+
+		This function calls in order:
+			self.get_meta_from_corpus_metadata()
+			self.get_meta_from_file()
+			self.meta_by_file
+		"""
+
 		def do_return(meta):
 			if not 'corpus' in meta: meta['corpus']=self.corpus.name
 			if not 'id' in meta: meta['id']=self.id
@@ -550,13 +563,28 @@ class Text(object):
 		txt=tools.read(self.fnfn_txt).replace('\r\n','\n').replace('\r','\n')
 		return txt
 
-	def text_plain(self, OK=['p','l'], BAD=[], body_tag='text', force_xml=False, text_only_within_medium=True):
-		if not self.exists: return ''
-		if not force_xml and os.path.exists(self.fnfn_txt):
-			#print '>> text_plain from stored text file:',self.fnfn_txt
+	# def text_plain(self, OK=['p','l'], BAD=[], body_tag='text', force_xml=False, text_only_within_medium=True):
+	# 	if not self.exists: return ''
+	# 	if not force_xml and os.path.exists(self.fnfn_txt):
+	# 		#print '>> text_plain from stored text file:',self.fnfn_txt
+	# 		return self.text_plain_from_txt()
+	#
+	# 	return self.text_plain_from_xml(OK=OK,BAD=BAD,body_tag=body_tag,text_only_within_medium=text_only_within_medium)
+
+	def text_plain(self, force_xml=None):
+		"""
+		This function returns the plain text file. You may want to modify this.
+		"""
+
+		# Return plain text version if it exists
+		if self.exists_txt and not force_xml:
 			return self.text_plain_from_txt()
 
-		return self.text_plain_from_xml(OK=OK,BAD=BAD,body_tag=body_tag,text_only_within_medium=text_only_within_medium)
+		# Otherwise, load from XML?
+		if self.exists_xml and hasattr(self,'text_plain_from_xml'):
+			return self.text_plain_from_xml()
+
+		return ''
 
 
 	## TOKENS
@@ -677,7 +705,8 @@ class Text(object):
 		return d
 
 	def get_meta_from_file(self):
-		return {} #self.meta_from_file
+		#return {} #self.meta_from_file
+		return self.meta_from_file
 
 	def save_freqs_json(self,ofolder=None,force=False):
 		if not self.id: return {}

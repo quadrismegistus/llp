@@ -14,8 +14,7 @@ class BPO(Corpus):
     PATH_XML = 'bpo/_xml_bpo'
     PATH_METADATA = 'bpo/corpus-metadata.BPO.txt'
 
-    def __init__(self):
-        super(BPO,self).__init__('BPO',path_txt=self.PATH_TXT,path_xml=self.PATH_XML,path_metadata=self.PATH_METADATA)
-        self.path = os.path.dirname(__file__)
+    def __init__(self,**attrs):
+        super(BPO,self).__init__(**attrs)
         self.year_start=1680
         self.year_end=1900

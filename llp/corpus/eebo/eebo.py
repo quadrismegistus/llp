@@ -37,13 +37,8 @@ class EEBO_TCP(TCP):
 
 
 	TEXT_CLASS=TextEEBO_TCP
-	PATH_XML = '/Volumes/Present/DH/corpora/eebo/_xml_eebo_tcp'
-	PATH_INDEX = 'eebo/_index_eebo_tcp'
 	EXT_XML = '.headed.xml.gz'
 	EXT_TXT='.txt.gz'
-	PATH_METADATA = 'eebo/corpus-metadata.EEBO-TCP.txt'
 	TEXT_SECTION_CLASS=TextSectionTCP
 
-	def __init__(self):
-		super(EEBO_TCP,self).__init__('EEBO-TCP',path_xml=self.PATH_XML,path_index=self.PATH_INDEX,ext_txt=self.EXT_TXT,ext_xml=self.EXT_XML,path_metadata=self.PATH_METADATA)
-		self.path = os.path.dirname(__file__)
+	

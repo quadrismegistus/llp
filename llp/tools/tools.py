@@ -52,8 +52,9 @@ def config_obj2dict(config_obj,keys=['Default','User'],pathhack_root=LIT_ROOT,pa
 	for key in keys:
 		if key not in config_obj: continue
 		for attr,val in config_obj[key].items():
-			if pathhack and 'path' in attr.lower() and not os.path.isabs(val):
-				val=os.path.abspath(os.path.join(os.path.dirname(pathhack_root), val))
+			if 'path' in attr.lower() and not os.path.isabs(val):
+				val=val.replace('~',os.path.expanduser('~'))
+				if pathhack: val=os.path.abspath(os.path.join(os.path.dirname(pathhack_root), val))
 			config_dict[attr.upper()]=val
 
 	return config_dict
@@ -148,8 +149,9 @@ def configure_prompt(default_config='~/llp/config.txt',default_corpora='~/llp/co
 	config_obj = configparser.ConfigParser()
 
 	newconfig={} #dict(load_config())
-	#for k,v in load_default_config().items(): newconfig[k]=v
+	for k,v in load_default_config().items(): newconfig[k]=v
 	for k,v in var2path.items(): newconfig[k]=v
+	for k,v in newconfig.items(): newconfig[k]=v.replace(os.path.expanduser('~'),'~')
 	config_obj['User'] = newconfig
 
 	with open(path_config,'w') as of:

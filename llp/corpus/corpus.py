@@ -13,7 +13,7 @@ from os.path import expanduser
 HOME=expanduser("~")
 
 ZIP_PART_DEFAULTS={'txt','freqs','metadata','xml'}
-DEST_LLP_CORPORA=tools.config.get('CLOUD_DEST','')
+DEST_LLP_CORPORA=tools.config.get('CLOUD_DEST','/Share/llp_corpora')
 
 MANIFEST_REQUIRED_DATA=['name','id']
 
@@ -158,18 +158,23 @@ def load_corpus(name=None,required_data = MANIFEST_REQUIRED_DATA, manifest=None,
 	if not os.path.isabs(path_root):# path_root=os
 		cd['path_root'] = path_root=os.path.join(PATH_CORPUS,path_root)
 
-	print('>> root:',path_root)
+	#print('>> root:',path_root)
 
 
 
 		#print(path_python)
 
 	path_python=get_python_path(path_python,path_root)
+	if not path_python:
+		print('!! No path_python set.')
+		return
+
 	module_name = os.path.splitext(os.path.basename(path_python))[0]
 	#print(module_name,path_python,os.path.exists(path_python))
 	try:
 		module = imp.load_source(module_name, path_python)
-	except ValueError:#FileNotFoundError:
+	except ValueError as e:#FileNotFoundError:
+
 		return None
 
 	class_class = getattr(module,class_name)
@@ -196,13 +201,14 @@ def corpora(load=True,incl_meta_corpora=True):
 	for corpus_name in sorted(manifest):
 		if not incl_meta_corpora and manifest[corpus_name]['is_meta']: continue
 		corpus_obj=load_corpus(corpus_name, manifest=manifest) if load else manifest[corpus_name]
-		print(corpus_name, corpus_obj)
+		#print(corpus_name, corpus_obj)
 		#if corpus_obj is None: continue
 		yield (corpus_name, corpus_obj)
 
 def check_corpora(paths=['path_xml','path_txt','path_freqs','path_metadata'],incl_meta_corpora=False):
 	old=[]
 	for cname,corpus in corpora(load=True,incl_meta_corpora=incl_meta_corpora):
+		if corpus is None: continue
 		print('{:30s}'.format(cname),end="\t")
 		for path in paths:
 			pathtype=path.replace('path_','')
@@ -295,11 +301,11 @@ class Corpus(object):
 
 
 		path_python=get_python_path(self.opts.get('path_python'),path_root)
-		print('>> root:',path_root)
-		print('>> path_python:',path_python)
-		print('>> PATH_CORPUS:',PATH_CORPUS)
-		print('>> PATH_TO_CORPUS_CODE:',PATH_TO_CORPUS_CODE)
-		print()
+		# print('>> root:',path_root)
+		# print('>> path_python:',path_python)
+		# print('>> PATH_CORPUS:',PATH_CORPUS)
+		# print('>> PATH_TO_CORPUS_CODE:',PATH_TO_CORPUS_CODE)
+		# print()
 
 
 	@property
@@ -339,6 +345,9 @@ class Corpus(object):
 		return os.path.splitext(os.path.split(__file__)[-1])[0]
 
 
+	@property
+	def Texts(self):
+		return self.texts()
 
 	def texts(self,text_ids=None,combine_matches=True,limit=False,from_files=False):
 		if text_ids:
@@ -467,7 +476,8 @@ class Corpus(object):
 		## loop
 
 		if slingshot:
-			Scmd='slingshot -llp_corpus {corpus} -llp_method get_meta_by_file -savedir _tmp_save_metadata -overwrite -savecsv {savecsv}'.format(corpus=self.name,slingshot=slingshot,savecsv=ofn)
+			#Scmd='slingshot -llp_corpus {corpus} -llp_method get_meta_from_file -savedir _tmp_save_metadata -overwrite -savecsv {savecsv}'.format(corpus=self.name,slingshot=slingshot,savecsv=ofn)
+			Scmd='slingshot -llp_corpus {corpus} -llp_method get_metadata -savedir _tmp_save_metadata -overwrite -savecsv {savecsv}'.format(corpus=self.name,slingshot=slingshot,savecsv=ofn)
 			if slingshot_n: Scmd+=' -parallel {slingshot_n}'.format(slingshot_n=slingshot_n)
 			if slingshot_opts: Scmd+=' '+slingshot_opts.strip()
 			os.system(Scmd)
@@ -475,8 +485,8 @@ class Corpus(object):
 			from tqdm import tqdm
 			def writegen():
 				for i,text in enumerate(tqdm(texts)):
-					md=text.meta_by_file if hasattr(text,'meta_by_file') else text.meta
-					yield md
+					#md=text.meta_by_file if hasattr(text,'meta_by_file') else text.meta
+					yield text.get_metadata()
 			tools.writegen(ofn, writegen)
 	###########################################################################
 
@@ -732,13 +742,16 @@ class Corpus(object):
 	def upload(self,ask=True,uploader='dbu upload',dest=DEST_LLP_CORPORA,zipdir=None,overwrite=False):
 		#if not overwrite: uploader+=' -s'
 		if not zipdir: zipdir=os.path.join(PATH_CORPUS,'llp_corpora')
+		print(zipdir)
 		os.chdir(zipdir)
+		print(os.listdir('.'))
 		for fn in os.listdir('.'):
 			if not fn.endswith('.zip'): continue
 			if not fn.startswith(self.id): continue
 			cmd='{upload} {file} {dest}'.format(upload=uploader,file=fn,dest=dest)
 			print('>>',cmd)
 			if not ask or input('>> ok? ').strip().lower().startswith('y'):
+				#print('>>',cmd)
 				os.system(cmd)
 
 	def share(self,cmd_share='dbu share',dest=DEST_LLP_CORPORA):
@@ -2403,14 +2416,14 @@ class_name = {class_name}
 
 	python_fnfn=os.path.join(path_python_dir,path_python_fn)
 	#python_fnfn2=os.path.join(path_python_dir,'__init__.py')
-	python_ifnfn=os.path.join(PATH_TO_CORPUS_CODE,'default','newcorpus.txt')
+	python_ifnfn=os.path.join(PATH_TO_CORPUS_CODE,'default','default.py')
 
 	#if not os.path.exists(python_fnfn) and not os.path.exists(python_fnfn2) and os.path.exists(python_ifnfn):
 	if not os.path.exists(python_fnfn) and os.path.exists(python_ifnfn):
 		#with open(python_fnfn,'w') as of, open(python_fnfn2,'w') as of2, open(python_ifnfn) as f:
 		with open(python_fnfn,'w') as of, open(python_ifnfn) as f:
 			itxt=f.read()
-			itxt=itxt.replace('[[class_name]]',ns.class_name)
+			itxt=itxt.replace('NewCorpus',ns.class_name)
 
 			of.write(itxt)
 			#of2.write('from .%s import *\n' % python_module)
@@ -2424,3 +2437,11 @@ class_name = {class_name}
 
 	print('\n>> Corpus finalized with the following manifest configuration:')
 	print(manifeststr)
+
+
+
+
+
+
+class PlainTextCorpus(Corpus):
+	pass
