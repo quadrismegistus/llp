@@ -13,7 +13,9 @@ from smart_open import open
 from collections import Counter
 import ujson as json
 
+ENGLISH=None
 
+ADDR_SEP='|'
 
 class Text(object):
 	def __init__(self,idx,corpus,path_to_xml=None,path_to_txt=None):
@@ -27,14 +29,19 @@ class Text(object):
 	def addr(self):
 		if not hasattr(self,'_addr'):
 			if self.corpus.id and self.corpus.id!='corpus':
-				self._addr=str(self.corpus.id)+'|'+str(self.id)
+				self._addr=str(self.corpus.id)+ADDR_SEP+str(self.id)
 			else:
 				self._addr=self.id
 		return self._addr
 
 	@property
-	def fn(self):
-		return self.meta.get(self.col_fn,'')
+	def col_id(self): return self.corpus.col_id
+
+	@property
+	def col_fn(self): return self.corpus.col_fn
+
+	@property
+	def fn(self): return self.meta.get(self.col_fn,'')
 
 	@property
 	def i(self):
@@ -44,10 +51,12 @@ class Text(object):
 	@property
 	def id(self):
 		if not hasattr(self,'_id'):
-			if self.fn: self._id=os.path.splitext(self.fn)[0]
-			if self.i is not None: self._id=self.i
+			if self.fn:
+				self._id=os.path.splitext(self.fn)[0]
+			elif self.i is not None:
+				self._id=str(self.i)
 
-		return self._id
+		return str(self._id)
 
 	@property
 	def nation(self):
@@ -635,9 +644,20 @@ class Text(object):
 				return float(self.meta[k])
 		return len(self.tokens)
 
+
+	@property
+	def tokens_recognized(self):
+		global ENGLISH
+
+		if not ENGLISH:
+			from llp.tools import get_english_wordlist
+			ENGLISH=get_english_wordlist()
+
+		return [t for t in tokens_recognized if t in ENGLISH]
+
 	@property
 	def ocr_accuracy(self):
-		return float(self.meta['ocr_accuracy']) if 'ocr_accuracy' in self.meta else ''
+		return float(len(self.tokens_recognized)) / len(self.tokens)
 
 	@property
 	def minhash(self):
@@ -653,7 +673,8 @@ class Text(object):
 
 	@property
 	def num_words_recognized(self):
-		return int(self.num_words * self.ocr_accuracy) if self.ocr_accuracy else self.num_words
+		return len(self.tokens_recognized)
+		#return int(self.num_words * self.ocr_accuracy) if self.ocr_accuracy else self.num_words
 
 	@property
 	def length_recognized(self):
@@ -721,7 +742,9 @@ class Text(object):
 			pass
 			#print('>> tokenizing:',self.id,ofnfn)
 
+		#print(self, self.id, self.path_txt, self.exists_txt, self.txt[:10])
 		toks=tokenize_text(self.txt)
+		#print(len(toks),ofnfn)
 		tokd=dict(Counter(toks))
 		with open(ofnfn,'w') as of:
 			json.dump(tokd,of)

@@ -57,20 +57,19 @@ To see which corpora are downloadable, run:
 llp status
 ```
 
-
-
+If you see an up arrow next to a type of data, you can 
 
 
 
 If you have a folder of plain text files, and an accompanying metadata file,
 
 ```python
-from llp.corpus.default import PlainTextCorpus
+from llp.corpus import Corpus
 
-corpus = PlainTextCorpus(
-	path_txt='texts',              # path to a folder of txt files
-	path_metadata='metadata.xls',  # path to a metadata CSV, TSV, XLS, XLSX file
-	col_fn='filename'              # column in metadata pointing to txt file (relative to `path_txt`)
+my_corpus = Corpus(
+	path_txt='my_texts',                # path to a folder of txt files
+	path_metadata='my_metadata.xls',    # path to a metadata CSV, TSV, XLS, XLSX file
+	col_fn='my_filename_column'         # column in metadata pointing to txt file (relative to `path_txt`)
 )
 ```
 

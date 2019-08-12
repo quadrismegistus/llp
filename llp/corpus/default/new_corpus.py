@@ -76,7 +76,7 @@ class TextNewCorpus(Text):
 		"""
 
 		# 1) Get plain text from default behavior described just above
-		plain_text = super().text_plain(force_xml = force_xml)
+		plain_text_string = super().text_plain(force_xml = force_xml)
 
 		# 2) Modify the plain_text here for any reason?
 		# plain_text_string = plain_text_string.replace('&mdash;',' -- ')
@@ -215,7 +215,7 @@ class NewCorpus(Corpus):
 		"""
 		return super().download(**attrs)
 
-	def boot(parts=['metadata','txt','freqs','mfw','dtm'],force=False,**attrs):
+	def install(self,parts=['metadata','txt','freqs','mfw','dtm'],force=False,**attrs):
 		"""
 		This function is used to boot the corpus, taking it from its raw (just downloaded) to refined condition:
 			- metadata: Save metadata (if necessary)

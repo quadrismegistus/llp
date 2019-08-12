@@ -6,7 +6,7 @@ from six.moves import range
 from six.moves import zip
 from functools import reduce
 from smart_open import open
-
+import shutil,os
 try:
 	input = raw_input
 except NameError:
@@ -252,13 +252,24 @@ def get_ocr_corrections():
 			d[old]=new
 	return d
 
-def iter_filename(fn,force=False):
-	if os.path.exists(fn) or force:
+def iter_move(fn,force=False,prefix=''):
+	if os.path.exists(fn):
+		iter_fn=iter_filename(fn,force=force,prefix=prefix)
+		iter_dir=os.path.dirname(iter_fn)
+		if not os.path.exists(iter_dir): os.makedirs(iter_dir)
+		shutil.move(fn,iter_fn)
+		print(f'>> moved: {fn} --> {iter_fn}')
+
+def iter_filename(fnfn,force=False,prefix=''):
+	if os.path.exists(fnfn) or force:
+		fndir,fn=os.path.split(fnfn)
 		filename,ext = os.path.splitext(fn)
 		fnum=2 if not force else 1
-		while os.path.exists(filename + str(fnum) + ext):
+		maybe_fn=os.path.join(fndir, prefix + filename + ext)
+		while os.path.exists(maybe_fn):
 			fnum+=1
-		fn = filename + str(fnum) + ext
+			maybe_fn=os.path.join(fndir, prefix + filename + str(fnum) + ext)
+		fn = maybe_fn
 	return fn
 
 
@@ -341,15 +352,10 @@ def read_ld(fn,keymap={},toprint=True):
 	if fn.endswith('.xls') or fn.endswith('.xlsx'):
 		return xls2ld(fn,keymap=keymap)
 	#elif fn.endswith('.csv'):
-		#return DictReader
-		#return tsv2ld(fn,tsep=',',keymap=keymap)
-		#tsep=','
-		#with codecs.open(fn,encoding='utf-8') as f:
-		#	return list(csv.DictReader(f))
-	#else:
-	#	tsep='\t'
-
-	return list(readgen(fn,as_dict=True,toprint=toprint))
+	#	sep=','
+	#	return list(readgen_csv(fn,as_dict=True,toprint=toprint,tsep=','))
+	#return list(readgen(fn,as_dict=True,toprint=toprint))
+	return list(readgen_csv(fn))
 
 
 def writegen_jsonl(fnfn,generator,args=[],kwargs={}):
@@ -366,12 +372,26 @@ def readgen_jsonl(fnfn):
 			yield dx
 
 
-def writegen(fnfn,generator,header=None,args=[],kwargs={}):
+def writegen(fnfn,generator,header=None,args=[],kwargs={},find_all_keys=False,total=None):
+	from tqdm import tqdm
 	import codecs,csv
 	if 'jsonl' in fnfn.split('.'): return writegen_jsonl(fnfn,generator,args=args,kwargs=kwargs)
+
 	iterator=generator(*args,**kwargs)
-	first=next(iterator)
-	if not header: header=sorted(first.keys())
+	if total: iterator=tqdm(iterator,total=total)
+	if not header:
+		if not find_all_keys:
+			first=next(iterator)
+			header=sorted(first.keys())
+		else:
+			print('>> finding keys:')
+			keys=set()
+			for dx in iterator:
+				keys|=set(dx.keys())
+			header=sorted(list(keys))
+			print('>> found:',len(header),'keys')
+
+	iterator=generator(*args,**kwargs)
 	with open(fnfn, 'w') as csvfile:
 		writer = csv.DictWriter(csvfile,fieldnames=header,extrasaction='ignore',delimiter='\t')
 		writer.writeheader()
@@ -401,22 +421,13 @@ def writegengen(fnfn,generator,header=None,save=True):
 		if save: of.write('\t'.join([six.text_type(dx.get(h,'')) for h in header]) + '\n')
 		yield dx
 
-def readgen_csv(fnfn,sep='\t',encoding='utf-8',errors='ignore'):
-	#
-	if fnfn.endswith('.gz'):
-		from xopen import xopen
-		f=xopen(fnfn)
-	else:
-		f=open(fnfn,encoding=encoding,errors=errors)
-
-	reader = csv.DictReader(f,delimiter=sep,quoting=csv.QUOTE_NONE)
-	for dx in reader:
-		#for k,v in dx.items():
-		#	if type(v)==str:
-		#		dx[k]=v.decode(encoding=encoding, errors=errors)
-		yield dx
-
-	f.close()
+def readgen_csv(fnfn,sep=None,encoding='utf-8',errors='ignore'):
+	from smart_open import open
+	if not sep: sep=',' if fnfn.endswith('csv') else '\t'
+	with open(fnfn,encoding=encoding,errors=errors) as f:
+		reader = csv.DictReader(f,delimiter=sep,quoting=csv.QUOTE_NONE)
+		for dx in reader:
+			yield dx
 
 def readgen(fnfn,header=None,tsep='\t',keymap={},keymap_all=six.text_type,encoding='utf-8',as_list=False,as_tuples=False,as_dict=True,toprint=True,progress=True):
 	if 'jsonl' in fnfn.split('.'):
@@ -1401,8 +1412,9 @@ def download_wget(url, save_to):
 def download(url,save_to):
 	# ValueError: unknown url type: '%22https%3A//www.dropbox.com/s/wz3igeqzx3uu5j1/markmark.zip?dl=1"'
 	url='https://' + url.split('//',1)[-1].replace('"','')
-	return download_wget(url,save_to)
+	#return download_wget(url,save_to)
 	#return download_tqdm(url,save_to)
+	return download_tqdm2(url,save_to)
 	#return download_curl(url,save_to)
 
 def download_curl(url,save_to):
@@ -1411,6 +1423,29 @@ def download_curl(url,save_to):
 	cmd=f'curl -o {save_to} {url}'
 	print(cmd)
 	os.system(cmd)
+
+
+def copyfileobj(fsrc, fdst, total, length=16*1024):
+	"""Copy data from file-like object fsrc to file-like object fdst
+	This is like shutil.copyfileobj but with a progressbar.
+	"""
+	from tqdm import tqdm
+	with tqdm(unit='bytes', total=total, unit_scale=True) as pbar:
+		while 1:
+			buf = fsrc.read(length)
+			if not buf:
+				break
+			fdst.write(buf)
+			pbar.update(len(buf))
+
+def download_tqdm2(url, save_to):
+	import requests
+	with requests.get(url, stream=True) as r:
+		total=int(r.headers.get('Content-length'))
+		with open(save_to, 'wb') as f:
+			copyfileobj(r.raw, f, total)
+
+
 
 def download_tqdm(url, save_to):
 	import requests
@@ -1572,3 +1607,10 @@ def get_llp_id(idx,corpus):
 def camel2snake_case(name):
 	s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
 	return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
+
+
+
+
+def valid_args_for(func_or_method):
+	import inspect
+	return inspect.getfullargspec(func_or_method).args

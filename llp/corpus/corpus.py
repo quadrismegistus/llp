@@ -10,11 +10,14 @@ from collections import defaultdict
 from tqdm import tqdm
 from llp.text import Text
 from argparse import Namespace
+from pprint import pprint
+import inspect
 
 from os.path import expanduser
 HOME=expanduser("~")
 
-ZIP_PART_DEFAULTS={'txt','freqs','metadata','xml'}
+ZIP_PART_DEFAULTS={'txt','freqs','metadata','xml','data'}
+INSTALL_CMDS=['metadata','txt','freqs','mfw','dtm']
 DEST_LLP_CORPORA=tools.config.get('CLOUD_DEST','/Share/llp_corpora')
 
 MANIFEST_REQUIRED_DATA=['name','id']
@@ -132,7 +135,7 @@ def corpora(load=True,incl_meta_corpora=True):
 
 def check_corpora(paths=['path_xml','path_txt','path_freqs','path_metadata'],incl_meta_corpora=False):
 	old=[]
-	clist=tools.cloud_list()
+	#clist=tools.cloud_list()
 	for cname,corpus in corpora(load=True,incl_meta_corpora=incl_meta_corpora):
 		if corpus is None: continue
 		print('{:30s}'.format(cname),end="\t")
@@ -141,7 +144,8 @@ def check_corpora(paths=['path_xml','path_txt','path_freqs','path_metadata'],inc
 			pathval = getattr(corpus,path)
 			#pathval = corpus.get(path,'')
 			exists = '↓' if os.path.exists(pathval) else ' '
-			exists_link = '↑' if f'{corpus.id}_{pathtype}.zip' in clist else ' '
+			#exists_link = '↑' if f'{corpus.id}_{pathtype}.zip' in clist else ' '
+			exists_link = '↑' if hasattr(corpus,f'url_{pathtype}') else ' '
 			cell=exists_link+' '+exists+' '+pathtype
 			print('{:10s}'.format(cell),end='\t')
 
@@ -382,7 +386,7 @@ class Corpus(object):
 				f(*cmd_args,**cmd_kwargs)
 
 	def save_freqs(self,force=False,slingshot=False,slingshot_n=None,slingshot_opts=''):
-		print(slingshot,slingshot_n,slingshot_opts)
+		#print(slingshot,slingshot_n,slingshot_opts)
 		#slingshot_opts+=' -savedir _tmp_save_freqs -overwrite -savecsv %s' % self.get_path_freq_table()
 		slingshot_opts+=' -nosave'
 		return self.slingshot_or_solo('save_freqs',force=force,slingshot=slingshot,slingshot_n=slingshot_n,slingshot_opts=slingshot_opts,force_slingshot=False)
@@ -410,11 +414,13 @@ class Corpus(object):
 			os.system(Scmd)
 		else:
 			from tqdm import tqdm
-			def writegen():
+
+			def _writegen():
 				for i,text in enumerate(tqdm(texts)):
 					#md=text.meta_by_file if hasattr(text,'meta_by_file') else text.meta
 					yield text.get_metadata()
-			tools.writegen(ofn, writegen)
+
+			tools.writegen(ofn, _writegen)
 	###########################################################################
 
 
@@ -431,9 +437,12 @@ class Corpus(object):
 
 	def load_metadata(self,combine_matches=False,load_text_data=True,load_rel_data=False,minimal=False,maximal=False,fix_ids=True):
 		from llp import tools
-		meta_ld=tools.read_ld(self.path_metadata,keymap={'*':str})
+		import pandas as pd
 
-		self._meta=meta_ld
+		#meta_ld=tools.read_ld(self.path_metadata,keymap={'*':str})
+		sep=',' if self.path_metadata.endswith('csv') else '\t'
+		self._metadf=meta_df=pd.read_csv(self.path_metadata,sep=sep)
+		self._meta=meta_ld=meta_df.to_dict('records')
 		self._text_ids=[self.get_id_from_metad(d) for d in meta_ld]
 		self._texts=[self.TEXT_CLASS(idx,self) for idx in self._text_ids]
 		self._metad=dict(list(zip(self._text_ids,self._meta)))
@@ -444,7 +453,6 @@ class Corpus(object):
 			#dx['id']=t.id
 			#dx['corpus']=t.corpus
 			#dx['_llp_']=t.addr
-
 
 		if maximal or (not minimal and load_text_data): self.load_text_data()
 		if maximal or (not minimal and combine_matches): self.combine_matches()
@@ -579,19 +587,18 @@ class Corpus(object):
 
 			for dx in self.meta: dx['reprinted']='title_reprint_cluster_rank' in dx and int(dx['title_reprint_cluster_rank'])>1
 
-	def save_additional_metadata(self,fn):
+	def save_additional_metadata(self,fn=None,calculate={'ocr_accuracy','length'}):
 		from llp import tools
-		orig_keys = set(tools.header(self.path_metadata))
-		for data_fn in self.paths_text_data:
-			orig_keys|=set(tools.header(data_fn))
+		if not fn: fn=os.path.join(self.path_data,'additional_metadata.txt')
+		print('?',fn)
+		stop
+		if os.path.exits(fn): return
 
-		orig_keys.remove('id')
 		def writegen():
-			for d in self.meta:
-				d2={}
-				for k in d:
-					if not k in orig_keys:
-						d2[k]=d[k]
+			for i,text in enumerate(tqdm(self.textl)):
+				#dx=dict([('id',text.id)] + text.meta.items())
+				meta=dict(text.meta.items())
+				meta['id']=text.id
 				yield d2
 		tools.writegen(fn,writegen)
 
@@ -664,14 +671,13 @@ class Corpus(object):
 		do_zip(self.path_freqs, self.id+'_freqs.zip','Zip freqs files','freqs' in defaults)
 		do_zip(self.path_metadata, self.id+'_metadata.zip','Zip metadata file','metadata' in defaults)
 		do_zip(self.path_xml, self.id+'_xml.zip','Zip xml files','xml' in defaults)
+		do_zip(self.path_data, self.id+'_data.zip','Zip data files (mfw/dtm)','xml' in defaults)
 
 
 	def upload(self,ask=True,uploader='dbu upload',dest=DEST_LLP_CORPORA,zipdir=None,overwrite=False):
 		#if not overwrite: uploader+=' -s'
 		if not zipdir: zipdir=os.path.join(PATH_CORPUS,'llp_corpora')
-		print(zipdir)
 		os.chdir(zipdir)
-		print(os.listdir('.'))
 		for fn in os.listdir('.'):
 			if not fn.endswith('.zip'): continue
 			if not fn.startswith(self.id): continue
@@ -746,22 +752,56 @@ class Corpus(object):
 		import os
 		os.system(cmd)"""
 
-	def install(self,parts=['metadata','txt','freqs'],force=False,slingshot=False,slingshot_n=None,slingshot_opts=''):
+
+	def command_prep(self,method,attrs):
+		valid_args=set(tools.valid_args_for(method))
+		return dict((k,v) for k,v in attrs.items() if k in valid_args)
+
+
+	def install_metadata(self,**attrs):
+		if not os.path.exists(self.path_metadata):
+			self.save_metadata(**self.command_prep(self.save_metadata,attrs))
+			self.save_additional_metadata(**self.command_prep(self.save_additional_metadata,attrs))
+		else:
+			print('>> metadata already exists:',self.path_metadata)
+
+
+	def install_txt(self,**attrs):
+		attrs=self.command_prep(self.save_plain_text,attrs)
+		self.save_plain_text(**attrs)
+
+
+	def install_freqs(self,**attrs):
+		attrs=self.command_prep(self.save_freqs,attrs)
+		self.save_freqs(**attrs)
+
+
+	def install_mfw(self,**attrs):
+		attrs=self.command_prep(self.save_mfw,attrs)
+		self.save_mfw(**attrs)
+
+
+	def install_dtm(self,**attrs):
+		attrs=self.command_prep(self.save_dtm,attrs)
+		self.save_dtm(**attrs)
+
+	def install(self,include=[],exclude=[],**attrs):
 		"""
 		Consider overwriting this
 		"""
 		self.mkdir_root()
 		self.chdir_root()
 
+		parts=include if include else INSTALL_CMDS
+		parts=[x for x in parts if x not in set(exclude)]
+
 		# metadata
 		for part in parts:
-			if part=='metadata':
-				if force or not os.path.exists(self.path_metadata):
-					self.save_metadata(slingshot=slingshot,slingshot_n=slingshot_n,slingshot_opts=slingshot_opts)
-			elif part=='txt':
-				self.save_plain_text(force=force,slingshot=slingshot,slingshot_n=slingshot_n,slingshot_opts=slingshot_opts)
-			elif part=='freqs':
-				self.save_freqs(force=force,slingshot=slingshot,slingshot_n=slingshot_n,slingshot_opts=slingshot_opts)
+			#print('>>',part)
+			fname='install_'+part
+			if not hasattr(self,fname): continue
+			func=getattr(self,fname)
+			func(**attrs)
 
 
 
@@ -862,8 +902,11 @@ class Corpus(object):
 	# 			return pathd[size]
 	# 	return pathd[max(sizes)]
 
+	@property
+	def dtm(self):
+		return self.freqs(fpm=False)
 
-	def freqs(self,n=5000,toks=[],text_ids=[],sep='\t',encoding='utf-8',tf=False,fpm=True,z=False):
+	def freqs(self,n=5000,toks=[],text_ids=[],sep='\t',encoding='utf-8',tf=False,fpm=False,z=False):
 		import time
 		"""
 		Load a pandas dataframe for specified number of words (n) or for specied words (toks),
@@ -971,7 +1014,7 @@ class Corpus(object):
 		return df
 
 
-	def save_dtm(self,n=10000,words=None,only_english=False,path=None):
+	def save_dtm(self,n=10000,words=None,only_english=False,path=None,index_attr='id'):
 		words = list(self.mfw(n=n,only_english=only_english)) if not words else words
 		path = self.get_path_freq_table(n=n,force=True) if not path else path
 		path_path = os.path.split(path)[0]
@@ -984,41 +1027,11 @@ class Corpus(object):
 			for t in tqdm(texts):
 				tfreqs=t.freqs()
 				odx=dict((w,tfreqs.get(w,0)) for w in words)
-				odx['_addr']=t.addr
+				odx['']=getattr(t,index_attr)
 				yield odx
 
-		print('>> [%s] building DTM:' % self.name,path)
-		tools.writegen(path, writegen, header=['_addr']+words)
-
-
-
-	def gen_freq_table1(self,n=25000,words=None,only_english=False,path=None):
-		from llp import tools
-		if words:
-			n=len(words)
-		else:
-			words = list(self.mfw(n=n,only_english=only_english))
-			assert len(words) <= n
-
-		path = self.get_path_freq_table(n=n,force=True) if not path else path
-		path_path = os.path.split(path)[0]
-		if not os.path.exists(path_path): os.makedirs(path_path)
-
-		texts=list(self.texts())
-		texts.sort(key=lambda t: t.id)
-
-		#with gzip.open(path,'w',encoding='utf-8') as f:
-		with open(path.replace('.gz','') if path.endswith('.gz') else path, 'w') as f:
-			# write header
-			header='\t'.join(['']+words) #.encode('utf-8')
-			f.write(header+'\n')
-
-			# write rows
-			for i,t in enumerate(texts):
-				if not i%100: print('>>',i,len(texts),'...')
-				freqs=t.freqs()
-				row='\t'.join([t.id]+[str(freqs.get(w,'0')) for w in words]) #.encode('utf-8')
-				f.write(row+'\n')
+		print(f'>> [{self.name}] building DTM (#words={n}): {path}')
+		tools.writegen(path, writegen, header=['']+words)
 
 	def freqs_async(self,words={},texts=[]):
 		import multiprocessing as mp
@@ -1138,6 +1151,7 @@ class Corpus(object):
 		Grouping.group_by_year(yearbin=yearbin)
 		return Grouping.groups
 
+	def save_mfw(self,**attrs): return self.gen_mfw(**attrs)
 
 	def gen_mfw(self,yearbin=None,year_min=None,year_max=None,include_freq=True,gen_total=False):
 		"""
@@ -1207,45 +1221,6 @@ class Corpus(object):
 					f.write(line+'\n')
 			print('>> saved:',self.path_mfw)
 
-
-	### TOKENIZING
-
-	def gen_freqs(self,force=False):
-		texts=self.texts()
-		from tqdm import tqdm
-		for i,text in enumerate(tqdm(texts)):
-			save_tokenize_text(text,force=force)
-
-	"""
-	@DEPRECATED
-	def gen_freqs(self,texts=None,force=False,mp=False):
-		return self.tokenize_texts(texts=texts,force=force,mp=mp)
-
-	def tokenize_texts(self,texts=None,force=False,mp=False,num_processes=4):
-		#ofolder=os.path.join(self.path,'freqs',self.name)
-		#if not os.path.exists(ofolder): os.makedirs(ofolder)
-
-		if mp:
-			import multiprocessing as mp
-			pool=mp.Pool(num_processes)
-
-		if force and not texts:
-			texts=self.texts()
-
-		texts=[t for t in self.texts() if (force or not t.is_tokenized)] if not texts else texts
-		numtodo=len(texts)
-		print '>> TOKENIZING:',numtodo
-		for i,text in enumerate(texts):
-			#print '>>',i,numtodo-i,'...'
-			#if not i%100: print '>>',i,numtodo-i,'...'
-			if mp:
-				pool.apply_async(save_tokenize_text, (text,), {'force':force})
-			else:
-				save_tokenize_text(text,force=force)
-		if mp:
-			pool.close()
-			pool.join()
-		"""
 
 
 

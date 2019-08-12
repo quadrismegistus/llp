@@ -1,6 +1,11 @@
 import os
 from llp.text import Text
 from llp.corpus import Corpus
+import internetarchive as ia
+from internetarchive import search_items
+from tqdm import tqdm
+import pandas as pdb
+from llp import tools
 
 
 # Constants
@@ -195,34 +200,45 @@ class InternetArchive(Corpus):
 	# (2.1) Installation methods
 	####################################################################################################################
 
-	def compile(self,collection=DEFAULT_COLLECTION):
-		"""
-		This is a custom install function. By default, it will simply try to download itself,
-		unless a custom function is written here which either installs or provides installation instructions.
-		"""
-		#
-		import internetarchive as ia
-		from internetarchive import search_items
-		from tqdm import tqdm
 
-		print(f'>> [{self.name}] downloading, using custom function...')
-
+	def get_collection_ids(self,collection=DEFAULT_COLLECTION):
 		# search
-
-		search = search_items('collection:'+DEFAULT_COLLECTION)
+		idl=[]
+		search = search_items('collection:'+collection)
 		total=search.num_found
-		print(f'>> [{self.name}] found',total,'items')
-
-		# move
-		if not os.path.exists(self.path_txt): os.makedirs(self.path_txt)
-		os.chdir(self.path_txt)
-
+		print(f'>> [{self.name}] scanning',total,f'items in collection {collection}')
 		# loop
 		for i,result in enumerate(tqdm(search,total=total)):
 			idx=result['identifier']
+			yield idx
+
+
+	def compile_txt(self,collection=DEFAULT_COLLECTION):
+		"""
+		This will download the txt files from IA.
+		"""
+		# make sure exists
+		if not os.path.exists(self.path_txt): os.makedirs(self.path_txt)
+		os.chdir(self.path_txt)
+
+		# getting ids
+		print(f'>> [{self.name}] downloading txt files, using custom function...')
+		id_list=self.get_collection_ids(collection=collection)
+
+		# download txt
+		for idx in enumerate(tqdm(id_list,position=1)):
 			ia.download(idx,silent=True,glob_pattern='*.txt',ignore_existing=True)
 
+	def compile_metadata(self):
+		def _writegen():
+			for idx in self.get_collection_ids():
+				yield ia.get_item(idx).metadata
+		tools.iter_move(self.path_metadata,prefix='bak/')
+		tools.writegen(self.path_metadata, _writegen)
 
+	def compile(self):
+		self.compile_metadata()
+		self.compile_txt()
 
 
 	def download(self,**attrs):

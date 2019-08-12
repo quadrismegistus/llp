@@ -118,6 +118,7 @@ def main():
 	groups['import'].add_argument('-col_fn',help='Column in metadata to look for TXT or XML filename [default: %s]' % default_col_fn)
 	groups['import'].add_argument('-col_id',help='Column in metadata to look for ID (the TXT or XML filename, but without a filename extension) [default: %s]' % default_col_fn)
 
+	groups['install'].add_argument('-part',help='Name of part of installation (otherwise all)')
 
 
 	parser.add_argument('-slingshot',action='store_true',default=False)
@@ -175,7 +176,10 @@ def main():
 		import llp
 		corpus = llp.load(args.corpus)
 		cmder = getattr(corpus,args.cmd)
-		cmder()
+		if 'ask' in llp.tools.valid_args_for(cmder):
+			cmder(ask=not args.quiet)
+		else:
+			cmder()
 
 	elif args.cmd=='info' and args.corpus:
 		import llp
