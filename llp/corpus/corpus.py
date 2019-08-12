@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from __future__ import print_function
 import os,codecs,gzip,random,time
+from pprint import pprint
 import tools
 import six
 from six.moves import range
@@ -8,6 +9,7 @@ from six.moves import zip
 from collections import defaultdict
 from tqdm import tqdm
 from llp.text import Text
+from argparse import Namespace
 
 from os.path import expanduser
 HOME=expanduser("~")
@@ -107,86 +109,8 @@ def load_manifest(force=True,corpus_name=None):
 
 	return MANIFEST if not corpus_name else MANIFEST.get(corpus_name,{})
 
-def get_python_path(path_python,path_root):
-	if not os.path.isabs(path_python):
-		#cd['path_python'] = path_python=os.path.join(PATH_TO_CORPUS_CODE,path_python)  # if not path_python.startswith(os.path.sep) else path_python
-		path_python1=os.path.join(path_root,path_python)  # if not path_python.startswith(os.path.sep) else path_python
-		module_name=os.path.splitext(os.path.basename(path_python))[0]
-		path_python2=os.path.join(path_root,module_name,path_python)  # if not path_python.startswith(os.path.sep) else path_python
-		path_python3=os.path.join(PATH_TO_CORPUS_CODE,path_python)
-		path_python4=os.path.join(PATH_TO_CORPUS_CODE,module_name,path_python)
-
-		for ppath in [path_python1,path_python2,path_python3,path_python4]:
-			if os.path.exists(ppath):
-				return ppath
-	else:
-		return path_python
 
 
-def load_corpus(name=None,required_data = MANIFEST_REQUIRED_DATA, manifest=None, **kwargs):
-	manifest=load_manifest() if not manifest else manifest
-	manifest_byid = dict((cd['id'],cd) for cd in manifest.values())
-
-	if not name:
-		print(">> Printing available corpora")
-		for cname in sorted(manifest):
-			print(cname)
-		return
-
-	if (name not in manifest) and (name not in manifest_byid):
-		print('!! Corpus not found in manifests:')
-		for (pn,path) in PATH_MANIFESTS_TUPLES: print('\t'+path)
-		return
-
-	corpus_manifest=manifest[name] if name in manifest else manifest_byid[name]
-
-	for rd in required_data:
-		if not corpus_manifest.get(rd):
-			print('!! No "%s = " set for corpus "%s" in manifests' % (rd,name))
-			return
-
-	# load and configure corpus
-	import imp
-
-	cd=corpus_manifest
-	c_id=cd['id']
-	c_name=cd['name']
-	cd['path_python'] = path_python = cd['path_python'] if cd['path_python'] else c_id+'.py' #os.path.join(c_id,c_id+'.py')
-	class_name = cd['class_name'] if cd['class_name'] else c_name
-	cd['path_root'] = path_root = (cd['path_root'] if cd['path_root'] else c_id)
-
-	if not os.path.isabs(path_root):# path_root=os
-		cd['path_root'] = path_root=os.path.join(PATH_CORPUS,path_root)
-
-	#print('>> root:',path_root)
-
-
-
-		#print(path_python)
-
-	path_python=get_python_path(path_python,path_root)
-	if not path_python:
-		print('!! No path_python set.')
-		return
-
-	module_name = os.path.splitext(os.path.basename(path_python))[0]
-	#print(module_name,path_python,os.path.exists(path_python))
-	try:
-		module = imp.load_source(module_name, path_python)
-	except ValueError as e:#FileNotFoundError:
-
-		return None
-
-	class_class = getattr(module,class_name)
-	class_obj = class_class()
-	class_obj.name_module = module_name
-
-	# re-do init?
-	if issubclass(class_class,CorpusMeta):
-		pass #?
-	else:
-		super(class_class,class_obj).__init__(**corpus_manifest)
-	return class_obj
 
 ####
 
@@ -466,7 +390,7 @@ class Corpus(object):
 
 	def save_metadata(self,ofn=None,slingshot=False,slingshot_n=None,slingshot_opts=''):
 		from llp import tools
-		if not ofn: ofn=tools.iter_filename(self.path_metadata,force=True)
+		if not ofn: ofn=tools.iter_filename(self.path_metadata,force=False) # force=True)
 		print('>> [%s] saving metadata to: %s...' % (self.name, ofn))
 
 		# get texts
@@ -782,11 +706,11 @@ class Corpus(object):
 		urls=[(x[4:], getattr(self,x)) for x in dir(self) if x.startswith('url_') and getattr(self,x)]
 		return urls
 
-	def download(self, ask=True):
+	def download(self, ask=True, urls=None):
 		self.mkdir_root()
 		self.chdir_root()
 
-		URLS=self.urls()
+		if not urls: urls=URLS=self.urls()
 
 		if ask:
 			url2ok=defaultdict(None)
@@ -2350,12 +2274,13 @@ def get_freq_async(text):
 
 
 
-# Add new name for function
-load = load_corpus
 
 class Bunch(object):
-	def __init__(self, adict):
+	DEFAULT=''
+	def __init__(self, **adict):
 		self.__dict__.update(adict)
+	def __getattr__(self,attr):
+		return self.__dict__.get(attr,self.DEFAULT)
 
 
 def start_new_corpus(attrs):
@@ -2416,12 +2341,14 @@ class_name = {class_name}
 
 	python_fnfn=os.path.join(path_python_dir,path_python_fn)
 	#python_fnfn2=os.path.join(path_python_dir,'__init__.py')
-	python_ifnfn=os.path.join(PATH_TO_CORPUS_CODE,'default','default.py')
+	python_ifnfn=os.path.join(PATH_TO_CORPUS_CODE,'default','new_corpus.py')
 
 	#if not os.path.exists(python_fnfn) and not os.path.exists(python_fnfn2) and os.path.exists(python_ifnfn):
-	if not os.path.exists(python_fnfn) and os.path.exists(python_ifnfn):
+	#if not os.path.exists(python_fnfn) and os.path.exists(python_ifnfn):
+	ofn=tools.iter_filename(python_fnfn)
+	if os.path.exists(python_ifnfn):
 		#with open(python_fnfn,'w') as of, open(python_fnfn2,'w') as of2, open(python_ifnfn) as f:
-		with open(python_fnfn,'w') as of, open(python_ifnfn) as f:
+		with open(ofn,'w') as of, open(python_ifnfn) as f:
 			itxt=f.read()
 			itxt=itxt.replace('NewCorpus',ns.class_name)
 
@@ -2441,7 +2368,110 @@ class_name = {class_name}
 
 
 
+def get_python_path(path_python,path_root):
+	if not os.path.isabs(path_python):
+		#cd['path_python'] = path_python=os.path.join(PATH_TO_CORPUS_CODE,path_python)  # if not path_python.startswith(os.path.sep) else path_python
+		path_python1=os.path.join(path_root,path_python)  # if not path_python.startswith(os.path.sep) else path_python
+		module_name=os.path.splitext(os.path.basename(path_python))[0]
+		path_python2=os.path.join(path_root,module_name,path_python)  # if not path_python.startswith(os.path.sep) else path_python
+		path_python3=os.path.join(PATH_TO_CORPUS_CODE,path_python)
+		path_python4=os.path.join(PATH_TO_CORPUS_CODE,module_name,path_python)
+
+		for ppath in [path_python1,path_python2,path_python3,path_python4]:
+			#print('?',ppath,os.path.exists(ppath))
+			if os.path.exists(ppath):
+				return os.path.abspath(ppath)
+	else:
+		return path_python
 
 
-class PlainTextCorpus(Corpus):
-	pass
+
+
+def load_corpus(name_or_id,sources=[PATH_CORPUS,''],**input_kwargs):
+	from llp.tools import get_path_abs,camel2snake_case
+
+	# Set defaults
+	default_kwargs=MANIFEST_DEFAULTS
+	#print('>> loading corpus:',name_or_id)
+
+	### Configs
+	manifest_kwargs={}
+	manifest=load_manifest()
+	manifest_byid = dict((cd['id'],cd) for cd in manifest.values())
+	manifest_kwargs=manifest_byid.get(name_or_id)
+	if not manifest_kwargs: manifest_kwargs=manifest.get(name_or_id)
+	#print(manifest_kwargs)
+	opts = Bunch(**dict(list(default_kwargs.items()) + list(manifest_kwargs.items()) + list(input_kwargs.items())))
+	opts.path_root = get_path_abs(opts.path_root,sources=sources)
+	if not opts.path_root: opts.path_root=os.path.join(PATH_CORPUS,opts.id)
+
+
+	#pprint(opts.__dict__)
+
+	opts.path_python = get_python_path(opts.path_python,opts.path_root)
+	if not opts.path_python:
+		print('!! No path_python set.')
+		return
+
+	opts.module_name = os.path.splitext(os.path.basename(opts.path_python))[0]
+	#print(module_name,path_python,os.path.exists(path_python))
+	try:
+		import imp
+		#print(f'>> loading {opts.module_name} from {opts.path_python}')
+		module = imp.load_source(opts.module_name, opts.path_python)
+	except ValueError as e:#FileNotFoundError:
+		return None
+
+	class_class = getattr(module,opts.class_name)
+	class_obj = class_class()
+
+
+	# Set as attributes
+	for opt_name,opt_val in sorted(opts.__dict__.items()):
+		# Set abs path
+		if opt_name!='path_root' and opt_name.startswith('path_') and opt_val and type(opt_val)==str:
+			#opt_val = os.path.join(path_root,opt_val) if not os.path.isabs(opt_val) else opt_val
+			opt_val_abs = get_path_abs(opt_val,sources=[opts.path_root,'.'])
+			if not opt_val_abs: opt_val=os.path.join(opts.path_root,opt_val)
+			opt_val = opt_val_abs if opt_val_abs else opt_val
+		#if opt_val and opt_val!=default_kwargs.get(opt_name): print(f'   {opt_name} = {opt_val}')
+		setattr(class_obj,opt_name,opt_val)
+		setattr(opts,opt_name,opt_val)
+
+	class_obj.opts = opts
+	return class_obj
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Add new name for function
+load = load_corpus
+#################################################################

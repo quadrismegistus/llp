@@ -12,7 +12,9 @@ COMMANDS = [
 	dict(name='create', help='Create a corpus with LLP', takes_corpus_obj=False, group='New corpora'),
 	dict(name='import', help='Import an existing corpus into LLP', takes_corpus_obj=False, group='New corpora'),
 
+	dict(name='compile', help='Compile corpus from sources', takes_corpus_obj=True, group='Downloading corpora'),
 	dict(name='download', help='Download files of corpus (TXT/XML/metadata/data)', takes_corpus_obj=True, group='Downloading corpora'),
+	dict(name='install', help='Run a sweep of text mining routines', takes_corpus_obj=True, group='Downloading corpora'),
 
 	dict(name='zip', help='Zip and archive a corpus', takes_corpus_obj=True, group='Archiving and sharing'),
 	dict(name='upload', help='Upload to a cloud the zip archives', takes_corpus_obj=True, group='Archiving and sharing'),
@@ -169,10 +171,11 @@ def main():
 		start_new_corpus_interactive(args,import_existing=True)
 
 	## COMMANDS ON CORPORA
-	if args.cmd=='download' and args.corpus:
+	elif args.cmd in {'compile','install','download'} and args.corpus:
 		import llp
 		corpus = llp.load(args.corpus)
-		corpus.download()
+		cmder = getattr(corpus,args.cmd)
+		cmder()
 
 	elif args.cmd=='info' and args.corpus:
 		import llp
