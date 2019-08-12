@@ -2422,6 +2422,7 @@ def load_corpus(name_or_id,sources=[PATH_CORPUS,''],**input_kwargs):
 	except ValueError as e:#FileNotFoundError:
 		return None
 
+	opts.class_name = opts.class_name if opts.class_name else opts.name.replace(' ','')
 	class_class = getattr(module,opts.class_name)
 	class_obj = class_class()
 
