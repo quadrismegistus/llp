@@ -281,22 +281,9 @@ from llp.corpus.tcp import TCP
 
 
 class ECCO_TCP(TCP):
-	PATH_TXT = 'ecco/_txt_ecco_tcp'
-	PATH_XML = 'ecco/_xml_ecco_tcp'
-	PATH_INDEX = 'ecco/_index_ecco_tcp'
-	PATH_HEADER='ecco/headers.ecco_tcp'
-	PATH_METADATA='ecco/corpus-metadata.ECCO-TCP.xlsx'
 	EXT_XML = '.xml'
-	PATH_FREQ_TABLE = {10000:'ecco/freqs/data.freqs.ECCO-TCP.worddb.table.txt.gz'}
-	PATHS_TEXT_DATA = ['ecco/_data_texts_ecco_tcp/data.etc-text-info.ECCO-TCP.txt']
-
 	TEXT_CLASS=TextECCO_TCP
 	TEXT_SECTION_CLASS=TextSectionTCP
-
-	def __init__(self):
-		super(ECCO_TCP,self).__init__('ECCO-TCP',path_xml=self.PATH_XML,path_index=self.PATH_INDEX,ext_xml=self.EXT_XML,path_txt=self.PATH_TXT,path_header=self.PATH_HEADER,path_metadata=self.PATH_METADATA,path_freq_table=self.PATH_FREQ_TABLE,paths_text_data=self.PATHS_TEXT_DATA)
-		self.path = os.path.dirname(__file__)
-
 
 
 class ECCO(Corpus):

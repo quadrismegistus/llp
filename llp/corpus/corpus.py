@@ -7,7 +7,7 @@ from six.moves import range
 from six.moves import zip
 from collections import defaultdict
 from tqdm import tqdm
-
+from llp.text import Text
 
 from os.path import expanduser
 HOME=expanduser("~")
@@ -33,7 +33,7 @@ MANIFEST_DEFAULTS=dict(
 
 	path_freq_table={},
 	col_id='id',
-	col_fn='',
+	col_fn='fn',
 	path_root='',
 	#path_freqs=os.path.join('freqs',name),
 	path_freqs='freqs',
@@ -46,6 +46,7 @@ MANIFEST_DEFAULTS=dict(
 PATH_HERE=os.path.abspath(os.path.dirname(__file__))
 PATH_CORPUS = tools.config.get('PATH_TO_CORPORA', PATH_HERE )
 PATH_TO_CORPUS_CODE = tools.config.get('PATH_TO_CORPUS_CODE', PATH_HERE )
+
 PATH_MANIFEST=os.path.join(PATH_TO_CORPUS_CODE,'manifest.txt')
 PATH_MANIFEST_LOCAL=os.path.join(PATH_TO_CORPUS_CODE,'manifest_local.txt')
 PATH_MANIFEST_LOCAL2=os.path.abspath(os.path.join(PATH_TO_CORPUS_CODE,'..','..','llp_manifest.txt'))
@@ -86,8 +87,11 @@ def load_manifest(force=True,corpus_name=None):
 	#print('>> reading config files...')
 	import configparser
 	config = configparser.ConfigParser()
+	config_d={}
 	for (pn,path) in PATH_MANIFESTS_TUPLES:
 		#print('  ','reading:',path)
+		#config_now = configparser.ConfigParser()
+		#	config_now.read(path)
 		config.read(path)
 
 	# convert config
@@ -98,11 +102,28 @@ def load_manifest(force=True,corpus_name=None):
 			for k,v in MANIFEST_DEFAULTS.items(): cd[k]=v
 			for k,v in list(config[corpus].items()): cd[k]=v
 
+			## LAST MINUTE DEFAULTS!?
+			if not cd['path_python']: cd['path_python']=cd['id']+'.py'
+
 	return MANIFEST if not corpus_name else MANIFEST.get(corpus_name,{})
 
+def get_python_path(path_python,path_root):
+	if not os.path.isabs(path_python):
+		#cd['path_python'] = path_python=os.path.join(PATH_TO_CORPUS_CODE,path_python)  # if not path_python.startswith(os.path.sep) else path_python
+		path_python1=os.path.join(path_root,path_python)  # if not path_python.startswith(os.path.sep) else path_python
+		module_name=os.path.splitext(os.path.basename(path_python))[0]
+		path_python2=os.path.join(path_root,module_name,path_python)  # if not path_python.startswith(os.path.sep) else path_python
+		path_python3=os.path.join(PATH_TO_CORPUS_CODE,path_python)
+		path_python4=os.path.join(PATH_TO_CORPUS_CODE,module_name,path_python)
+
+		for ppath in [path_python1,path_python2,path_python3,path_python4]:
+			if os.path.exists(ppath):
+				return ppath
+	else:
+		return path_python
 
 
-def load_corpus(name=None,required_data = MANIFEST_REQUIRED_DATA, manifest=None):
+def load_corpus(name=None,required_data = MANIFEST_REQUIRED_DATA, manifest=None, **kwargs):
 	manifest=load_manifest() if not manifest else manifest
 	manifest_byid = dict((cd['id'],cd) for cd in manifest.values())
 
@@ -126,21 +147,31 @@ def load_corpus(name=None,required_data = MANIFEST_REQUIRED_DATA, manifest=None)
 
 	# load and configure corpus
 	import imp
+
 	cd=corpus_manifest
 	c_id=cd['id']
 	c_name=cd['name']
-	cd['path_python'] = path_python = cd['path_python'] if cd['path_python'] else os.path.join(c_id,c_id+'.py')
+	cd['path_python'] = path_python = cd['path_python'] if cd['path_python'] else c_id+'.py' #os.path.join(c_id,c_id+'.py')
 	class_name = cd['class_name'] if cd['class_name'] else c_name
-	cd['path_root'] = path_root = cd['path_root'] if cd['path_root'] else c_id
+	cd['path_root'] = path_root = (cd['path_root'] if cd['path_root'] else c_id)
 
 	if not os.path.isabs(path_root):# path_root=os
 		cd['path_root'] = path_root=os.path.join(PATH_CORPUS,path_root)
 
-	if not os.path.isabs(path_python):
-		cd['path_python'] = path_python=os.path.join(PATH_TO_CORPUS_CODE,path_python)  # if not path_python.startswith(os.path.sep) else path_python
+	print('>> root:',path_root)
 
+
+
+		#print(path_python)
+
+	path_python=get_python_path(path_python,path_root)
 	module_name = os.path.splitext(os.path.basename(path_python))[0]
-	module = imp.load_source(module_name, path_python)
+	#print(module_name,path_python,os.path.exists(path_python))
+	try:
+		module = imp.load_source(module_name, path_python)
+	except ValueError:#FileNotFoundError:
+		return None
+
 	class_class = getattr(module,class_name)
 	class_obj = class_class()
 	class_obj.name_module = module_name
@@ -165,6 +196,8 @@ def corpora(load=True,incl_meta_corpora=True):
 	for corpus_name in sorted(manifest):
 		if not incl_meta_corpora and manifest[corpus_name]['is_meta']: continue
 		corpus_obj=load_corpus(corpus_name, manifest=manifest) if load else manifest[corpus_name]
+		print(corpus_name, corpus_obj)
+		#if corpus_obj is None: continue
 		yield (corpus_name, corpus_obj)
 
 def check_corpora(paths=['path_xml','path_txt','path_freqs','path_metadata'],incl_meta_corpora=False):
@@ -217,42 +250,56 @@ class Corpus(object):
 	EXT_TXT='.txt'
 	EXT_XML='.xml'
 	TYPE='Corpus'
+	TEXT_CLASS=Text
 
-
-	def __init__(self,name='Corpus',id='corpus',**input_kwargs):
+	def __init__(self,name=None,id=None,sources=[PATH_CORPUS,''],**input_kwargs):
 		#print('>> building corpus:',name)
-		self.name = name
-		self.id = id
+		from llp.tools import get_path_abs,camel2snake_case
 
 		# Set defaults
 		default_kwargs=MANIFEST_DEFAULTS
 
-		# Pathmaker
-		def get_path(path_corpus, path_root, path_rel):
-			path_corpus=path_corpus.strip()
-			path_rel=path_rel.strip()
-			path_root=path_root.strip()
-			if os.path.isabs(path_rel) or path_rel.startswith('http'):
-				return path_rel
-			elif os.path.isabs(path_root) or path_root.startswith('http'):
-				return os.path.join(path_root,path_rel)
-			elif path_corpus.split(os.path.sep)[-1]==path_root:
-				return os.path.join(path_corpus,path_rel)
-			else:
-				return os.path.join(path_corpus,path_root,path_rel)
+		if not name: name = input_kwargs.get('name')
+		if not name: name = self.__class__.__name__
+
+		if not id: id = input_kwargs.get('id')
+		if not id: id = camel2snake_case(name)
+
+		# self.name=name
+		# self.id=id
+		# self.input_kwargs=input_kwargs
+		# for k,v in input_kwargs.items(): setattr(self,k,v)
 
 		### Configs
-		import inspect
-		opts = input_kwargs
-		self.opts = opts
-		path_root = self.opts.get('path_root','')
+		manifest_kwargs=load_manifest().get(name,{})
+		self.opts = opts = dict(list(default_kwargs.items()) + list(manifest_kwargs.items()) + list(input_kwargs.items()))
+		self.name=name
+		self.id = id
+
+
+
+		path_root = get_path_abs(self.opts.get('path_root',''),sources=sources)
+		if not path_root: path_root=os.path.join(PATH_CORPUS,self.id)
+		#if not os.path.isabs(path_root): path_root=os.path.abspath(os.path.join(PATH_CORPUS,path_root))
+
 		# Set as attributes
 		for opt_name,opt_val in sorted(self.opts.items()):
 			# Set abs path
-			if opt_name.startswith('path_') and opt_val and type(opt_val)==str:
-				opt_val=get_path(PATH_CORPUS,path_root,opt_val)
+			if opt_name!='path_root' and opt_name.startswith('path_') and opt_val and type(opt_val)==str:
+				#opt_val = os.path.join(path_root,opt_val) if not os.path.isabs(opt_val) else opt_val
+				opt_val_abs = get_path_abs(opt_val,sources=[path_root,'.'])
+				if not opt_val_abs: opt_val=os.path.join(path_root,opt_val)
+				opt_val = opt_val_abs if opt_val_abs else opt_val
+			#if opt_val and opt_val!=default_kwargs.get(opt_name): print(f'   {opt_name} = {opt_val}')
 			setattr(self,opt_name,opt_val)
 
+
+		path_python=get_python_path(self.opts.get('path_python'),path_root)
+		print('>> root:',path_root)
+		print('>> path_python:',path_python)
+		print('>> PATH_CORPUS:',PATH_CORPUS)
+		print('>> PATH_TO_CORPUS_CODE:',PATH_TO_CORPUS_CODE)
+		print()
 
 
 	@property
@@ -295,9 +342,10 @@ class Corpus(object):
 
 	def texts(self,text_ids=None,combine_matches=True,limit=False,from_files=False):
 		if text_ids:
-			return [self.TEXT_CLASS(idx,self) for idx in text_ids]
+			self._texts=[self.TEXT_CLASS(idx,self) for idx in text_ids]
 		if not hasattr(self,'_texts'):
-			self._texts=[self.TEXT_CLASS(idx,self) for idx in self.get_text_ids(limit=limit,from_files=from_files)]
+			self._texts=[self.TEXT_CLASS(idx,self) for idx in sorted(self.get_text_ids(limit=limit,from_files=from_files))]
+			for i,t in enumerate(self._texts): t._i = i
 		return self._texts
 
 	@property
@@ -316,7 +364,9 @@ class Corpus(object):
 	def exists_metadata(self):
 		return os.path.exists(self.path_metadata)
 
-	def get_id_from_metad(self,metad):
+	def get_id_from_metad(self,metad,addr_key='_addr'):
+		if addr_key and addr_key in metad:
+			return metad[addr_key]
 		if self.col_id and self.col_id in metad:
 			return metad[self.col_id]
 		if self.col_fn and self.col_fn in metad:
@@ -444,12 +494,20 @@ class Corpus(object):
 
 	def load_metadata(self,combine_matches=False,load_text_data=True,load_rel_data=False,minimal=False,maximal=False,fix_ids=True):
 		from llp import tools
-		meta_ld=tools.read_ld(self.path_metadata,keymap={'*':six.text_type})
-		for d in meta_ld: d['corpus']=self.name
+		meta_ld=tools.read_ld(self.path_metadata,keymap={'*':str})
 
 		self._meta=meta_ld
 		self._text_ids=[self.get_id_from_metad(d) for d in meta_ld]
+		self._texts=[self.TEXT_CLASS(idx,self) for idx in self._text_ids]
 		self._metad=dict(list(zip(self._text_ids,self._meta)))
+
+		for i,dx in enumerate(self._meta):
+			t = self._texts[i]
+			t._meta = dx
+			#dx['id']=t.id
+			#dx['corpus']=t.corpus
+			#dx['_llp_']=t.addr
+
 
 		if maximal or (not minimal and load_text_data): self.load_text_data()
 		if maximal or (not minimal and combine_matches): self.combine_matches()
@@ -608,10 +666,9 @@ class Corpus(object):
 		if not hasattr(self,'_meta'):
 			if os.path.exists(self.path_metadata):
 				self.load_metadata()
-			else:
-				return [t.meta_by_file for t in self.texts()]
-
-		return self._meta
+			#else:
+			#	return [t.meta_by_file for t in self.texts()]
+		return [t.meta for t in self.texts()]
 
 
 	def zip(self,savedir=None, ask=True, sbatch=False, sbatch_opts='', defaults=ZIP_PART_DEFAULTS):
@@ -785,8 +842,15 @@ class Corpus(object):
 	def metadata(self): return self.metadf
 
 	@property
+	def addr2meta(self):
+		if not hasattr(self,'_addr2meta'):
+			self._addr2meta=a2m={}
+			for t in self.texts():
+				a2m[t.addr]=t.meta
+		return self._addr2meta
+
+	@property
 	def metad(self):
-		from llp import tools
 		if not hasattr(self,'_metad'):
 			#if not hasattr(self,'_meta'): self.meta
 			self._metad=dict(list(zip(self.text_ids,self.meta)))
@@ -1968,18 +2032,17 @@ class Corpus_in_Sections(Corpus):
 			self._texts+=[ts]
 
 	@property
-	def meta(self):
+	def meta1(self):
 		if not hasattr(self,'_meta'):
 			if os.path.exists(self.path_metadata):
 				self.load_metadata(minimal=True)
-
-				# create texts if not already
-				if not hasattr(self,'_texts'):
-					self.create_texts_from_meta()
-
 			else:
-				return [t.meta_by_file for t in self.texts()]
+				return [t.get_meta_from_file for t in self.texts()]
 		return self._meta
+
+	@property
+	def meta(self):
+		return [t.get_metadata() for t in self.texts]
 
 	@property
 	def path_metadata(self): return os.path.join(self.path,'corpus-metadata.%s.txt' % self.name)
@@ -2301,8 +2364,7 @@ class_name = {class_name}
 """.format(**attrs)
 
 	print('-'*40)
-	print('>> Initializing corpus with manifest:')
-	print(manifeststr)
+
 
 	### WRITE MANIFEST
 	path_manifest = PATH_MANIFEST_USER if os.path.exists(PATH_MANIFEST_USER) else PATH_MANIFEST
@@ -2310,10 +2372,10 @@ class_name = {class_name}
 		global_manifest_txt = f.read()
 
 	if not '[%s]' % ns.name in global_manifest_txt:
-		print('>> Adding to corpus manifest [%s]' % path_manifest)
+		print('>> Saving to corpus manifest [%s]' % path_manifest)
 		with open(path_manifest,'a+') as f:
 			f.write('\n\n'+manifeststr+'\n\n')
-		print(manifeststr)
+		#print(manifeststr)
 
 	## create new data folders
 	ns.path_root = os.path.join(PATH_CORPUS,ns.path_root) if not os.path.isabs(ns.path_root) else ns.path_root
@@ -2340,16 +2402,18 @@ class_name = {class_name}
 		os.makedirs(path_python_dir)
 
 	python_fnfn=os.path.join(path_python_dir,path_python_fn)
-	python_fnfn2=os.path.join(path_python_dir,'__init__.py')
+	#python_fnfn2=os.path.join(path_python_dir,'__init__.py')
 	python_ifnfn=os.path.join(PATH_TO_CORPUS_CODE,'default','newcorpus.txt')
 
-	if not os.path.exists(python_fnfn) and not os.path.exists(python_fnfn2) and os.path.exists(python_ifnfn):
-		with open(python_fnfn,'w') as of, open(python_fnfn2,'w') as of2, open(python_ifnfn) as f:
+	#if not os.path.exists(python_fnfn) and not os.path.exists(python_fnfn2) and os.path.exists(python_ifnfn):
+	if not os.path.exists(python_fnfn) and os.path.exists(python_ifnfn):
+		#with open(python_fnfn,'w') as of, open(python_fnfn2,'w') as of2, open(python_ifnfn) as f:
+		with open(python_fnfn,'w') as of, open(python_ifnfn) as f:
 			itxt=f.read()
 			itxt=itxt.replace('[[class_name]]',ns.class_name)
 
 			of.write(itxt)
-			of2.write('from .%s import *\n' % python_module)
+			#of2.write('from .%s import *\n' % python_module)
 			print('>> creating:',python_fnfn)
 
 
@@ -2357,3 +2421,6 @@ class_name = {class_name}
 		#print('>> creating:',ns.path_metadata)
 		#from pathlib import Path
 		#Path(ns.path_metadata).touch()
+
+	print('\n>> Corpus finalized with the following manifest configuration:')
+	print(manifeststr)

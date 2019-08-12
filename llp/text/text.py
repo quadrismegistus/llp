@@ -17,7 +17,7 @@ import ujson as json
 
 class Text(object):
 	def __init__(self,idx,corpus,path_to_xml=None,path_to_txt=None):
-		self.id=idx
+		self._id=idx
 		self.corpus=corpus
 		self._sections=[]
 		self._fnfn_xml=path_to_xml
@@ -26,8 +26,28 @@ class Text(object):
 	@property
 	def addr(self):
 		if not hasattr(self,'_addr'):
-			self._addr=str(self.corpus.id)+'|'+str(self.id)
+			if self.corpus.id and self.corpus.id!='corpus':
+				self._addr=str(self.corpus.id)+'|'+str(self.id)
+			else:
+				self._addr=self.id
 		return self._addr
+
+	@property
+	def fn(self):
+		return self.meta.get(self.col_fn,'')
+
+	@property
+	def i(self):
+		if hasattr(self,'_i'): return self._i
+		return None
+
+	@property
+	def id(self):
+		if not hasattr(self,'_id'):
+			if self.fn: self._id=os.path.splitext(self.fn)[0]
+			if self.i is not None: self._id=self.i
+
+		return self._id
 
 	@property
 	def nation(self):
@@ -91,7 +111,12 @@ class Text(object):
 	def fnfn_txt(self):
 		if hasattr(self,'_fnfn_txt') and self._fnfn_txt: return self._fnfn_txt
 		#print(type(self.corpus.path_txt), type(self.id), type(self.ext_txt))
-		return os.path.join(self.corpus.path_txt, self.id + self.ext_txt)
+		try:
+			return os.path.join(self.corpus.path_txt, self.id + self.ext_txt)
+		except TypeError:
+			if self.fn.endswith(self.ext_txt):
+				return os.path.join(self.corpus.path_txt, self.fn)
+		return ''
 
 	@property
 	def path_txt(self): return self.fnfn_txt
@@ -102,7 +127,9 @@ class Text(object):
 		try:
 			return os.path.join(self.corpus.path_xml, self.id + self.ext_xml)
 		except TypeError:
-			return ''
+			if self.fn.endswith(self.ext_txt):
+				return os.path.join(self.corpus.path_txt, self.fn)
+		return ''
 
 	@property
 	def fnfn_spacy(self):
@@ -382,20 +409,34 @@ class Text(object):
 			return self._author_dates
 
 
+	def get_meta_from_corpus_metadata(self):
+		return self.corpus._metad.get(self.id)
+
+	def get_metadata(self,from_metadata=True,from_files=True):
+		def do_return(meta):
+			if not 'corpus' in meta: meta['corpus']=self.corpus.name
+			if not 'id' in meta: meta['id']=self.id
+			if not '_llp_' in meta: meta['_llp_']=self.addr
+			return meta
+
+		if hasattr(self,'_meta'): return do_return(self._meta)
+
+		if from_metadata:
+			meta=self.get_meta_from_corpus_metadata()
+			if meta: return do_return(meta)
+
+		if from_files:
+			meta=self.get_meta_from_file()
+			if meta: return do_return(meta)
+
+			meta=self.meta_by_file
+			if meta: return do_return(meta)
+		return do_return({})
+
 
 	@property
 	def meta(self):
-		if not hasattr(self,'_meta'):
-			if os.path.exists(self.corpus.path_metadata):
-				#print '>> meta by path_metadata'
-				self._meta=d=self.corpus.metad[self.id]
-			else:
-				#print '>> meta by file'
-				self._meta=d=self.meta_by_file
-			d['corpus']=self.corpus.name
-			#d['medium']=getattr(self,'medium') if hasattr(self,'medium') else ''
-			self._meta=d
-		return self._meta
+		return self.get_metadata()
 
 	def spacy(self,load_from_file=False,model_name='en_core_web_sm'):
 		import spacy

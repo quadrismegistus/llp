@@ -2,7 +2,27 @@
 
 Literary Language Processing (LLP): corpora, models, and tools for the digital humanities.
 
-## Make a corpus
+## Installation
+
+Just run pip:
+
+```
+pip install llp
+```
+
+Or if you're newer to Python programming, and prefer to install LLP as part of a text mining "starter pack" of tools and software, check out the [LTM Starter Pack](ltm-starterpack).
+
+To configure, type:
+
+```
+llp status
+```
+
+
+## Corpus magic
+
+There's a few ways to create a corpus uing LLP.
+
 
 If you have a folder of plain text files, and an accompanying metadata file,
 

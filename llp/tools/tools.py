@@ -8,9 +8,9 @@ from functools import reduce
 from smart_open import open
 
 try:
-    input = raw_input
+	input = raw_input
 except NameError:
-    pass
+	pass
 
 
 from os.path import expanduser
@@ -1471,17 +1471,87 @@ def cloud_share_all():
 
 
 def check_make_dir(path,consent=True,default='y'):
-	if not os.path.exists(path):
+	if os.path.splitext(path)[0]!=path: return # return if a filename, not a dirname
+	path=os.path.abspath(path)
+	if not os.path.exists(path) and os.path.splitext(path)[0]==path:
+		# create?
 		ans=input('>> create this path?: '+path+'\n[Y/n]').strip().lower()
 		if not ans: ans=default
-		if ans.startswith('n'):
-			return False
-		print('creating:',path)
-		os.makedirs(path)
-		return True
+		if ans=='y':
+			print('   creating:',path)
+			os.makedirs(path)
+
+def symlink(path,link_to):
+	# symlink?
+	if link_to and os.path.exists(path):
+		link_does_not_exist=not os.path.exists(link_to)
+		link_already_points_to_file=os.path.realpath(path)==os.path.realpath(link_to)
+		link_is_same_as_file=link_to==path
+
+		ext_link=os.path.splitext(link_to)[-1]
+		ext_path=os.path.splitext(path)[-1]
+		link_has_wrong_file_extension = ext_link and ext_path and ext_link!=ext_path
+		if link_is_same_as_file:
+			pass
+		elif link_has_wrong_file_extension:
+			pass
+		elif link_already_points_to_file:
+			#print('   link exists:',link_to)
+			pass
+		elif link_does_not_exist or not link_already_points_to_file:
+			ans=input('>> create link? [Y/n]\n' + (' '*3) + f'from: {link_to}\n' + (' '*3) + f'to: {path}\n>> ').strip().lower()
+			if not ans: ans=default
+			if ans=='y':
+				print('>> linking to:',link_to)
+				if os.path.exists(link_to): os.remove(link_to)
+				os.symlink(path, link_to)
+
+
 
 def check_make_dirs(paths,consent=True):
 	l=[]
 	for path in paths:
 		l+=[check_make_dir(path,consent=consent)]
 	return l
+
+
+
+SOURCES=[]
+if config.get('PATH_TO_CORPORA'): SOURCES+=[config.get('PATH_TO_CORPORA')]
+SOURCES+=['.']
+
+#print("SOURCES:",SOURCES)
+
+def get_path_abs(path,sources=SOURCES,rel_to=None):
+	if not path: return ''
+	if os.path.isabs(path):
+		rpath=path
+	else:
+		rpath=''
+		for source in sources:
+			spath=os.path.join(source,path)
+			#if os.path.isabs(spath): return spath
+			if os.path.exists(spath):
+				rpath=os.path.abspath(spath)
+				break
+	if not rpath: return ''
+
+	if rel_to:
+		return os.path.relpath(rpath,rel_to)
+	else:
+		return os.path.abspath(rpath)
+
+
+
+def get_llp_id(idx,corpus):
+	if corpus and corpus!='corpus':
+		return corpus+'|'+idx
+	return idx
+
+
+
+
+
+def camel2snake_case(name):
+	s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+	return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()

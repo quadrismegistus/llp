@@ -13,9 +13,33 @@ from llp import tools
 ## 1. Text class
 ################
 
-class TextTOO(Text):
+
+class PlainTextNewCorpus(Text):
+
+
 	@property
-	def meta_by_file(self):
+	def meta(self):
+		# define
+
+	def get_meta(self):
+
+
+	def text_plain(self, force_xml=None):
+		"""
+		This function returns the plain text file. You may want to modify this.
+		"""
+
+		# Return plain text version if it exists
+		if self.exists_txt: return self.text_plain_from_txt()
+
+		# Otherwise, load from XML?
+		# ...
+
+		return ''
+
+class XMLTextNewCorpus(Text):
+	@property
+	def get_meta_from_file(self):
 		"""
 		This function looks into the XML of the file, if there is any, and returns a dictionary of metadata.
 		Please make sure to include the id of the text
@@ -55,11 +79,11 @@ class TextTOO(Text):
 
 
 
-class TOO(Corpus):
-	TEXT_CLASS=TextTOO
+class [[class_name]](Corpus):
+	TEXT_CLASS=Text[[class_name]]
 	EXT_XML='.xml'
 	EXT_TXT='.txt'
 
 	def __init__(self):
-		super(TOO,self).__init__('TOO')
+		super([[class_name]],self).__init__('[[class_name]]')
 		self.path = os.path.dirname(__file__)
