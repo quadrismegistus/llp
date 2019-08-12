@@ -2,7 +2,9 @@
 
 Literary Language Processing (LLP): corpora, models, and tools for the digital humanities.
 
-## Installation
+## Quickstart
+
+### Install
 
 Just run pip:
 
@@ -12,16 +14,52 @@ pip install llp
 
 Or if you're newer to Python programming, and prefer to install LLP as part of a text mining "starter pack" of tools and software, check out the [LTM Starter Pack](ltm-starterpack).
 
+### Configure
+
 To configure, type:
 
 ```
-llp status
+llp configure
+```
+
+By default,
+
+### Load
+
+Download a corpus:
+
+```
+llp download ecco_tcp
+```
+
+Then use it:
+
+```python
+import llp
+corpus = llp.load('ECCO_TCP')               # an llp.Corpus object
+corpus.metadata                             # a pandas dataframe
+
+for text in corpus.texts():                 # looping over llp.Text objects
+   print(text.id, text.author, text.year)   # print some attributes
+   # ... (see below for more)
 ```
 
 
 ## Corpus magic
 
 There's a few ways to create a corpus uing LLP.
+
+### 1. Downloading pre-existing corpora
+
+To see which corpora are downloadable, run:
+
+```
+llp status
+```
+
+
+
+
 
 
 If you have a folder of plain text files, and an accompanying metadata file,

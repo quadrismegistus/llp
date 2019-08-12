@@ -168,7 +168,17 @@ name = InternetArchive
 id = internet_archive
 desc = 19th Century Novels, curated by the U of Illinois and hosted on the Internet Archive
 link = https://archive.org/details/19thcennov?tab=about
+url_raw = https://github.com/christofs/txtlab450/archive/master.zip
 
+
+
+[txtLAB450]
+name = txtLAB450
+id = txtlab
+desc = A multilingual dataset of 450 novels
+link = https://txtlab.org/2016/01/txtlab450-a-data-set-of-multilingual-novels-for-teaching-and-research
+url_raw = https://github.com/christofs/txtlab450/archive/master.zip
+path_metadata = metadata.csv
 
 
 

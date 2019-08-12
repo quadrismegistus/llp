@@ -37,6 +37,7 @@ MANIFEST_DEFAULTS=dict(
 	col_id='id',
 	col_fn='fn',
 	path_root='',
+	path_raw='raw',
 	#path_freqs=os.path.join('freqs',name),
 	path_freqs='freqs',
 	manifest={},
@@ -131,6 +132,7 @@ def corpora(load=True,incl_meta_corpora=True):
 
 def check_corpora(paths=['path_xml','path_txt','path_freqs','path_metadata'],incl_meta_corpora=False):
 	old=[]
+	clist=tools.cloud_list()
 	for cname,corpus in corpora(load=True,incl_meta_corpora=incl_meta_corpora):
 		if corpus is None: continue
 		print('{:30s}'.format(cname),end="\t")
@@ -138,12 +140,11 @@ def check_corpora(paths=['path_xml','path_txt','path_freqs','path_metadata'],inc
 			pathtype=path.replace('path_','')
 			pathval = getattr(corpus,path)
 			#pathval = corpus.get(path,'')
-			exists = os.path.exists(pathval)
-			if not exists:
-				print(' ',pathtype,end="\t")
-				#print(cname,path,pathval,'!' if not exists else '')
-			else:
-				print('✓',pathtype,end="\t")
+			exists = '↓' if os.path.exists(pathval) else ' '
+			exists_link = '↑' if f'{corpus.id}_{pathtype}.zip' in clist else ' '
+			cell=exists_link+' '+exists+' '+pathtype
+			print('{:10s}'.format(cell),end='\t')
+
 		print()
 			#odx={'name':cname,'id':corpus.id,'path_type':path, 'path_value':pathval, 'exists':exists}
 			#old+=[odx]
@@ -270,8 +271,10 @@ class Corpus(object):
 
 
 	@property
-	def Texts(self):
-		return self.texts()
+	def Texts(self): return self.texts()
+
+	@property
+	def textl(self): return self.texts()
 
 	def texts(self,text_ids=None,combine_matches=True,limit=False,from_files=False):
 		if text_ids:

@@ -190,7 +190,7 @@ class NewCorpus(Corpus):
 	# (2.1) Installation methods
 	####################################################################################################################
 
-	def install(self,**attrs):
+	def compile(self,**attrs):
 		"""
 		This is a custom installation function. By default, it will simply try to download itself,
 		unless a custom function is written here which either installs or provides installation instructions.

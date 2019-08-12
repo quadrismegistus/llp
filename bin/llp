@@ -105,6 +105,7 @@ def main():
 	groups['create'].add_argument('-path_metadata',help='Path to corpus metadata (CSV/TSV/XLS/XLSX) [default: %s]' % path_metadata_default)
 	groups['create'].add_argument('-path_python',help='Path to python file [default: %s]' % path_code_default)
 	groups['create'].add_argument('-class_name',help='Name of corpus class within code [default: %s]' % class_name_default)
+	groups['create'].add_argument('-defaults',help='Use defaults (besides name and id]',action='store_true')
 
 
 	## IMPORT
@@ -293,7 +294,7 @@ def start_new_corpus_interactive(args,import_existing=False):
 		attrs={}
 
 		def do_path(path,path_name,msg,root,default,remove_root=True):
-			if not path:
+			if not path and not args.defaults:
 				path=get_path_abs(input(msg).strip())
 			else:
 				print(msg)

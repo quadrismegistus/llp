@@ -1402,6 +1402,15 @@ def download(url,save_to):
 	# ValueError: unknown url type: '%22https%3A//www.dropbox.com/s/wz3igeqzx3uu5j1/markmark.zip?dl=1"'
 	url='https://' + url.split('//',1)[-1].replace('"','')
 	return download_wget(url,save_to)
+	#return download_tqdm(url,save_to)
+	#return download_curl(url,save_to)
+
+def download_curl(url,save_to):
+	save_to_dir,save_to_fn=os.path.split(save_to)
+	if save_to_dir: os.chdir(save_to_dir)
+	cmd=f'curl -o {save_to} {url}'
+	print(cmd)
+	os.system(cmd)
 
 def download_tqdm(url, save_to):
 	import requests
@@ -1455,10 +1464,16 @@ def cloud_list(tmpfn='.tmp_llp_cloud_list'):
 	import subprocess
 	try:
 		#out=subprocess.check_output(config['PATH_CLOUD_LIST_CMD'],shell=True)
-		os.system(config['PATH_CLOUD_LIST_CMD'] +' > '+tmpfn)
-		with open(tmpfn) as f: txt = f.read()
-		os.unlink(tmpfn)
-		return txt
+		clist=config.get('PATH_CLOUD_LIST_CMD')
+		cdir=config.get('PATH_CLOUD_DEST')
+		if clist and cdir:
+			cmd=f'{clist} {cdir} > {tmpfn}'
+			print('>>',cmd)
+			os.system(cmd)
+			with open(tmpfn) as f:
+				txt = f.read()
+			os.unlink(tmpfn)
+			return txt
 	except Exception:
 		return ''
 
