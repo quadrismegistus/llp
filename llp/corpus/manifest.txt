@@ -163,6 +163,15 @@ name = TedJDH
 desc = Corpus used by Ted Underwood in the 2012 Journal of Digital Humanities piece
 id = tedjdh
 
+[InternetArchive]
+name = InternetArchive
+id = internet_archive
+desc = 19th Century Novels, curated by the U of Illinois and hosted on the Internet Archive
+link = https://archive.org/details/19thcennov?tab=about
+
+
+
+
 
 
 ####
