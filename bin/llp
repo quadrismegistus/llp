@@ -53,19 +53,18 @@ def usage():
 
 def main():
 	import llp
-	from llp.lib.tab_completer import tabCompleter
-	import readline
-	tabber=tabCompleter()
-
+	#from llp.lib.tab_completer import tabCompleter
+	#import readline
+	#tabber=tabCompleter()
 	parser = argparse.ArgumentParser()
 	subparsers = parser.add_subparsers(dest='cmd')
 
-	readline.set_completer_delims('\t')
-	if 'libedit' in readline.__doc__:
-		readline.parse_and_bind("bind ^I rl_complete")
-	else:
-		readline.parse_and_bind("tab: complete")
-	readline.set_completer(tabber.pathCompleter)
+	# readline.set_completer_delims('\t')
+	# if 'libedit' in readline.__doc__:
+	# 	readline.parse_and_bind("bind ^I rl_complete")
+	# else:
+	# 	readline.parse_and_bind("tab: complete")
+	# readline.set_completer(tabber.pathCompleter)
 
 	name='CorpusName'
 	idx='corpus_id'
