@@ -17,7 +17,7 @@ llp status                # shows which corpora/data are available
 llp download ECCO_TCP     # download a corpus
 ```
 
-This will prompt you for which corpus data to download, and then  do so, extracting it into the appropriate directory:
+This will prompt you for which corpus data to download, and then do so, extracting it into the appropriate directory:
 
 ```
 $ llp download Chicago
@@ -35,19 +35,26 @@ $ llp download Chicago
 
 ```python
 import llp                                   # import llp as a python module
-corpus = llp.load('ECCO_TCP')                # load the corpus
+corpus = llp.load('Chicago')                 # load the corpus
 
-# easy pandas access
-meta_df = corpus.metadata                    # get the metadata as a dataframe
- = meta_df
-
-# loop over the texts...
+# loop over text objects
 for text in corpus.texts():
     # get a string of that text
     text_str = text.txt
 
     # get the metadata as a dictionary
     text_meta = text.meta
+
+# easy pandas access
+df = corpus.metadata                    # get the metadata as a dataframe
+c20_novels_by_american_women = df[(df.gender=='F') & (df.nationality=='American')]
+
+for text in corpus.texts(c20_novels_by_american_women.id):
+	print(text.author)
+
+# and/or use text objects
+
+
 
 
 

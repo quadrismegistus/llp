@@ -35,7 +35,7 @@ path_metadata = metadata.txt.gz
 name = Chicago
 desc = The University of Chicago Corpus of Twentieth Century Novels
 id = chicago
-
+url_metadata=https://www.dropbox.com/s/oba29ymlg7arhdu/chicago_metadata.zip?dl=1
 
 [CLMET]
 name = CLMET

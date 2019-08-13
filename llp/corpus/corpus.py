@@ -281,7 +281,7 @@ class Corpus(object):
 	def textl(self): return self.texts()
 
 	def texts(self,text_ids=None,combine_matches=True,limit=False,from_files=False):
-		if text_ids:
+		if text_ids is not None:
 			self._texts=[self.TEXT_CLASS(idx,self) for idx in text_ids]
 		if not hasattr(self,'_texts'):
 			self._texts=[self.TEXT_CLASS(idx,self) for idx in sorted(self.get_text_ids(limit=limit,from_files=from_files))]
@@ -696,7 +696,7 @@ class Corpus(object):
 			try:
 				out=str(subprocess.check_output(cmd.split()))
 			except (subprocess.CalledProcessError,ValueError,TypeError) as e:
-				print('!!',e)
+				#print('!!',e)
 				continue
 			link=out.strip().replace('\n','').split('http')[-1].split('?')[0]
 			if link: link='http'+link+'?dl=1'
@@ -906,7 +906,7 @@ class Corpus(object):
 	def dtm(self):
 		return self.freqs(fpm=False)
 
-	def freqs(self,n=5000,toks=[],text_ids=[],sep='\t',encoding='utf-8',tf=False,fpm=False,z=False):
+	def freqs(self,n=5000,toks=[],text_ids=None,sep='\t',encoding='utf-8',tf=False,fpm=False,z=False):
 		import time
 		"""
 		Load a pandas dataframe for specified number of words (n) or for specied words (toks),
@@ -921,7 +921,7 @@ class Corpus(object):
 		from llp import tools
 
 		if toks: toks=set(toks)
-		if text_ids: text_ids=set(text_ids)
+		if text_ids is not None: text_ids=set(text_ids)
 		import pandas as pd, numpy as np
 
 		fnfn=self.get_path_freq_table(n=n,discover=True)
@@ -953,7 +953,7 @@ class Corpus(object):
 			if i==0: continue  # = header
 			str_index = ln.index(sep)
 			index=ln[:str_index]
-			if text_ids and not index in text_ids: continue
+			if text_ids is not None and not index in text_ids: continue
 			indices+=[index]
 
 

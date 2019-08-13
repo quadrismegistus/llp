@@ -201,16 +201,16 @@ class InternetArchive(Corpus):
 	####################################################################################################################
 
 
-	def get_collection_ids(self,collection=DEFAULT_COLLECTION):
+	def get_collection_ids(self,collection=DEFAULT_COLLECTION,iter_as_items=False):
 		# search
 		idl=[]
 		search = search_items('collection:'+collection)
 		total=search.num_found
+		if iter_as_items: search=search.iter_as_items()
 		print(f'>> [{self.name}] scanning',total,f'items in collection {collection}')
 		# loop
 		for i,result in enumerate(tqdm(search,total=total)):
-			idx=result['identifier']
-			yield idx
+			yield result['identifier'] if not iter_as_items else result
 
 
 	def compile_txt(self,collection=DEFAULT_COLLECTION):
@@ -229,7 +229,7 @@ class InternetArchive(Corpus):
 		for idx in enumerate(tqdm(id_list,position=1)):
 			ia.download(idx,silent=True,glob_pattern='*.txt',ignore_existing=True)
 
-	def compile_metadata(self,collection=DEFAULT_COLLECTION):
+	def compile_metadata2(self,collection=DEFAULT_COLLECTION):
 		"""
 		This will download the txt files from IA.
 		Let's store these as XML files.
@@ -240,20 +240,24 @@ class InternetArchive(Corpus):
 
 		# make sure xml folder exists too
 		if not os.path.exists(self.path_xml): os.makedirs(self.path_xml)
-		os.chdir(self.path_xml)
 
 		# getting ids
 		print(f'>> [{self.name}] downloading metadata xml files, using custom function...')
-		id_list=self.get_collection_ids(collection=collection)
+		id_list=self.get_collection_ids(collection=collection,iter_as_items=True)
 
 		# download txt
+		os.chdir(self.path_xml)
+		print('>> cd',self.path_xml)
 		for idx in enumerate(tqdm(id_list,position=1)):
-			ia.download(idx,silent=True,glob_pattern='*_meta.xml',ignore_existing=True)
+			print(idx)
+			#ia.download(idx) #,silent=False,glob_pattern='*_meta.xml',ignore_existing=True)
 
-	def compile_metadata1(self):
+	def compile_metadata(self,collection=DEFAULT_COLLECTION):
 		def _writegen():
-			for idx in self.get_collection_ids():
-				yield ia.get_item(idx).metadata
+			for item in self.get_collection_ids(collection=collection,iter_as_items=True):
+				dx=item.metadata
+				print(dx)
+				yield dx
 		tools.iter_move(self.path_metadata,prefix='bak/')
 		tools.writegen(self.path_metadata, _writegen)
 
