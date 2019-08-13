@@ -4,13 +4,47 @@ Literary Language Processing (LLP): corpora, models, and tools for the digital h
 
 ## Quickstart
 
-### 1. Install
-
-Run in terminal:
+1) Install in terminal
 
 ```
 pip install llp
 ```
+
+2) Download a corpus
+
+```
+llp status                # shows which corpora/data are available
+llp download ECCO_TCP     # download a corpus
+```
+
+This will prompt you for which corpus data to download, and then  do so, extracting it into the appropriate directory:
+
+```
+$ llp download ECCO_TCP
+>> [ECCO_TCP] Download freqs file(s)?: y
+>> [ECCO_TCP] Download metadata file(s)?: y
+>> [ECCO_TCP] Download txt file(s)?: y
+>> [ECCO_TCP] Download xml file(s)?: n
+
+>> downloading: _tmp_ecco_tcp_freqs.zip
+100%|███████████████████████████████████████████████████████████████████████████████████████████████████| 36.7M/36.7M [00:47<00:00, 766kbytes/s]
+
+>> unzipping: _tmp_ecco_tcp_freqs.zip
+100%|█████████████████████████████████████████████████████████████████████████████████████████████████████| 2387/2387 [00:01<00:00, 1463.49it/s]
+
+>> downloading: _tmp_ecco_tcp_metadata.zip
+100%|████████████████████████████████████████████████████████████████████████████████████████████████████| 281k/281k [00:00<00:00, 1.12Mbytes/s]
+
+>> unzipping: _tmp_ecco_tcp_metadata.zip
+100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00, 103.41it/s]
+
+>> downloading: _tmp_ecco_tcp_txt.zip
+ 51%|███████████████████████████████████████████████████                                                 | 72.3M/141M [02:00<06:54, 167kbytes/s
+
+>> downloading: _tmp_ecco_tcp_freqs.zip    27%|██████████████████████████▎  
+| 9.75M/36.7M [00:12<00:43, 615kbytes/s]
+ ```
+
   
 ### 2. Configure
 
