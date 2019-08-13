@@ -460,7 +460,11 @@ class Text(object):
 	def meta(self):
 		return self.get_metadata()
 
-	def spacy(self,load_from_file=False,model_name='en_core_web_sm'):
+	@property
+	def spacy(self):
+		return self.get_spacy()
+
+	def get_spacy(self,load_from_file=False,model_name='en_core_web_sm'):
 		import spacy
 		global nlp
 		if not nlp:

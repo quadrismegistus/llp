@@ -20,7 +20,7 @@ llp download ECCO_TCP     # download a corpus
 This will prompt you for which corpus data to download, and then do so, extracting it into the appropriate directory:
 
 ```
-$ llp download Chicago
+$ llp download ECCO_TCP
 
 >> [ECCO_TCP] Download freqs file(s)?: y
 >> [ECCO_TCP] Download metadata file(s)?: y
@@ -35,89 +35,38 @@ $ llp download Chicago
 
 ```python
 import llp                                   # import llp as a python module
-corpus = llp.load('Chicago')                 # load the corpus
+corpus = llp.load('ECCO_TCP')                # load the corpus
+
+# easy pandas access to metadata
+df = corpus.metadata                    # get the metadata as a dataframe
+
+# easy query access
+df_midcentury_poems = corpus.metadata.query('1740 < year < 1780 & genre=="Verse"')
 
 # loop over text objects
-for text in corpus.texts():
-    # get a string of that text
-    text_str = text.txt
-
+for text in corpus.texts(text_ids=df_midcentury_poems.id):  # leave text_ids blank for all
     # get the metadata as a dictionary
     text_meta = text.meta
+    
+    # easy access to common metadata
+    author = text.author
+    year = text.year
+    
+    # easy acces to txt/xml files
+    text_as_string = text.txt
+    text_as_xml = text.xml
 
-# easy pandas access
-df = corpus.metadata                    # get the metadata as a dataframe
-c20_novels_by_american_women = df[(df.gender=='F') & (df.nationality=='American')]
-
-for text in corpus.texts(c20_novels_by_american_women.id):
-	print(text.author)
-
-# and/or use text objects
-
-
-
-
-
-3) Install additional data?
-
-
-
-  
-### 2. Configure
-
-In Terminal:
-
-```bash
-llp configure
-```
-
-### 3. Download a corpus
-
-
-In Python:
-
-```python
-import llp
-corpus = llp.load('ECCO_TCP')
-```
-
-
-
-```
-
-### Text Magic
-
-
-
-## Do other things with texts
-
-With any text object,
-
-```python
-# Get a text
-texts = corpus.texts()
-text = texts[0]
-
-# Get the plain text as a string
-txt = text.txt
-
-# Get the metadata as a dictionary
-metadata = text.meta
-
-# Get the word tokens as a list
-tokens = text.tokens
-
-# Get the word counts as a dictionary
-counts = text.freqs()
-
-# Get the n-gram counts as a dictionary
-bigrams = text.freqs_ngram(n=2)
-
-# Get a list of passages mentioning a phrase (Key Word In Context)
-passages = text.get_passages(phrases=['labour'])
-
-# Get a spacy (http://spacy.io) representation
-text_spacy = text.spacy()
+	# Get the word tokens as a list
+	tokens = text.tokens
+	
+	# Get the word counts as a dictionary (loads from JSON if available)
+	counts = text.freqs()
+	
+	# Get a spacy text object (http://spacy.io)
+	text_spacy = text.spacy
+	
+	# Get an NLTK text object
+	text_nltk = text.nltk
 ```
 
 

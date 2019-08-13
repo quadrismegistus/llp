@@ -229,29 +229,6 @@ class InternetArchive(Corpus):
 		for idx in enumerate(tqdm(id_list,position=1)):
 			ia.download(idx,silent=True,glob_pattern='*.txt',ignore_existing=True)
 
-	def compile_metadata2(self,collection=DEFAULT_COLLECTION):
-		"""
-		This will download the txt files from IA.
-		Let's store these as XML files.
-		"""
-		# make sure exists
-		meta_dirname=os.path.dirname(self.path_metadata)
-		if not os.path.exists(meta_dirname): os.path.makedirs(meta_dirname)
-
-		# make sure xml folder exists too
-		if not os.path.exists(self.path_xml): os.makedirs(self.path_xml)
-
-		# getting ids
-		print(f'>> [{self.name}] downloading metadata xml files, using custom function...')
-		id_list=self.get_collection_ids(collection=collection,iter_as_items=True)
-
-		# download txt
-		os.chdir(self.path_xml)
-		print('>> cd',self.path_xml)
-		for idx in enumerate(tqdm(id_list,position=1)):
-			print(idx)
-			#ia.download(idx) #,silent=False,glob_pattern='*_meta.xml',ignore_existing=True)
-
 	def compile_metadata(self,collection=DEFAULT_COLLECTION):
 		def _writegen():
 			for item in self.get_collection_ids(collection=collection,iter_as_items=True):
