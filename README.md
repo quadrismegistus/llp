@@ -4,6 +4,8 @@ Literary Language Processing (LLP): corpora, models, and tools for the digital h
 
 ## Quickstart
 
+### Install
+
 1) Install in terminal
 
 ```
@@ -20,7 +22,7 @@ llp download ECCO_TCP     # download a corpus
 This will prompt you for which corpus data to download, and then do so, extracting it into the appropriate directory:
 
 ```
-$ llp download ECCO_TCP
+$ llp download Chicago
 
 >> [ECCO_TCP] Download freqs file(s)?: y
 >> [ECCO_TCP] Download metadata file(s)?: y
@@ -59,15 +61,10 @@ for text in corpus.texts(text_ids=df_midcentury_poems.id):  # leave text_ids bla
 	# Get the word tokens as a list
 	tokens = text.tokens
 	
-	# Get the word counts as a dictionary (loads from JSON if available)
+	# Get the word counts as a dictionary (uses generated/downloaded JSON)
 	counts = text.freqs()
-	
-	# Get a spacy text object (http://spacy.io)
-	text_spacy = text.spacy
-	
-	# Get an NLTK text object
-	text_nltk = text.nltk
 ```
+
 
 
 
