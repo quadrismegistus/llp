@@ -26,7 +26,7 @@ with open("requirements.txt", "r") as fh:
 
 setup(
     name='llp',
-    version='0.1.12',
+    version='0.2.0',
     description=('Literary Language Processing (LLP): corpora, models, and tools for the digital humanities'),
     long_description=long_description,
     long_description_content_type="text/markdown",

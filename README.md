@@ -4,92 +4,34 @@ Literary Language Processing (LLP): corpora, models, and tools for the digital h
 
 ## Quickstart
 
-### Install
+### 1. Install
 
-Just run pip:
+Run in terminal:
 
 ```
 pip install llp
 ```
+  
+### 2. Configure
 
-Or if you're newer to Python programming, and prefer to install LLP as part of a text mining "starter pack" of tools and software, check out the [LTM Starter Pack](ltm-starterpack).
+In Terminal:
 
-### Configure
-
-To configure, type:
-
-```
+```bash
 llp configure
 ```
 
-By default,
+### 3. Download a corpus
 
-### Load
 
-Download a corpus:
-
-```
-llp download ecco_tcp
-```
-
-Then use it:
+In Python:
 
 ```python
 import llp
-corpus = llp.load('ECCO_TCP')               # an llp.Corpus object
-corpus.metadata                             # a pandas dataframe
-
-for text in corpus.texts():                 # looping over llp.Text objects
-   print(text.id, text.author, text.year)   # print some attributes
-   # ... (see below for more)
-```
-
-
-## Corpus magic
-
-There's a few ways to create a corpus uing LLP.
-
-### 1. Downloading pre-existing corpora
-
-To see which corpora are downloadable, run:
-
-```
-llp status
-```
-
-If you see an up arrow next to a type of data, you can 
-
-
-
-If you have a folder of plain text files, and an accompanying metadata file,
-
-```python
-from llp.corpus import Corpus
-
-my_corpus = Corpus(
-	path_txt='my_texts',                # path to a folder of txt files
-	path_metadata='my_metadata.xls',    # path to a metadata CSV, TSV, XLS, XLSX file
-	col_fn='my_filename_column'         # column in metadata pointing to txt file (relative to `path_txt`)
-)
-```
-
-
-## Load a pre-existing corpus
-
-Start working with corpora in a few lines:
-
-```python
-# import the llp module
-import llp
-
-# load the ECCO-TCP corpus [distributed freely online]
 corpus = llp.load('ECCO_TCP')
-
-# don't have it yet?
-corpus.download()
 ```
 
-## Do things with corpora
+
+### Corpus magic
 
 ```python
 # get the metadata as a dataframe
@@ -104,6 +46,8 @@ for text in corpus.texts():
     text_meta = text.meta
 
 ```
+
+### Text Magic
 
 
 
@@ -181,4 +125,108 @@ w2v_model.save()
 
 # Get the original gensim object
 gensim_model = w2v_model.gensim
+
+
+Then, in pyton:
+
+```python
+
+```
+
+
+### Install
+
+Just run pip:
+
+```
+pip install llp
+```
+
+Or if you're newer to Python programming, and prefer to install LLP as part of a text mining "starter pack" of tools and software, check out the [LTM Starter Pack](ltm-starterpack).
+
+To configure, type:
+
+```
+llp configure
+```
+
+By default, 
+
+### Load a corpus
+
+Download a corpus:
+
+```
+llp download ECCO_TCP
+```
+
+
+
+```python
+import llp
+corpus = llp.load('ECCO_TCP')               # an llp.Corpus object
+corpus.metadata                             # a pandas dataframe
+```
+
+
+### Work
+
+e
+
+```python
+for text in corpus.texts():                 # looping over llp.Text objects
+   print(text.id, text.author, text.year)   # print some attributes
+   # ... (see below for more)
+```
+
+### Work
+
+
+
+
+## Corpus magic
+
+There's a few ways to create a corpus uing LLP.
+
+### 1. Downloading pre-existing corpora
+
+To see which corpora are downloadable, run:
+
+```
+llp status
+```
+
+If you see an up arrow next to a type of data, you can ...
+
+
+
+If you have a folder of plain text files, and an accompanying metadata file,
+
+```python
+from llp.corpus import Corpus
+
+my_corpus = Corpus(
+	path_txt='my_texts',                # path to a folder of txt files
+	path_metadata='my_metadata.xls',    # path to a metadata CSV, TSV, XLS, XLSX file
+	col_fn='my_filename_column'         # column in metadata pointing to txt file (relative to `path_txt`)
+)
+```
+
+
+## Load a pre-existing corpus
+
+Start working with corpora in a few lines:
+
+```python
+# import the llp module
+import llp
+
+# load the ECCO-TCP corpus [distributed freely online]
+corpus = llp.load('ECCO_TCP')
+
+# don't have it yet?
+corpus.download()
+```
+
+
 ```
