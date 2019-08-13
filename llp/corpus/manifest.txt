@@ -169,6 +169,7 @@ id = internet_archive
 desc = 19th Century Novels, curated by the U of Illinois and hosted on the Internet Archive
 link = https://archive.org/details/19thcennov?tab=about
 url_raw = https://github.com/christofs/txtlab450/archive/master.zip
+path_xml = meta_xml
 
 
 [txtLAB450]

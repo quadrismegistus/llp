@@ -20,30 +20,40 @@ llp download ECCO_TCP     # download a corpus
 This will prompt you for which corpus data to download, and then  do so, extracting it into the appropriate directory:
 
 ```
-$ llp download ECCO_TCP
+$ llp download Chicago
+
 >> [ECCO_TCP] Download freqs file(s)?: y
 >> [ECCO_TCP] Download metadata file(s)?: y
 >> [ECCO_TCP] Download txt file(s)?: y
 >> [ECCO_TCP] Download xml file(s)?: n
 
 >> downloading: _tmp_ecco_tcp_freqs.zip
-100%|███████████████████████████████████████████████████████████████████████████████████████████████████| 36.7M/36.7M [00:47<00:00, 766kbytes/s]
+ 27%|██████████████████████████▎                                                                        | 9.75M/36.7M [00:12<00:43, 615kbytes/s]
+```
 
->> unzipping: _tmp_ecco_tcp_freqs.zip
-100%|█████████████████████████████████████████████████████████████████████████████████████████████████████| 2387/2387 [00:01<00:00, 1463.49it/s]
+3) Play with corpus in python
 
->> downloading: _tmp_ecco_tcp_metadata.zip
-100%|████████████████████████████████████████████████████████████████████████████████████████████████████| 281k/281k [00:00<00:00, 1.12Mbytes/s]
+```python
+import llp                                   # import llp as a python module
+corpus = llp.load('ECCO_TCP')                # load the corpus
 
->> unzipping: _tmp_ecco_tcp_metadata.zip
-100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00, 103.41it/s]
+# easy pandas access
+meta_df = corpus.metadata                    # get the metadata as a dataframe
+ = meta_df
 
->> downloading: _tmp_ecco_tcp_txt.zip
- 51%|███████████████████████████████████████████████████                                                 | 72.3M/141M [02:00<06:54, 167kbytes/s
+# loop over the texts...
+for text in corpus.texts():
+    # get a string of that text
+    text_str = text.txt
 
->> downloading: _tmp_ecco_tcp_freqs.zip    27%|██████████████████████████▎  
-| 9.75M/36.7M [00:12<00:43, 615kbytes/s]
- ```
+    # get the metadata as a dictionary
+    text_meta = text.meta
+
+
+
+3) Install additional data?
+
+
 
   
 ### 2. Configure
@@ -65,19 +75,6 @@ corpus = llp.load('ECCO_TCP')
 ```
 
 
-### Corpus magic
-
-```python
-# get the metadata as a dataframe
-df_meta = corpus.metadata
-
-# loop over the texts...
-for text in corpus.texts():
-    # get a string of that text
-    text_str = text.txt
-
-    # get the metadata as a dictionary
-    text_meta = text.meta
 
 ```
 
