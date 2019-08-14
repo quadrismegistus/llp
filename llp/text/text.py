@@ -764,6 +764,13 @@ class Text(object):
 	@property
 	def path_freqs(self): return self.fnfn_freqs
 
+	@property
+	def word_counts(self):
+		if not hasattr(self,'_word_counts'):
+			from collections import Counter
+			self._word_counts=self.freqs()
+		return self._word_counts
+
 	#@property
 	def freqs(self,modernize_spelling=False,modernize_spelling_before=3000,use_text_if_nec=True):
 		fnfn=self.fnfn_freqs
@@ -785,7 +792,7 @@ class Text(object):
 				dx2[k2]=v
 			dx=dx2
 
-		return dx
+		return Counter(dx)
 
 	def freqs_ngram(self,n=2):
 		return tools.toks2freq(tools.ngram([x for x in self.tokens], n))
