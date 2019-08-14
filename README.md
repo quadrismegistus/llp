@@ -7,28 +7,28 @@ Literary Language Processing (LLP): corpora, models, and tools for the digital h
 Install:
 
 ```
-pip install llp
+pip install llp                       # install with pip! or github here
 ```
 
 Download an existing corpus...
 
 ```
-llp status                # shows which corpora/data are available
-llp download ECCO_TCP     # download a corpus
+llp status                            # shows which corpora/data are available
+llp download ECCO_TCP                 # download a corpus
 ```
 
 ...or import your own:
 
 ```
 llp import \
- -path_txt txt_folder     # path to a folder of text files \
- -path_metadata meta.xls  # path to a metadata csv/tsv/xls
+ -path_txt txt_folder                 # path to a folder of text files \
+ -path_metadata meta.xls              # path to a metadata csv/tsv/xls
 ```
 
 ...or start a new one:
 
 ```
-llp create
+llp create                            # then follow the interactive prompt
 ```
 
 Then load the corpus in Python:
