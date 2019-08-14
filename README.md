@@ -7,7 +7,7 @@ Literary Language Processing (LLP): corpora, models, and tools for the digital h
 Install:
 
 ```
-pip install llp           # install via pip
+pip install llp
 ```
 
 Download an existing corpus...
@@ -26,68 +26,64 @@ llp import -path_txt /my/corpus/texts -path_metadata /my/corpus/metadata.xls
 Then load in Python:
 
 ```python
-import llp                                   # import llp as a python module
-corpus = llp.load('ECCO_TCP')                # load the corpus
-```
+import llp                            # import llp as a python module
+corpus = llp.load('ECCO_TCP')         # load the corpus by name or ID
 
-And play with corpus objects:
+df = corpus.metadata                  # get metadata as a pandas dataframe
+smpl=df.query('1740 < year < 1780')   # quick query access
 
-```
-corpus.metadata                               # get metadata as a pandas dataframe
-corpus.metadata.query('1740 < year < 1780')   # quick query access
-```
+for text in corpus.texts(smpl.id):    # loop over text objects
 
+    text_meta = text.meta             # get text metadata dictionary
+    author = text.author              # get common metadata as attributes    
 
-And play with text objects:
+    txt = text.txt                    # get plain text as string
+    xml = text.xml                    # get xml as string
 
-
-```python
-for text in corpus.texts():         # loop over text objects
-
-    text_meta = text.meta           # get text metadata
-    author = text.author            # easy access to common metadata
-    year = text.year                # text.year, text.title, ...
+    tokens = text.tokens              # get list of words (incl punct)
+    words  = text.words               # get list of words (excl punct)
+    counts = text.freqs()             # get word counts (from JSON if saved)
+    ocracc = text.ocr_accuracy        # get estimate of ocr accuracy
     
-    txt = text.txt                  # get plain text as string
-    xml = text.xml                  # get xml as string
-
-    tokens = text.tokens            # get list of words
-    counts = text.freqs()           # get word counts (from JSON if saved)
+    spacy_obj = text.spacy            # get a spacy.io text object
+    nltk_obj = text.nltk              # get an nltk text object
+    blob_obj = text.blob              # get a textblob object
 ```
 
+## Corpus magic
 
-Generate other data about corpora:
-
-```
-corpus.save_metadata()        # save metadata from files (if nec)
-corpus.save_plain_text()      # save plain text from xml (if nec)
-corpus.save_mfw()             # save list of all words in corpus and their total corpus.save_freqs()           # save counts as JSON files:
-corpus.save_dtm()
-```
-
-Or:
+Each corpus object can generate data about itself:
 
 ```
-llp save_freqs my_corpus
+corpus.save_metadata()                # save metadata from xml files (if possible)
+corpus.save_plain_text()              # save plain text from xml (if possible)
+corpus.save_mfw()                     # save list of all words in corpus and their total  count
+corpus.save_freqs()                   # save counts as JSON files
+corpus.save_dtm()                     # save a document-term matrix with top N words
 ```
 
+Or run in terminal:
 
+```
+llp install my_corpus                 # this is equivalent to python above
+llp install my_corpus -parallel 4     # but can access parallel processing with MPI/Slingshot
+llp install my_corpus dtm             # run a specific step
+```
 
-Also:
-
-
-
+This then allows things like:
 
 ```python
-# generate a word2vec model with gensim
-w2v_model = corpus.word2vec()
-w2v_model.model()
+mfw = corpus.mfw(n=10000)             # get the 10K most frequent words
+dtm = corpus.freqs(words=mfw)         # get a document-term matrix as a pandas dataframe
+```
 
-# Save model
-w2v_model.save()
+You can also build word2vec models:
 
-# Get the original gensim object
-gensim_model = w2v_model.gensim
+```python
+w2v_model = corpus.word2vec()         # get an llp word2vec model object
+w2v_model.model()                     # run the modeling process
+w2v_model.save()                      # save the model somewhere
+gensim_model = w2v_model.gensim       # get the original gensim object
 ```
 
 

@@ -41,6 +41,7 @@ MANIFEST_DEFAULTS=dict(
 	col_fn='fn',
 	path_root='',
 	path_raw='raw',
+	path_spacy='spacy',
 	#path_freqs=os.path.join('freqs',name),
 	path_freqs='freqs',
 	manifest={},
@@ -794,6 +795,9 @@ class Corpus(object):
 
 		parts=include if include else INSTALL_CMDS
 		parts=[x for x in parts if x not in set(exclude)]
+
+		if 'part' in attrs and attrs['part']:
+			parts=[attrs['part']]
 
 		# metadata
 		for part in parts:

@@ -269,8 +269,8 @@ def iter_filename(fnfn,force=False,prefix=''):
 		while os.path.exists(maybe_fn):
 			fnum+=1
 			maybe_fn=os.path.join(fndir, prefix + filename + str(fnum) + ext)
-		fn = maybe_fn
-	return fn
+		fnfn = maybe_fn
+	return fnfn
 
 
 def measure_ocr_accuracy(txt_or_tokens):
@@ -1533,7 +1533,7 @@ def check_make_dir(path,consent=True,default='y'):
 			print('   creating:',path)
 			os.makedirs(path)
 
-def symlink(path,link_to):
+def symlink(path,link_to,default='y'):
 	# symlink?
 	if link_to and os.path.exists(path):
 		link_does_not_exist=not os.path.exists(link_to)
@@ -1622,10 +1622,14 @@ def read_csv_with_pandas(fnfn,return_ld=False,**attrs):
 	import pandas as pd
 	if fnfn.endswith('.gz'): fnfn=fnfn[:-3]
 	ext=os.path.splitext(fnfn)[-1]
-	if ext=='csv': df=pd.read_csv(fnfn,sep=',',**attrs)
-	elif ext in {'txt','tsv'}: df=pd.read_csv(fnfn,sep='\t',**attrs)
-	elif ext in {'xls','xlsx'}: return pd.read_excel(fnfn,**attrs)
-	else: return pd.DataFrame() if not return_ld else []
+	if ext=='.csv':
+		df=pd.read_csv(fnfn,sep=',',**attrs)
+	elif ext in {'.txt','.tsv'}:
+		df=pd.read_csv(fnfn,sep='\t',**attrs)
+	elif ext in {'.xls','.xlsx'}:
+		df=pd.read_excel(fnfn,**attrs)
+	else:
+		return pd.DataFrame() if not return_ld else []
 	return df if not return_ld else df.to_dict('records')
 
 

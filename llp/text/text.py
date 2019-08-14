@@ -462,13 +462,14 @@ class Text(object):
 
 	@property
 	def spacy(self):
+		return
 		return self.get_spacy()
 
 	def get_spacy(self,load_from_file=False,model_name='en_core_web_sm'):
 		import spacy
 		global nlp
 		if not nlp:
-			print('>> loading spacy...')
+			#print('>> loading spacy...')
 			nlp = spacy.load(model_name)
 
 		doc=None
@@ -623,17 +624,17 @@ class Text(object):
 
 	@property
 	def tokens_plain(self):
-		from nltk import word_tokenize
+		import nltk
 		try:
 			txt=self.text_plain()
-			return word_tokenize(txt)
+			return nltk.word_tokenize(txt)
 		except IOError:
 			return []
 
 	@property
 	def nltk(self):
-		from nltk import word_tokenize
-		tokens = word_tokenize(self.text_plain())
+		import nltk
+		tokens = nltk.word_tokenize(self.text_plain())
 		return nltk.Text(tokens)
 
 	@property
@@ -650,18 +651,18 @@ class Text(object):
 
 
 	@property
-	def tokens_recognized(self):
+	def words_recognized(self):
 		global ENGLISH
 
 		if not ENGLISH:
 			from llp.tools import get_english_wordlist
 			ENGLISH=get_english_wordlist()
 
-		return [t for t in tokens_recognized if t in ENGLISH]
+		return [w for w in self.words if w in ENGLISH]
 
 	@property
 	def ocr_accuracy(self):
-		return float(len(self.tokens_recognized)) / len(self.tokens)
+		return float(len(self.words_recognized)) / len(self.words)
 
 	@property
 	def minhash(self):

@@ -118,21 +118,24 @@ def main():
 	groups['import'].add_argument('-col_fn',help='Column in metadata to look for TXT or XML filename [default: %s]' % default_col_fn)
 	groups['import'].add_argument('-col_id',help='Column in metadata to look for ID (the TXT or XML filename, but without a filename extension) [default: %s]' % default_col_fn)
 
-	groups['install'].add_argument('-part',help='Name of part of installation (otherwise all)')
+	slingshottable_cmds = ['install']
+	for cmd in slingshottable_cmds:
+		groups[cmd].add_argument('part',help='Name of part of installation (metadata/txt/xml/freqs/mfw/dtm)',default='',nargs='?')
+		groups[cmd].add_argument('-slingshot',action='store_true',default=False)
+		groups[cmd].add_argument('-parallel',help='How many parallel processes to run on, using Slingshot?',default=None)
+		groups[cmd].add_argument('-sbatch',help='Run on sherlock?',action='store_true')
+		groups[cmd].add_argument('-slingshot_opts',help='Other options to pass to slingshot',default='-progress')
+		groups[cmd].add_argument('-savedir',help='Directory to save to (if applicable)',default='')
+		groups[cmd].add_argument('-hours',help='Number of hours to run on Sherlock',default=2)
 
 
-	parser.add_argument('-slingshot',action='store_true',default=False)
-	parser.add_argument('-parallel',help='How many parallel processes to run on, using Slingshot?',default=None)
-	parser.add_argument('-sbatch',help='Run on sherlock?',action='store_true')
-	parser.add_argument('-slingshot_opts',help='Other options to pass to slingshot',default='-progress')
-	parser.add_argument('-savedir',help='Directory to save to (if applicable)',default='')
-	parser.add_argument('-hours',help='Number of hours to run on Sherlock',default=2)
 	parser.add_argument('-quiet',help='No interactive mode',action='store_true')
 	args = parser.parse_args()
 
-	if not hasattr(args,'corpus'): args.corpus=None
-	if not hasattr(args,'cmd'): args.corpus=None
 
+	for x in ['corpus','cmd','parallel','quiet','sbatch','slingshot_opts','savedir','hours','part']:
+		if not hasattr(args,x):
+			setattr(args,x,None)
 
 	if args.parallel: args.slingshot=True
 
@@ -176,10 +179,14 @@ def main():
 		import llp
 		corpus = llp.load(args.corpus)
 		cmder = getattr(corpus,args.cmd)
-		if 'ask' in llp.tools.valid_args_for(cmder):
-			cmder(ask=not args.quiet)
-		else:
-			cmder()
+		valid_args=set(llp.tools.valid_args_for(cmder))
+		_attrs = dict(list(vars(args).items()))
+		if 'quiet' in _attrs: _attrs['ask'] = not _attrs['quiet']
+		if 'parallel' in _attrs: _attrs['slingshot_n'] = _attrs['parallel']
+		#print(_attrs)
+		#_attrs = dict((k,v) for k,v in _attrs.items() if k in valid_args)
+		#print(_attrs)
+		cmder(**_attrs)
 
 	elif args.cmd=='info' and args.corpus:
 		import llp
@@ -352,7 +359,7 @@ def start_new_corpus_interactive(args,import_existing=False):
 		msg=f'\n----\n\n>> (5) Set path to txt folder (Optional, if xml folder)\n       {corpus_msg}\n>> [{path_txt_default}] '
 		path_txt = attrs['path_txt'] = do_path(args.path_txt, 'path_txt', msg, path_root_abs, path_txt_default)
 
-		msg=f'\n>> (6) Set path to xml folder (Optional, if txt folder)\n       {corpus_msg}\n>> [{path_metadata_default}] '
+		msg=f'\n>> (6) Set path to xml folder (Optional, if txt folder)\n       {corpus_msg}\n>> [{path_xml_default}] '
 		path_xml = attrs['path_xml'] = do_path(args.path_xml, 'path_xml', msg, path_root_abs, path_xml_default)
 
 		msg=f'\n>> (7) Set path to a .py file defining corpus object (Optional)\n       {corpus_msg}\n>> [{path_code_default}] '
