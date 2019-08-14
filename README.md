@@ -36,17 +36,17 @@ import llp                            # import llp as a python module
 corpus = llp.load('ECCO_TCP')         # load the corpus by name or ID
 ```
 
-And play with [Corpus](llp/corpus/llp.py) and Text objects
+And play with Corpus and Text objects and get easy access to pandas and other libraries:
 
 ```
 df = corpus.metadata                  # get metadata as a pandas dataframe
 smpl=df.query('1740 < year < 1780')   # quick query access
 
 texts = corpus.texts()                # get a custom object for each text
-texts = corpus.texts(smpl.id)         # get text objects for a list of IDs
+texts = corpus.texts(smpl.id)         # get text objects for a specific list of IDs
 
 for text in texts:                    # loop over text objects
-    text_meta = text.meta             # get text metadata dictionary
+    text_meta = text.meta             # get text metadata as dictionary
     author = text.author              # get common metadata as attributes    
 
     txt = text.txt                    # get plain text as string
@@ -57,7 +57,7 @@ for text in texts:                    # loop over text objects
     counts = text.freqs()             # get word counts (from JSON if saved)
     ocracc = text.ocr_accuracy        # get estimate of ocr accuracy
     
-    spacy_obj = text.spacy            # get a spacy.io text object
+    spacy_obj = text.spacy            # get a spacy text object
     nltk_obj = text.nltk              # get an nltk text object
     blob_obj = text.blob              # get a textblob object
 ```
