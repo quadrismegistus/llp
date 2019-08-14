@@ -1614,3 +1614,16 @@ def camel2snake_case(name):
 def valid_args_for(func_or_method):
 	import inspect
 	return inspect.getfullargspec(func_or_method).args
+
+
+
+
+def read_csv_with_pandas(fnfn,return_ld=False,**attrs):
+	import pandas as pd
+	if fnfn.endswith('.gz'): fnfn=fnfn[:-3]
+	ext=os.path.splitext(fnfn)[-1]
+	if ext=='csv': df=pd.read_csv(fnfn,sep=',',**attrs)
+	elif ext in {'txt','tsv'}: df=pd.read_csv(fnfn,sep='\t',**attrs)
+	elif ext in {'xls','xlsx'}: return pd.read_excel(fnfn,**attrs)
+	else: return pd.DataFrame() if not return_ld else []
+	return df if not return_ld else df.to_dict('records')

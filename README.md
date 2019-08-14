@@ -6,92 +6,71 @@ Literary Language Processing (LLP): corpora, models, and tools for the digital h
 
 ### Install
 
-1) Install in terminal
 
 ```
 pip install llp
 ```
 
-2) Download a corpus
+### Download an existing corpus...
+
 
 ```
 llp status                # shows which corpora/data are available
 llp download ECCO_TCP     # download a corpus
 ```
 
-This will prompt you for which corpus data to download, and then do so, extracting it into the appropriate directory:
-
-```
-$ llp download Chicago
-
->> [ECCO_TCP] Download freqs file(s)?: y
->> [ECCO_TCP] Download metadata file(s)?: y
->> [ECCO_TCP] Download txt file(s)?: y
->> [ECCO_TCP] Download xml file(s)?: n
-
->> downloading: _tmp_ecco_tcp_freqs.zip
- 27%|██████████████████████████▎                                                                        | 9.75M/36.7M [00:12<00:43, 615kbytes/s]
-```
-
-3) Play with corpus in python
+Then load in Python:
 
 ```python
 import llp                                   # import llp as a python module
 corpus = llp.load('ECCO_TCP')                # load the corpus
+```
 
+### ...or load your own corpus
+
+```python
+import llp
+my_corpus = llp.Corpus(
+	path_txt='/my/corpus/texts',               # path to a folder of txt files
+	path_metadata='/my/corpus/metadata.xls',   # path to a metadata CSV, TSV, XLS, XLSX file
+	col_fn='my_filename_column'                # column in metadata pointing to txt file (relative to `path_txt`)
+)
+```
+
+
+### Access metadata
+
+```python
 # easy pandas access to metadata
 df = corpus.metadata                    # get the metadata as a dataframe
 
-# easy query access
+# easy metadata query access
 df_midcentury_poems = corpus.metadata.query('1740 < year < 1780 & genre=="Verse"')
-
-# loop over text objects
-for text in corpus.texts(text_ids=df_midcentury_poems.id):  # leave text_ids blank for all
-    # get the metadata as a dictionary
-    text_meta = text.meta
-    
-    # easy access to common metadata
-    author = text.author
-    year = text.year
-    
-    # easy acces to txt/xml files
-    text_as_string = text.txt
-    text_as_xml = text.xml
-
-	# Get the word tokens as a list
-	tokens = text.tokens
-	
-	# Get the word counts as a dictionary (uses generated/downloaded JSON)
-	counts = text.freqs()
 ```
 
-
-
-
-
-## Do other things with corpora
-
-Now that you have a corpus object,
+### Use text objects
 
 ```python
-# Get the texts as a list
-texts = corpus.texts()
+for text in corpus.texts():         # loop over text objects
 
-# Get the metadata as a list of dictionaries
-metadata = corpus.meta
+    text_meta = text.meta           # get text metadata
+    author = text.author            # easy access to common metadata
+    year = text.year                # text.year, text.title, ...
+    
+    txt = text.txt                  # get plain text as string
+    xml = text.xml                  # get xml as string
 
-# Save a list of the most frequent words
-corpus.gen_mfw()
-
-# Save a term-document matrix for the top 10000 most frequent words
-corpus.gen_freq_table(n=10000)
-
-# Save a list of possible duplicate texts in corpus, by title similarity
-corpus.rank_duplicates_bytitle()
-
-# Save a list of possible duplicate texts in corpus, by the content of the text (MinHash)
-corpus.rank_duplicates()
+    tokens = text.tokens            # get list of words
+    counts = text.freqs()           # get word counts (from JSON if saved)
 ```
+
+### Generate data about corpus
+
+
+
+```
+
+
 
 
 
@@ -186,15 +165,7 @@ If you see an up arrow next to a type of data, you can ...
 
 If you have a folder of plain text files, and an accompanying metadata file,
 
-```python
-from llp.corpus import Corpus
 
-my_corpus = Corpus(
-	path_txt='my_texts',                # path to a folder of txt files
-	path_metadata='my_metadata.xls',    # path to a metadata CSV, TSV, XLS, XLSX file
-	col_fn='my_filename_column'         # column in metadata pointing to txt file (relative to `path_txt`)
-)
-```
 
 
 ## Load a pre-existing corpus

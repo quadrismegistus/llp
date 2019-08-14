@@ -215,6 +215,7 @@ class Corpus(object):
 
 		path_root = get_path_abs(self.opts.get('path_root',''),sources=sources)
 		if not path_root: path_root=os.path.join(PATH_CORPUS,self.id)
+		print([path_root,self.id,self.name])
 		#if not os.path.isabs(path_root): path_root=os.path.abspath(os.path.join(PATH_CORPUS,path_root))
 
 		# Set as attributes
@@ -440,8 +441,7 @@ class Corpus(object):
 		import pandas as pd
 
 		#meta_ld=tools.read_ld(self.path_metadata,keymap={'*':str})
-		sep=',' if self.path_metadata.endswith('csv') else '\t'
-		self._metadf=meta_df=pd.read_csv(self.path_metadata,sep=sep)
+		self._metadf=meta_df=tools.read_csv_with_pandas(self.path_metadata)
 		self._meta=meta_ld=meta_df.to_dict('records')
 		self._text_ids=[self.get_id_from_metad(d) for d in meta_ld]
 		self._texts=[self.TEXT_CLASS(idx,self) for idx in self._text_ids]
