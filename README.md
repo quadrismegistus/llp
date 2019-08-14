@@ -20,9 +20,10 @@ llp download ECCO_TCP                 # download a corpus
 ...or import your own:
 
 ```
-llp import -path_txt mycorpus/txts    # a folder of txt files (or xml with -path_xml) \
--path_metadata mycorpus/meta.xls      # a metadata csv/tsv/xls about those txt files \
--col_fn filename                      # filename in the metadata corresponding to the .txt filename
+llp import                            # use the "import" command \
+  -path_txt mycorpus/txts             # a folder of txt files  (use -path_xml for xml) \
+  -path_metadata mycorpus/meta.xls    # a metadata csv/tsv/xls about those txt files \
+  -col_fn filename                    # filename in the metadata corresponding to the .txt filename
 ```
 
 ...or start a new one:
