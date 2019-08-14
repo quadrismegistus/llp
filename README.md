@@ -20,7 +20,7 @@ llp download ECCO_TCP                 # download a corpus
 ...or import your own:
 
 ```
-llp import -path_txt my_text_file_folder  -path_metadata my_metadata.xls
+llp import -path_txt mycorpus/txts -path_metadata mycorpus/metadata.xls
 ```
 
 ...or start a new one:
