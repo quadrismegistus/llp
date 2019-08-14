@@ -32,8 +32,10 @@ corpus = llp.load('ECCO_TCP')         # load the corpus by name or ID
 df = corpus.metadata                  # get metadata as a pandas dataframe
 smpl=df.query('1740 < year < 1780')   # quick query access
 
-for text in corpus.texts(smpl.id):    # loop over text objects
+texts = corpus.texts()                # get a custom object for each text
+texts = corpus.texts(smpl.id)         # get text objects for a list of IDs
 
+for text in texts:                    # loop over text objects
     text_meta = text.meta             # get text metadata dictionary
     author = text.author              # get common metadata as attributes    
 
