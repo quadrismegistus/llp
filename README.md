@@ -7,7 +7,7 @@ Literary Language Processing (LLP): corpora, models, and tools for the digital h
 1) Install:
 
 ```
-pip install llp                       # install with pip
+pip install llp                       # install with pip in terminal
 ```
 
 2) Download an existing corpus...
@@ -20,8 +20,8 @@ llp download ECCO_TCP                 # download a corpus
 ...or import your own:
 
 ```
-llp import -path_txt mycorpus/txts \  # a folder of txt files (or xml with -path_xml)
--path_metadata mycorpus/meta.xls \    # a metadata csv/tsv/xls about those txt files
+llp import -path_txt mycorpus/txts    # a folder of txt files (or xml with -path_xml) \
+-path_metadata mycorpus/meta.xls      # a metadata csv/tsv/xls about those txt files \
 -col_fn filename                      # filename in the metadata corresponding to the .txt filename
 ```
 
@@ -38,7 +38,7 @@ import llp                            # import llp as a python module
 corpus = llp.load('ECCO_TCP')         # load the corpus by name or ID
 ```
 
-4) And play with convenient Corpus and Text objects:
+...and play with convenient Corpus objects...
 
 ```python
 df = corpus.metadata                  # get corpus metadata as a pandas dataframe
@@ -46,7 +46,11 @@ smpl=df.query('1740 < year < 1780')   # do a quick query on the metadata
 
 texts = corpus.texts()                # get a convenient Text object for each text
 texts_smpl = corpus.texts(smpl.id)    # get Text objects for a specific list of IDs
+```
 
+...and Text objects:
+
+```python
 for text in texts_smpl:               # loop over Text objects
     text_meta = text.meta             # get text metadata as dictionary
     author = text.author              # get common metadata as attributes    
