@@ -20,7 +20,6 @@ llp download ECCO_TCP                 # download a corpus
 ...or import your own:
 
 ```
-# point to a path of txt/xml files and ideally a metadata csv/tsv/xls
 llp import -path_txt my_text_file_folder  -path_metadata my_metadata.xls
 ```
 
@@ -35,7 +34,11 @@ Then load the corpus in Python:
 ```python
 import llp                            # import llp as a python module
 corpus = llp.load('ECCO_TCP')         # load the corpus by name or ID
+```
 
+And play with [Corpus](llp/corpus/llp.py) and Text objects
+
+```
 df = corpus.metadata                  # get metadata as a pandas dataframe
 smpl=df.query('1740 < year < 1780')   # quick query access
 
