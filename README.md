@@ -20,10 +20,18 @@ llp download ECCO_TCP     # download a corpus
 ...or import your own:
 
 ```
-llp import -path_txt /my/corpus/texts -path_metadata /my/corpus/metadata.xls
+llp import \
+ -path_txt txt_folder     # path to a folder of text files \
+ -path_metadata meta.xls  # path to a metadata csv/tsv/xls
 ```
 
-Then load in Python:
+...or start a new one:
+
+```
+llp create
+```
+
+Then load the corpus in Python:
 
 ```python
 import llp                            # import llp as a python module
