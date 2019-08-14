@@ -1527,7 +1527,7 @@ def check_make_dir(path,consent=True,default='y'):
 	path=os.path.abspath(path)
 	if not os.path.exists(path) and os.path.splitext(path)[0]==path:
 		# create?
-		ans=input('>> create this path?: '+path+'\n[Y/n]').strip().lower()
+		ans=input('>> create this path?: '+path+'\n>> [Y/n] ').strip().lower()
 		if not ans: ans=default
 		if ans=='y':
 			print('   creating:',path)
@@ -1627,3 +1627,14 @@ def read_csv_with_pandas(fnfn,return_ld=False,**attrs):
 	elif ext in {'xls','xlsx'}: return pd.read_excel(fnfn,**attrs)
 	else: return pd.DataFrame() if not return_ld else []
 	return df if not return_ld else df.to_dict('records')
+
+
+
+USER_HOME=os.path.expanduser('~')
+def get_config_file_location(pointer_fn=f'{USER_HOME}/.llp_config'):
+	if not os.path.exists(pointer_fn):
+		print('!! No configuration file created. Run: llp configure')
+		return
+
+	with open(pointer_fn) as f:
+		return f.read()

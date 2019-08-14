@@ -298,6 +298,7 @@ def start_new_corpus_interactive(args,import_existing=False):
 		attrs={}
 
 		def do_path(path,path_name,msg,root,default,remove_root=True):
+			if not hasattr(args,'defaults'): args.defaults=None
 			if not path and not args.defaults:
 				path=get_path_abs(input(msg).strip())
 			else:
@@ -336,20 +337,25 @@ def start_new_corpus_interactive(args,import_existing=False):
 
 			return path
 
-		msg='\n----\n\n>> (3) Set path to corpus root data folder [%s]:\n>> ' % path_root_default
+		path_config=tools.get_config_file_location()
+		path_to_corpora=llp.config.get('PATH_TO_CORPORA','')
+
+		corpus_msg_root=f'If a relative path is given and it does not point to an existing file,\n       it is assumed relative to {path_to_corpora}'
+		msg=f'\n----\n\n>> (3) Set path to corpus root data folder\n       {corpus_msg_root}\n>> [{path_root_default}] '
 		path_root = attrs['path_root'] = do_path(args.path_root, 'path_root', msg, llp.PATH_CORPUS, path_root_default)
 		path_root_abs = os.path.join(llp.PATH_CORPUS,path_root) if not os.path.isabs(path_root) else path_root
 
-		msg='\n----\n\n>> (4) Set path to metadata file [%s/%s]:\n>> ' % (path_root,path_metadata_default)
+		corpus_msg=f'If a relative path is given and it does not point to an existing file,\n       it is assumed relative to {path_root_abs}'
+		msg=f'\n----\n\n>> (4) Set path to metadata file\n       {corpus_msg}\n>> [{path_metadata_default}] '
 		path_metadata = attrs['path_metadata'] = do_path(args.path_metadata, 'path_metadata', msg, path_root_abs, path_metadata_default)
 
-		msg='\n----\n\n>> (5) Set path to txt folder (Optional, if xml folder)\n[%s/%s]:\n>> ' % (path_root,path_txt_default)
+		msg=f'\n----\n\n>> (5) Set path to txt folder (Optional, if xml folder)\n       {corpus_msg}\n>> [{path_txt_default}] '
 		path_txt = attrs['path_txt'] = do_path(args.path_txt, 'path_txt', msg, path_root_abs, path_txt_default)
 
-		msg='\n>> (6) Set path to xml folder (Optional, if txt folder)\n[%s/%s]:\n>> ' % (path_root,path_xml_default)
+		msg=f'\n>> (6) Set path to xml folder (Optional, if txt folder)\n       {corpus_msg}\n>> [{path_metadata_default}] '
 		path_xml = attrs['path_xml'] = do_path(args.path_xml, 'path_xml', msg, path_root_abs, path_xml_default)
 
-		msg='\n>> (7) Set path to a .py file defining corpus object (Optional)\n[%s/%s]:\n>> ' % (path_root,path_code_default)
+		msg=f'\n>> (7) Set path to a .py file defining corpus object (Optional)\n       {corpus_msg}\n>> [{path_code_default}] '
 		path_python = attrs['path_python'] = do_path(args.path_python, 'path_python', msg, path_root_abs, path_code_default)
 
 		# class name

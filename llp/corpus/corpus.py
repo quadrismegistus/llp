@@ -215,7 +215,7 @@ class Corpus(object):
 
 		path_root = get_path_abs(self.opts.get('path_root',''),sources=sources)
 		if not path_root: path_root=os.path.join(PATH_CORPUS,self.id)
-		print([path_root,self.id,self.name])
+		#print([path_root,self.id,self.name])
 		#if not os.path.isabs(path_root): path_root=os.path.abspath(os.path.join(PATH_CORPUS,path_root))
 
 		# Set as attributes
