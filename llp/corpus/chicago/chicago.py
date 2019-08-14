@@ -32,7 +32,7 @@ class Chicago(Corpus):
 			""")
 		else:
 			self.compile_txt()
-			#self.compile_metadata()
+			self.compile_metadata()
 
 
 	def compile_txt(self,ask=True,default='move'):
