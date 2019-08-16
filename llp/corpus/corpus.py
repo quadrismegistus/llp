@@ -53,6 +53,8 @@ MANIFEST_DEFAULTS=dict(
 PATH_HERE=os.path.abspath(os.path.dirname(__file__))
 PATH_CORPUS = tools.config.get('PATH_TO_CORPORA', PATH_HERE )
 PATH_TO_CORPUS_CODE = tools.config.get('PATH_TO_CORPUS_CODE', PATH_HERE )
+PATH_CORPUS_ZIP = os.path.join(PATH_CORPUS, 'llp_corpora')
+
 
 PATH_MANIFEST=os.path.join(PATH_TO_CORPUS_CODE,'manifest.txt')
 PATH_MANIFEST_LOCAL=os.path.join(PATH_TO_CORPUS_CODE,'manifest_local.txt')
@@ -136,7 +138,7 @@ def corpora(load=True,incl_meta_corpora=True):
 
 def check_corpora(paths=['path_xml','path_txt','path_freqs','path_metadata'],incl_meta_corpora=False):
 	old=[]
-	#clist=tools.cloud_list()
+	clist=tools.cloud_list()
 	for cname,corpus in corpora(load=True,incl_meta_corpora=incl_meta_corpora):
 		if corpus is None: continue
 		print('{:30s}'.format(cname),end="\t")
@@ -145,9 +147,12 @@ def check_corpora(paths=['path_xml','path_txt','path_freqs','path_metadata'],inc
 			pathval = getattr(corpus,path)
 			#pathval = corpus.get(path,'')
 			exists = '↓' if os.path.exists(pathval) else ' '
-			#exists_link = '↑' if f'{corpus.id}_{pathtype}.zip' in clist else ' '
-			exists_link = '↑' if hasattr(corpus,f'url_{pathtype}') else ' '
-			cell=exists_link+' '+exists+' '+pathtype
+
+			exists_cloud = '↑' if f'{corpus.id}_{pathtype}.zip' in clist else ' '
+			exists_link = '→' if hasattr(corpus,f'url_{pathtype}') else ' '
+			zip_fn=f'{corpus.id}_{pathtype}.zip'
+			exists_zip = '←' if os.path.exists(os.path.join(PATH_CORPUS_ZIP,zip_fn)) else ' '
+			cell=' '.join([exists,exists_link,exists_cloud,exists_zip,pathtype])
 			print('{:10s}'.format(cell),end='\t')
 
 		print()
