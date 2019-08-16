@@ -187,7 +187,7 @@ def main():
 		#	print(_attrs)
 		if 'quiet' in _attrs: _attrs['ask'] = not _attrs['quiet']
 		if 'parallel' in _attrs: _attrs['slingshot_n'] = _attrs['parallel']
-		print(_attrs)
+		#print(_attrs)
 		#_attrs = dict((k,v) for k,v in _attrs.items() if k in valid_args)
 		#print(_attrs)
 		cmder(**_attrs)
