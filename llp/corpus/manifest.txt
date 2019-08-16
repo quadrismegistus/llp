@@ -1,8 +1,5 @@
 ####
-# A list of all of the corpora available by using
-# from lit.corpus import load_corpus
-# bpo = load_corpus('BPO')
-# etc
+# LLP CORPUS MANIFEST
 ####
 
 
@@ -120,6 +117,8 @@ link = https://www.gale.com/c/american-fiction-1774-1920
 name = GildedAge
 desc = U.S. Fiction of the Gilded Age
 id = gildedage
+url_metadata = https://www.dropbox.com/s/fg605k0cnebf70i/gildedage_metadata.zip?dl=1
+url_txt = https://www.dropbox.com/s/qnwbx488ftepuno/gildedage_txt.zip?dl=1
 
 [LitLab]
 name = LitLab
