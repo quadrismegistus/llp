@@ -716,7 +716,11 @@ class Corpus(object):
 		urls=[(x[4:], getattr(self,x)) for x in dir(self) if x.startswith('url_') and getattr(self,x)]
 		return urls
 
-	def download(self, ask=True, urls=None):
+	def compile(self, **attrs):
+		## THIS NEEDS TO BE OVERWRITTEN BY CHILD CLASS
+		return
+
+	def download(self, ask=True, urls=None, **attrs):
 		self.mkdir_root()
 		self.chdir_root()
 

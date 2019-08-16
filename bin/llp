@@ -181,9 +181,13 @@ def main():
 		cmder = getattr(corpus,args.cmd)
 		valid_args=set(llp.tools.valid_args_for(cmder))
 		_attrs = dict(list(vars(args).items()))
+		#if 'cmd' in _attrs: del _attrs['cmd']
+		#if args.cmd!='install':
+		#	#_attrs=dict((k,v) for k,v in _attrs.items() if k in valid_args)
+		#	print(_attrs)
 		if 'quiet' in _attrs: _attrs['ask'] = not _attrs['quiet']
 		if 'parallel' in _attrs: _attrs['slingshot_n'] = _attrs['parallel']
-		#print(_attrs)
+		print(_attrs)
 		#_attrs = dict((k,v) for k,v in _attrs.items() if k in valid_args)
 		#print(_attrs)
 		cmder(**_attrs)
