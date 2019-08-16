@@ -668,7 +668,7 @@ class Corpus(object):
 			else:
 				zipcmd='zip -r9 {opath} {path}'.format(path=path2,opath=opath)
 				if sbatch: zipcmd = 'sbatch {sbatch_opts} --wrap="{zipcmd}"'.format(sbatch_opts=sbatch_opts,zipcmd=zipcmd)
-				cmd='cd {cdto} && {zipcmd}'.format(cdto=path1,zipcmd=zipcmd)
+				cmd='cd "{cdto}" && {zipcmd}'.format(cdto=path1,zipcmd=zipcmd)
 				print(cmd)
 				os.system(cmd)
 
