@@ -183,6 +183,11 @@ url_freqs = https://www.dropbox.com/s/56azeswx0omjum2/txtlab_freqs.zip?dl=1
 url_txt = https://www.dropbox.com/s/q4bm4yf76zgumi6/txtlab_txt.zip?dl=1
 
 
+[HathiEngLit]
+name = HathiEngLit
+id = hathi_englit
+
+
 
 
 ####
