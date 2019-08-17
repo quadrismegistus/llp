@@ -267,6 +267,7 @@ def untar_to_freqs_folder(args):
 			members=tf.getmembers()
 			for member in tqdm(members,position=position,desc='untarring a file'):
 				ofnfn=os.path.join(path_freqs, htid2id(os.path.splitext(os.path.basename(member.name))[0]) + '.json')
+				if os.path.exists(ofnfn): continue
 				f = tf.extractfile(member)
 				if f is not None:
 					content = f.read().decode('utf-8')
