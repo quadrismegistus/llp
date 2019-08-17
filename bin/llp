@@ -118,7 +118,7 @@ def main():
 	groups['import'].add_argument('-col_fn',help='Column in metadata to look for TXT or XML filename [default: %s]' % default_col_fn)
 	groups['import'].add_argument('-col_id',help='Column in metadata to look for ID (the TXT or XML filename, but without a filename extension) [default: %s]' % default_col_fn)
 
-	slingshottable_cmds = ['install','zip']
+	slingshottable_cmds = ['install','zip','compile']
 	for cmd in slingshottable_cmds:
 		groups[cmd].add_argument('part',help='Name of part of installation (metadata/txt/xml/freqs/mfw/dtm)',default='',nargs='?')
 		groups[cmd].add_argument('-slingshot',action='store_true',default=False)

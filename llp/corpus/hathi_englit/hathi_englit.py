@@ -3,7 +3,7 @@ from llp.text import Text
 from llp.corpus import Corpus
 from tqdm import tqdm
 from llp import tools
-import gzip,tarfile,ujson as json
+import gzip,tarfile,ujson as json,sys
 
 CORPUS_URL="https://wiki.htrc.illinois.edu/display/COM/Word+Frequencies+in+English-Language+Literature%2C+1700-1922"
 
@@ -55,7 +55,8 @@ http://data.analytics.hathitrust.org/genre/drama_1915-1919.tar.gz
 http://data.analytics.hathitrust.org/genre/drama_1920-1922.tar.gz
 """.strip().split()
 
-
+PATH_HERE=os.path.abspath(__file__)
+PATH_HERE_DIRNAME=os.path.dirname(PATH_HERE)
 
 
 
@@ -307,14 +308,25 @@ class HathiEngLit(Corpus):
 		other_cols=[col for col in df.columns if not col in first_cols]
 		df[first_cols + other_cols].to_csv(self.path_metadata,sep='\t')
 
-	def compile_data(self,parallel=4):
+	def compile_data(self,parallel=1,sbatch=False,sbatch_hours=1):
 		import tarfile,gzip,ujson as json
 		import multiprocessing as mp
 
-		pool=mp.Pool(parallel)
+
 		filenames = [os.path.join(self.path_raw,fn) for fn in os.listdir(self.path_raw) if fn.endswith('.tar.gz')]
-		objects = [(fn,self.path_freqs,i%parallel) for i,fn in enumerate(filenames)]
-		pool.map(untar_to_freqs_folder,objects)
+		objects = [(fn,self.path_freqs,i%int(parallel)) for i,fn in enumerate(filenames)]
+		if int(parallel)<2 and not sbatch:
+			for i,object in enumerate(tqdm(objects,desc='looping over files')):
+				untar_to_freqs_folder(objects)
+		elif parallel and not sbatch:
+			pool=mp.Pool(parallel)
+			pool.map(untar_to_freqs_folder,objects)
+		elif sbatch:
+			for object in objects:
+				cmd=f'python -c \\"import sys; sys.path.insert(0,\'{PATH_HERE_DIRNAME}\'); import {self.id} as mod; object={object}; mod.untar_to_freqs_folder(object)\\"'
+				sbatch_min=sbatch_hours*60
+				sbatch_cmd=f'sbatch -t {sbatch_min} --wrap="{cmd}"'
+				print(sbatch_cmd)
 
 
 
@@ -328,7 +340,7 @@ class HathiEngLit(Corpus):
 		"""
 		#self.compile_download()
 		#self.compile_metadata()
-		self.compile_data()
+		self.compile_data(parallel=attrs.get('parallel'), sbatch=attrs.get('sbatch'))
 		#return self.download(**attrs)
 
 
