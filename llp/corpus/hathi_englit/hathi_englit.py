@@ -3,6 +3,7 @@ from llp.text import Text
 from llp.corpus import Corpus
 from tqdm import tqdm
 from llp import tools
+import gzip,tarfile,ujson as json
 
 CORPUS_URL="https://wiki.htrc.illinois.edu/display/COM/Word+Frequencies+in+English-Language+Literature%2C+1700-1922"
 
@@ -238,6 +239,45 @@ class TextHathiEngLit(Text):
 # (2) Corpus Class
 ########################################################################################################################
 
+
+def htid2id(htid):
+	prefix,body=htid.split('.',1)
+	body_prefix,body_body=body[:3],body[3:]
+	return '/'.join([prefix,body_prefix,body_body])
+
+def freq_tsv2dict(freq_str):
+	from nltk import word_tokenize
+	from collections import Counter
+	from llp.text import clean_text
+	d=Counter()
+	for ln in freq_str.strip().split('\n'):
+		try:
+			word,count=ln.split('\t')
+			for word_token in word_tokenize(clean_text(word.strip().lower())):
+				d[word_token]+=int(count)
+		except ValueError:
+			pass
+	return d
+
+
+def untar_to_freqs_folder(args):
+	fnfn,path_freqs,position=args
+	with gzip.GzipFile(fnfn) as f:
+		with tarfile.open(fileobj=f) as tf:
+			members=tf.getmembers()
+			for member in tqdm(members,position=position,desc='untarring a file'):
+				ofnfn=os.path.join(path_freqs, htid2id(os.path.splitext(os.path.basename(member.name))[0]) + '.json')
+				f = tf.extractfile(member)
+				if f is not None:
+					content = f.read().decode('utf-8')
+					freq_dict = freq_tsv2dict(content)
+
+					if not os.path.exists(os.path.dirname(ofnfn)): os.makedirs(os.path.dirname(ofnfn))
+					with open(ofnfn,'w') as of:
+						json.dump(freq_dict, of)
+
+
+
 class HathiEngLit(Corpus):
 	TEXT_CLASS=TextHathiEngLit
 
@@ -248,12 +288,36 @@ class HathiEngLit(Corpus):
 
 
 	def compile_download(self):
-
-
 		if not os.path.exists(self.path_raw): os.makedirs(self.path_raw)
 		for url in tqdm(CORPUS_DOWNLOAD_URLS,position=1):
 			ofnfn=os.path.join(self.path_raw,os.path.basename(url))
 			tools.download(url,ofnfn)
+
+	def compile_metadata(self):
+		all_meta_ld=[]
+		for fn in os.listdir(self.path_raw):
+			if fn.endswith('metadata.csv'):
+				all_meta_ld+=tools.read_ld(os.path.join(self.path_raw,fn))
+		import pandas as pd
+		df=pd.DataFrame(all_meta_ld)
+		df['id']=df.htid.apply(htid2id)
+		print(df.shape)
+		first_cols=['id','htid']
+		other_cols=[col for col in df.columns if not col in first_cols]
+		df[first_cols + other_cols].to_csv(self.path_metadata,sep='\t')
+
+	def compile_data(self,parallel=4):
+		import tarfile,gzip,ujson as json
+		import multiprocessing as mp
+
+		pool=mp.Pool(parallel)
+		filenames = [os.path.join(self.path_raw,fn) for fn in os.listdir(self.path_raw) if fn.endswith('.tar.gz')]
+		objects = [(fn,self.path_freqs,i%parallel) for i,fn in enumerate(filenames)]
+		pool.map(untar_to_freqs_folder,objects)
+
+
+
+
 
 
 	def compile(self,**attrs):
@@ -261,7 +325,9 @@ class HathiEngLit(Corpus):
 		This is a custom installation function. By default, it will simply try to download itself,
 		unless a custom function is written here which either installs or provides installation instructions.
 		"""
-		self.compile_download()
+		#self.compile_download()
+		#self.compile_metadata()
+		self.compile_data()
 		#return self.download(**attrs)
 
 
