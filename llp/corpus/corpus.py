@@ -148,11 +148,11 @@ def check_corpora(paths=['path_xml','path_txt','path_freqs','path_metadata'],inc
 			#pathval = corpus.get(path,'')
 			exists = '↓' if os.path.exists(pathval) else ' '
 
-			exists_cloud = '↑' if f'{corpus.id}_{pathtype}.zip' in clist else ' '
-			exists_link = '→' if hasattr(corpus,f'url_{pathtype}') else ' '
+			exists_cloud = '↑' if f'{corpus.id}_{pathtype}.zip' in clist else ''
+			exists_link = '→' if hasattr(corpus,f'url_{pathtype}') else ''
 			zip_fn=f'{corpus.id}_{pathtype}.zip'
-			exists_zip = '←' if os.path.exists(os.path.join(PATH_CORPUS_ZIP,zip_fn)) else ' '
-			cell=' '.join([exists,exists_link,exists_cloud,exists_zip,pathtype])
+			exists_zip = '←' if os.path.exists(os.path.join(PATH_CORPUS_ZIP,zip_fn)) else ''
+			cell=' '.join([x for x in [exists,exists_link,exists_cloud,exists_zip,pathtype] if x])
 			print('{:10s}'.format(cell),end='\t')
 
 		print()
