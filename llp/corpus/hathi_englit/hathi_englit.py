@@ -311,6 +311,7 @@ class HathiEngLit(Corpus):
 	def compile_data(self,parallel=1,sbatch=False,sbatch_hours=1):
 		import tarfile,gzip,ujson as json
 		import multiprocessing as mp
+		import time
 
 
 		filenames = [os.path.join(self.path_raw,fn) for fn in os.listdir(self.path_raw) if fn.endswith('.tar.gz')]
@@ -325,8 +326,11 @@ class HathiEngLit(Corpus):
 			for object in objects:
 				cmd=f'python -c \\"import sys; sys.path.insert(0,\'{PATH_HERE_DIRNAME}\'); import {self.id} as mod; object={object}; mod.untar_to_freqs_folder(object)\\"'
 				sbatch_min=sbatch_hours*60
-				sbatch_cmd=f'sbatch -t {sbatch_min} --wrap="{cmd}"'
-				print(sbatch_cmd)
+				sbatch_cmd=f'sbatch -p hns -t {sbatch_min} --wrap="{cmd}"'
+				print('>>',sbatch_cmd)
+				os.system(sbatch_cmd)
+				time.sleep(1)
+
 
 
 
