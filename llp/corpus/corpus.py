@@ -273,7 +273,10 @@ class Corpus(object):
 			return ('', '')
 
 	def text(self,idx):
-		return self.textd[idx]
+		try:
+			return self.textd_addr[idx]
+		except KeyError:
+			return self.textd[idx]
 
 	@property
 	def idx(self):
@@ -302,6 +305,14 @@ class Corpus(object):
 			for t in self.texts():
 				td[t.id]=t
 		return self._textd
+
+	@property
+	def textd_addr(self):
+		if not hasattr(self,'_textd_addr'):
+			self._textd_addr=td={}
+			for t in self.texts():
+				td[t.addr]=t
+		return self._textd_addr
 
 	def text_random(self):
 		import random
