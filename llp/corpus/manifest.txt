@@ -190,6 +190,19 @@ id = hathi_englit
 
 
 
+
+[DTA]
+name = DTA
+id = dta
+desc = Deutsches Text Archiv
+link = http://www.deutschestextarchiv.de
+url_raw = http://media.dwds.de/dta/download/dta_komplett_2019-06-05.zip
+url_raw_metadata = http://media.dwds.de/dta/download/dta_metadaten_oai_dc_2018-09-12.zip
+path_xml_meta = xml_meta
+
+
+
+
 ####
 # Synthetic Corpora
 ####
