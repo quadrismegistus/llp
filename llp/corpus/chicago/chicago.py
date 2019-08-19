@@ -88,4 +88,4 @@ class Chicago(Corpus):
 			d['year']=d['publ_date']
 			d['author']=d['auth_last']+', '+d['auth_first']
 
-		write2(self.path_metadata, text_ld)
+		write_ld(self.path_metadata, text_ld)
