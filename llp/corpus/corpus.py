@@ -54,30 +54,26 @@ PATH_HERE=os.path.abspath(os.path.dirname(__file__))
 PATH_CORPUS = tools.config.get('PATH_TO_CORPORA', PATH_HERE )
 PATH_TO_CORPUS_CODE = tools.config.get('PATH_TO_CORPUS_CODE', PATH_HERE )
 PATH_CORPUS_ZIP = os.path.join(PATH_CORPUS, 'llp_corpora')
-
+PATH_LLP_HOME = os.path.join(HOME,'llp')
 
 PATH_MANIFEST=os.path.join(PATH_TO_CORPUS_CODE,'manifest.txt')
-PATH_MANIFEST_LOCAL=os.path.join(PATH_TO_CORPUS_CODE,'manifest_local.txt')
-PATH_MANIFEST_LOCAL2=os.path.abspath(os.path.join(PATH_TO_CORPUS_CODE,'..','..','llp_manifest.txt'))
-PATH_MANIFEST_LOCAL3=os.path.abspath(os.path.join(PATH_CORPUS,'manifest.txt'))
-PATH_MANIFEST_LOCAL5=os.path.abspath(os.path.join(PATH_CORPUS,'manifest_local.txt'))
-PATH_MANIFEST_LOCAL4=os.path.abspath(os.path.join(PATH_HERE,'..','..','config','llp_manifest.txt'))
-PATH_MANIFEST_LAB=os.path.join(PATH_TO_CORPUS_CODE,'manifest_lab.txt')
-PATH_MANIFEST_HOME=os.path.join(HOME,'llp_manifest.txt')
-
-PATH_MANIFESTS_TUPLES = PMT = []
-PMT.append(('Global Manifest',PATH_MANIFEST))
-PMT.append(('Local Manifest',PATH_MANIFEST_LOCAL))
-PMT.append(('Local Manifest (2)',PATH_MANIFEST_LOCAL2))
-if PATH_MANIFEST_LOCAL3 not in {PATH_MANIFEST_LOCAL,PATH_MANIFEST_LOCAL2,PATH_MANIFEST}:
-	PMT.append(('Local Manifest (3)',PATH_MANIFEST_LOCAL3))
-PMT.append(('Local Manifest (4)',PATH_MANIFEST_LOCAL4))
-PMT.append(('Local Manifest (5)',PATH_MANIFEST_LOCAL5))
-PMT.append(('Lab Manifest',PATH_MANIFEST_LAB))
-PMT.append(('Home Manifest',PATH_MANIFEST_HOME))
 PATH_MANIFEST_USER = tools.config.get('PATH_TO_MANIFEST','')
-if PATH_MANIFEST_USER:
-	PMT.append(('User Manifest',PATH_MANIFEST_USER))
+PATH_MANIFEST_USER_LAB = PATH_MANIFEST_USER.replace('.txt','_lab.txt')
+
+PATH_MANIFESTS = tools.remove_duplicates([
+	PATH_MANIFEST,
+	os.path.join(PATH_TO_CORPUS_CODE,'manifest_local.txt'),
+	os.path.abspath(os.path.join(PATH_TO_CORPUS_CODE,'..','..','llp_manifest.txt')),
+	os.path.abspath(os.path.join(PATH_CORPUS,'manifest.txt')),
+	os.path.abspath(os.path.join(PATH_CORPUS,'manifest_local.txt')),
+	os.path.abspath(os.path.join(PATH_HERE,'..','..','config','llp_manifest.txt')),
+	os.path.join(PATH_TO_CORPUS_CODE,'manifest_lab.txt'),
+	os.path.join(PATH_LLP_HOME,'manifest_lab.txt'),
+	os.path.join(PATH_LLP_HOME,'manifest.txt'),
+	os.path.join(HOME,'llp_manifest.txt'),
+	PATH_MANIFEST_USER
+], remove_empty=True)
+#print(PATH_MANIFESTS)
 
 from pprint import pprint
 
@@ -97,10 +93,8 @@ def load_manifest(force=True,corpus_name=None):
 	import configparser
 	config = configparser.ConfigParser()
 	config_d={}
-	for (pn,path) in PATH_MANIFESTS_TUPLES:
-		#print('  ','reading:',path)
-		#config_now = configparser.ConfigParser()
-		#	config_now.read(path)
+	for path in PATH_MANIFESTS:
+		if not os.path.exists(path): continue
 		config.read(path)
 
 	# convert config
@@ -133,12 +127,12 @@ def corpora(load=True,incl_meta_corpora=True):
 		if not incl_meta_corpora and manifest[corpus_name]['is_meta']: continue
 		corpus_obj=load_corpus(corpus_name, manifest=manifest) if load else manifest[corpus_name]
 		#print(corpus_name, corpus_obj)
-		#if corpus_obj is None: continue
+		if corpus_obj is None: continue
 		yield (corpus_name, corpus_obj)
 
 def check_corpora(paths=['path_xml','path_txt','path_freqs','path_metadata'],incl_meta_corpora=False):
 	old=[]
-	clist=tools.cloud_list()
+	#clist=tools.cloud_list()
 	for cname,corpus in corpora(load=True,incl_meta_corpora=incl_meta_corpora):
 		if corpus is None: continue
 		print('{:30s}'.format(cname),end="\t")
@@ -148,11 +142,11 @@ def check_corpora(paths=['path_xml','path_txt','path_freqs','path_metadata'],inc
 			#pathval = corpus.get(path,'')
 			exists = '↓' if os.path.exists(pathval) else ' '
 
-			exists_cloud = '↑' if f'{corpus.id}_{pathtype}.zip' in clist else ''
-			exists_link = '→' if hasattr(corpus,f'url_{pathtype}') else ''
+			#exists_cloud = '↑' if f'{corpus.id}_{pathtype}.zip' in clist else ' '
+			exists_link = '↑' if hasattr(corpus,f'url_{pathtype}') else ' '
 			zip_fn=f'{corpus.id}_{pathtype}.zip'
-			exists_zip = '←' if os.path.exists(os.path.join(PATH_CORPUS_ZIP,zip_fn)) else ''
-			cell=' '.join([x for x in [exists,exists_link,exists_cloud,exists_zip,pathtype] if x])
+			#exists_zip = '←' if os.path.exists(os.path.join(PATH_CORPUS_ZIP,zip_fn)) else ' '
+			cell=' '.join([x for x in [exists,exists_link,pathtype] if x])
 			print('{:10s}'.format(cell),end='\t')
 
 		print()
@@ -707,8 +701,11 @@ class Corpus(object):
 				os.system(cmd)
 
 	def share(self,cmd_share='dbu share',dest=DEST_LLP_CORPORA):
+		ol=[]
 		import subprocess
-		print('['+self.name+']')
+		ln='['+self.name+']'
+		print(ln)
+		ol+=[ln]
 		for part in ZIP_PART_DEFAULTS:
 			fnzip = self.id+'_'+part+'.zip'
 			cmd=cmd_share+' '+os.path.join(dest,fnzip)
@@ -722,6 +719,9 @@ class Corpus(object):
 
 			url='url_'+part+' = '+link
 			print(url)
+			ol+=[url]
+		print()
+		return '\n'.join(ol)
 
 
 	def mkdir_root(self):
@@ -2418,7 +2418,7 @@ def load_corpus(name_or_id,sources=[PATH_CORPUS,''],**input_kwargs):
 
 	opts.path_python = get_python_path(opts.path_python,opts.path_root)
 	if not opts.path_python:
-		print('!! No path_python set.')
+		#print('!! No path_python set.')
 		return
 
 	opts.module_name = os.path.splitext(os.path.basename(opts.path_python))[0]

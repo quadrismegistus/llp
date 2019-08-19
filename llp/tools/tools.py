@@ -1743,3 +1743,11 @@ def get_config_file_location(pointer_fn=f'{USER_HOME}/.llp_config'):
 
 	with open(pointer_fn) as f:
 		return f.read()
+
+
+def remove_duplicates(seq,remove_empty=False):
+	seen = set()
+	seen_add = seen.add
+	l = [x for x in seq if not (x in seen or seen_add(x))]
+	if not remove_empty: return l
+	return [x for x in l if x]

@@ -214,9 +214,21 @@ def main():
 		corpus.upload(ask=not args.quiet)
 
 	elif args.cmd=='share' and args.corpus:
-		import llp
-		corpus = llp.load(args.corpus)
-		corpus.share()
+		if args.corpus=='all':
+			all=[]
+			for cname,corpus in llp.corpora(load=True,incl_meta_corpora=False):
+				all+=[corpus.share()]
+				#print()
+				#break
+			all='\n\n'.join(all)
+			ofn=llp.tools.config.get('PATH_TO_MANIFEST','manifest.txt').replace('.txt','_share.txt')
+			with open(ofn,'w') as of:
+				of.write('# Download URLs for corpora found on cloud\n\n' + all+'\n')
+				print('>> saved:',ofn)
+		else:
+			import llp
+			corpus = llp.load(args.corpus)
+			corpus.share()
 
 	elif args.corpus and args.cmd in {'save_freqs','save_plain_text','save_metadata'}:
 		import llp
