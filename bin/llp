@@ -181,11 +181,17 @@ def main():
 		import llp
 		corpus = llp.load(args.corpus)
 		cmder = getattr(corpus,args.cmd)
-		#valid_args=set(llp.tools.valid_args_for(cmder))
 		_attrs = dict(list(vars(args).items()))
 		if 'quiet' in _attrs: _attrs['ask'] = not _attrs['quiet']
 		if 'parallel' in _attrs: _attrs['slingshot_n'] = _attrs['parallel']
-		cmder(**_attrs)
+		try:
+			cmder(**_attrs)
+		except TypeError:
+			valid_args=set(llp.tools.valid_args_for(cmder))
+			for k in _attrs:
+				if not k in valid_args:
+					del _attrs[k]
+			cmder(**_attrs)
 
 	elif args.cmd=='info' and args.corpus:
 		import llp
