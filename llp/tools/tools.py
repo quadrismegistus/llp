@@ -1407,7 +1407,9 @@ def linreg(X, Y):
 def download_wget(url, save_to):
 	import wget
 	save_to_dir,save_to_fn=os.path.split(save_to)
-	if save_to_dir: os.chdir(save_to_dir)
+	if save_to_dir:
+		if not os.path.exists(save_to_dir): os.makedirs(save_to_dir)
+		os.chdir(save_to_dir)
 	fn=wget.download(url)#,bar=wget.bar_thermometer)
 	os.rename(fn,save_to_fn)
 	print('\n>> saved:',save_to)
@@ -1422,7 +1424,7 @@ def download(url,save_to,overwrite=False):
 	#return download_curl(url,save_to)
 	try:
 		return download_pycurl(url,save_to)
-	except ImportError:
+	except (ImportError,ModuleNotFoundError) as e:
 		return download_wget(url,save_to)
 
 def download_curl(url,save_to):
