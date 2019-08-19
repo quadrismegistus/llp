@@ -88,4 +88,7 @@ class Chicago(Corpus):
 			d['year']=d['publ_date']
 			d['author']=d['auth_last']+', '+d['auth_first']
 
-		write_ld(self.path_metadata, text_ld)
+		#write_ld(self.path_metadata, text_ld)
+		import pandas as pd
+		df=pd.DataFrame(text_ld)
+		df.to_csv(self.path_metadata, sep='\t')
