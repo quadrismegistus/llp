@@ -188,9 +188,7 @@ def main():
 			cmder(**_attrs)
 		except TypeError:
 			valid_args=set(llp.tools.valid_args_for(cmder))
-			for k in _attrs.keys():
-				if not k in valid_args:
-					del _attrs[k]
+			_attrs = dict((k,v) for k,v in _attrs.items() if k in valid_args)
 			cmder(**_attrs)
 
 	elif args.cmd=='info' and args.corpus:
