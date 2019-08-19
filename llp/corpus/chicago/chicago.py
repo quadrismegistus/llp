@@ -62,7 +62,7 @@ class Chicago(Corpus):
 			#print(fnfn,'-->',ofnfn)
 
 	def compile_metadata(self):
-		from llp.tools import read_ld,ld2dd,write2
+		from llp.tools import read_ld,ld2dd,write_ld
 		"""
 		Generates a single metadata table from AUTHORS_METADATA.csv and NOVELS_METADATA.csv
 		"""
