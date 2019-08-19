@@ -121,7 +121,9 @@ def main():
 	slingshottable_cmds = ['install','zip','compile']
 	for cmd in slingshottable_cmds:
 		groups[cmd].add_argument('part',help='Name of part of installation (metadata/txt/xml/freqs/mfw/dtm)',default='',nargs='?')
-		groups[cmd].add_argument('-slingshot',action='store_true',default=False)
+		groups[cmd].add_argument('-force',help='Force creation of already created data?',action='store_true',default=False)
+
+		groups[cmd].add_argument('-slingshot',help='Run in parallel using slingshot?',action='store_true',default=False)
 		groups[cmd].add_argument('-parallel',help='How many parallel processes to run on, using Slingshot?',default=None)
 		groups[cmd].add_argument('-sbatch',help='Run on sherlock?',action='store_true')
 		groups[cmd].add_argument('-slingshot_opts',help='Other options to pass to slingshot',default='-progress')
@@ -179,17 +181,10 @@ def main():
 		import llp
 		corpus = llp.load(args.corpus)
 		cmder = getattr(corpus,args.cmd)
-		valid_args=set(llp.tools.valid_args_for(cmder))
+		#valid_args=set(llp.tools.valid_args_for(cmder))
 		_attrs = dict(list(vars(args).items()))
-		#if 'cmd' in _attrs: del _attrs['cmd']
-		#if args.cmd!='install':
-		#	#_attrs=dict((k,v) for k,v in _attrs.items() if k in valid_args)
-		#	print(_attrs)
 		if 'quiet' in _attrs: _attrs['ask'] = not _attrs['quiet']
 		if 'parallel' in _attrs: _attrs['slingshot_n'] = _attrs['parallel']
-		#print(_attrs)
-		#_attrs = dict((k,v) for k,v in _attrs.items() if k in valid_args)
-		#print(_attrs)
 		cmder(**_attrs)
 
 	elif args.cmd=='info' and args.corpus:

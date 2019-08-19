@@ -413,9 +413,10 @@ class Corpus(object):
 		slingshot_opts+=' -nosave'
 		return self.slingshot_or_solo('save_plain_text',force=force,slingshot=slingshot,slingshot_n=slingshot_n,slingshot_opts=slingshot_opts)
 
-	def save_metadata(self,ofn=None,slingshot=False,slingshot_n=None,slingshot_opts=''):
+	def save_metadata(self,ofn=None,slingshot=False,slingshot_n=None,slingshot_opts='',force=False):
 		from llp import tools
-		if not ofn: ofn=tools.iter_filename(self.path_metadata,force=False) # force=True)
+
+		if not ofn: ofn=tools.iter_filename(self.path_metadata) if not force else self.path_metadata
 		print('>> [%s] saving metadata to: %s...' % (self.name, ofn))
 
 		# get texts
@@ -781,7 +782,8 @@ class Corpus(object):
 
 
 	def install_metadata(self,**attrs):
-		if not os.path.exists(self.path_metadata):
+		force=attrs.get('force')
+		if force or not os.path.exists(self.path_metadata):
 			self.save_metadata(**self.command_prep(self.save_metadata,attrs))
 			self.save_additional_metadata(**self.command_prep(self.save_additional_metadata,attrs))
 		else:
@@ -845,6 +847,9 @@ class Corpus(object):
 
 	@property
 	def metadata(self): return self.metadf
+
+	@property
+	def df(self): return self.metadf
 
 	@property
 	def addr2meta(self):

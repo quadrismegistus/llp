@@ -20,78 +20,45 @@ class TextDTA(Text):
 			return text
 
 	# (b) Get metadata from XML or other file
+	@property
+	def path_xml_meta(self):
+		return os.path.join(self.corpus.path_xml_meta, self.id + '.xml')
+
 	def get_meta_from_file(self):
-		hdr=[]
-		for ln in self.lines_xml():
-			hdr+=[ln]
-			if '</teiHeader>' in ln: break
+		# read xml from meta
+		if not os.path.exists(self.path_xml_meta): return {}
+		with open(self.path_xml_meta) as f: xml=f.read()
 
-		hdr='\n'.join(hdr)
-		source = hdr.split('<sourceDesc>')[1].split('</sourceDesc>')[0]
+		# parse
+		import bs4
+		dom=bs4.BeautifulSoup(xml,'lxml')
 
-		dx={}
+		# get all dc tags
+		meta={}
+		for tag in dom():
+			if tag.name.startswith('dc:'):
+				meta[tag.name[3:]]=tag.text
+		if 'rights' in meta: del meta['rights']
+		return meta
 
-		# author
-		author = source.split('<author>')[1].split('</author>')[0]
-		author_name=[]
-		try:
-			author_lname = author.split('<surname>')[1].split('</surname>')[0]
-			author_name+=[author_lname]
-		except IndexError:
-			pass
-		try:
-			author_fname = author.split('<forename>')[1].split('</forename>')[0]
-			author_name+=[author_fname]
-		except IndexError:
-			pass
-		dx['author'] = ', '.join(author_name)
-
-		# title
-		title_main = source.split('type="main">')[1].split('</title>')[0]
-		try:
-			title_sub = source.split('type="sub">')[1].split('</title>')[0]
-		except IndexError:
-			title_sub=None
-		dx['title'] = title_main+': '+title_sub if title_sub else title_main
-
-		# year
-		try:
-			dx['year']=source.split('<date type="publication">')[1].split('</date>')[0]
-		except IndexError:
-			try:
-				dx['year']=source.split('<date type="creation">')[1].split('</date>')[0]
-			except IndexError:
-				raise Exception("no date?\n\n"+source)
-
-		# genre
-		for row in hdr.split('<classCode scheme="http://www.deutschestextarchiv.de/doku/klassifikation#')[1:]:
-			row=row.split('</classCode>')[0]
-			genre_type,genre = row.split('">',1)
-			if genre_type[0]==genre_type[0].upper(): continue
-			dx['genre_'+genre_type]=genre
-
-		# id
-		dx['id']=os.path.basename(self.path_xml).replace('.TEI-P5.xml','')
-
-		for k,v in dx.items():
-			dx[k]=v.replace('\r\n','//').replace('\r','//').replace('\n','//')
-
-		## Medium
-		gt0='genre_dwds1main'
-		gt1='genre_dwds1sub'
-		if dx[gt0]!='Belletristik':
-			dx['genre']='Non-Fiction'
-			#dx['medium']='Prose'
-		elif 'roman' in dx[gt1].lower() or dx[gt1]==u'Märchen' or dx[gt1]==u'Novelle':
-			dx['medium']='Prose'
-			dx['genre']='Fiction'
-		elif dx[gt1]=='Lyrik':
-			dx['genre']='Poetry'
-			dx['medium']='Verse'
+	def get_metadata(self):
+		meta=super().get_metadata()
+		genre=str(meta.get('subject',''))
+		genrel=genre.lower()
+		if genrel.endswith('roman') or 'novelle' in genrel or 'märchen' in genrel:
+			meta['genre']='Fiction'
+			meta['medium']='Prose'   # check this assumption
+		elif genrel.endswith('drama'):
+			meta['genre']='Drama'
+			meta['medium']='Unknown'
+		elif 'lyrik' in genrel:
+			meta['genre']='Poetry'
+			meta['medium']='Verse'
 		else:
-			dx['genre']='Literature, Other'
+			meta['genre']='Other'
+			meta['medium']='Unknown'
+		return meta
 
-		return dx
 
 
 ########################################################################################################################
@@ -107,26 +74,37 @@ class DTA(Corpus):
 	####################################################################################################################
 
 	def compile(self,**attrs):
-		"""
-		This is a custom installation function. By default, it will simply try to download itself,
-		unless a custom function is written here which either installs or provides installation instructions.
-		"""
-		# move to raw folder
-		if not os.path.exists(self.path_raw): os.makedirs(self.path_raw)
-		if not os.path.exists(self.path_xml): os.makedirs(self.path_xml)
+		self.compile_xml()
+		self.compile_metadata()
 
+	def compile_xml(self):
+		# download if nec
+		downloaded_to = self.download_raw_xml()
+		# unzip xml
+		tools.unzip(downloaded_to, dest=self.path_xml, flatten=True, overwrite=False, replace_in_filenames={'.TEI-P5.':'.'})
+
+	def compile_metadata(self):
+		# download if nec
+		downloaded_to = self.download_raw_metadata()
+		# unzip
+		tools.unzip(downloaded_to, dest=self.path_xml_meta, flatten=True, overwrite=False, replace_in_filenames={'.oai_dc.':'.'})
+
+
+	def download_raw_xml(self):
 		# download file
 		from llp import tools
 		ofnfn=os.path.join(self.path_raw, f'_tmp_{self.id}_raw.zip')
 		if not os.path.exists(ofnfn):
 			print('>> downloading:',self.url_raw,'to',ofnfn)
 			tools.download(self.url_raw, ofnfn)
+		return ofnfn
 
-		# unzip xml
-		os.chdir(self.path_xml)
-		tools.unzip(ofnfn)
-
-		#return self.download(**attrs)
+	def download_raw_metadata(self):
+		ofnfn=os.path.join(self.path_raw, f'_tmp_{self.id}_raw_metadata.zip')
+		if not os.path.exists(ofnfn):
+			print('>> downloading:',self.url_raw_metadata,'to',ofnfn)
+			tools.download(self.url_raw_metadata, ofnfn)
+		return ofnfn
 
 
 	def download(**attrs):
@@ -177,3 +155,79 @@ class DTA(Corpus):
 
 
 ########################################################################################################################
+
+
+
+"""
+Info:
+
+In [4]: C.df.subject.value_counts()
+Out[4]:
+Zeitung                                               767
+Gebrauchsliteratur: Leichenpredigt                    334
+Belletristik: Roman                                   187
+Belletristik: Novelle                                 121
+Belletristik: Lyrik                                   116
+Gebrauchsliteratur: Gelegenheitsschrift:Tod           109
+Gebrauchsliteratur: Gesellschaft                       92
+Belletristik: Drama                                    82
+Wissenschaft: Philosophie                              70
+Belletristik: Prosa                                    63
+Wissenschaft: Geographie                               50
+Wissenschaft: Jura                                     50
+Wissenschaft: Historiographie                          45
+Wissenschaft: Biologie                                 45
+Wissenschaft: Medizin                                  44
+Gebrauchsliteratur: Theologie                          40
+Wissenschaft: Psychologie                              38
+Wissenschaft: Kunstgeschichte                          33
+Wissenschaft: Physik                                   29
+Gebrauchsliteratur: Erbauungsliteratur                 28
+Wissenschaft: Literaturwissenschaft                    28
+Wissenschaft: Ökonomie                                 26
+Belletristik: Briefe                                   24
+Wissenschaft: Technik                                  24
+Wissenschaft: Sprachwissenschaft                       24
+Wissenschaft: Mathematik                               23
+Wissenschaft: Naturgeschichte                          21
+Belletristik: Reiseliteratur                           21
+Wissenschaft: Philologie                               21
+Gebrauchsliteratur: Brief                              21
+                                                     ...
+Gebrauchsliteratur: Rezension                           1
+Wissenschaft: Politik, Ökonomie                         1
+Gebrauchsliteratur: Schulbuch                           1
+Belletristik: Briefroman                                1
+Gebrauchsliteratur: Astrologie                          1
+Belletristik: Lied                                      1
+Gebrauchsliteratur: Kriminalistik                       1
+Gebrauchsliteratur: Kolportageliteratur                 1
+Gebrauchsliteratur: Kunst                               1
+Belletristik: Dialog                                    1
+Wissenschaft: Politik, Anstandsliteratur                1
+Gebrauchsliteratur: Pflanzenbuch                        1
+Gebrauchsliteratur: Gelegenheitsschrift:Fest            1
+Gebrauchsliteratur: Naturwissenschaft                   1
+Gebrauchsliteratur: Gelegenheitsschrift:Tod; Lyrik      1
+Wissenschaft: Alchemie, Medizin                         1
+Wissenschaft: Kameralwissenschaft                       1
+Wissenschaft: Glasherstellung                           1
+Wissenschaft: Sonstiges                                 1
+Belletristik: Städtelob                                 1
+Wissenschaft: Archäologie                               1
+Belletristik: Schäferdichtung                           1
+Wissenschaft: Brief                                     1
+Wissenschaft: Ordensliteratur:Jesuiten                  1
+Belletristik: Religiöse Reimpaarerzählung               1
+Belletristik: Lyrik, Epigramm                           1
+Belletristik: Epik                                      1
+Belletristik: Lyrik; Drama; Prosa                       1
+Gebrauchsliteratur: Biologie                            1
+Gebrauchsliteratur: Bibelübersetzung                    1
+Name: subject, Length: 142, dtype: int64
+
+
+
+
+
+"""

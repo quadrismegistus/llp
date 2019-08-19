@@ -1547,7 +1547,7 @@ def download_tqdm(url, save_to):
 
 	return save_to
 
-def unzip(zipfn, dest='.'):
+def unzip(zipfn, dest='.', flatten=False, overwrite=False, replace_in_filenames={}):
 	from zipfile import ZipFile
 	from tqdm import tqdm
 
@@ -1556,10 +1556,33 @@ def unzip(zipfn, dest='.'):
 		namelist=zip_file.namelist()
 
 		# Loop over each file
-		for file in tqdm(iterable=namelist, total=len(namelist)):
+		for member in tqdm(iterable=namelist, total=len(namelist)):
 			# Extract each file to another directory
 			# If you want to extract to current working directory, don't specify path
-			zip_file.extract(member=file, path=dest)
+			"""if not flatten:
+				zip_file.extract(member=member, path=dest)
+			else:
+				# copy file (taken from zipfile's extract)
+				source = zip_file.open(member)
+				filename = os.path.basename(member)
+				if not filename: continue
+				if not os.path.splitext(filename)[1]: continue
+
+				with open(filename, "wb") as target:
+					with source, target:
+						shutil.copyfileobj(source, target)"""
+
+			filename = os.path.basename(member)
+			if not filename: continue
+			target_fnfn = os.path.join(dest,member) if not flatten else os.path.join(dest,filename)
+			for k,v in replace_in_filenames.items(): target_fnfn = target_fnfn.replace(k,v)
+			if not overwrite and os.path.exists(target_fnfn): continue
+			target_dir = os.path.dirname(target_fnfn)
+			if not os.path.exists(target_dir): os.makedirs(target_dir)
+			with zip_file.open(member) as source, open(target_fnfn,'wb') as target:
+				shutil.copyfileobj(source, target)
+
+
 
 
 def get_num_lines(filename):
