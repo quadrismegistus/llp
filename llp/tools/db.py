@@ -92,7 +92,7 @@ def get_table(dbname='llp',tablename=TABLE_NOW):
 	return table
 
 
-def make_mini_db(keys=['author','title','year']): #keys=['corpus','id','author','title','year']):
+def make_mini_db(keys=['author','title','year','genre','medium'],extra_keys=[]): #keys=['corpus','id','author','title','year']):
 	from llp import tools
 	from tqdm import tqdm #tqdm_notebook as tqdm
 
@@ -100,11 +100,11 @@ def make_mini_db(keys=['author','title','year']): #keys=['corpus','id','author',
 	total=dbtable.count()
 
 	def _writegen():
-		for dx in tqdm(dbtable.find(),total=total):
-			minidx=dict( [ (k,dx.get(k,'')) for k in keys ] )
+		for dx in tqdm(dbtable.find(),total=total,desc='>> saving tsv from mongo'):
+			minidx=dict( [ (k,dx.get(k,'')) for k in keys+extra_keys ] )
 			minidx['_addr']=str(dx.get('corpus','Corpus')) + ADDR_SEP + str(dx.get('id','ID'))
 			yield minidx
 
-	tools.writegen('data.llp_mini_db.txt', _writegen)
+	tools.writegen('data.llp_mini_db.txt.gz', _writegen)
 
 #def get_mini_db():

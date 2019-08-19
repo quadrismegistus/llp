@@ -607,6 +607,7 @@ class Corpus(object):
 	def save_additional_metadata(self,fn=None,calculate={'ocr_accuracy','length'}):
 		from llp import tools
 		if not fn: fn=os.path.join(self.path_data,'additional_metadata.txt')
+		return
 		print('?',fn)
 		stop
 		if os.path.exits(fn): return

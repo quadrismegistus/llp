@@ -419,7 +419,10 @@ class Text(object):
 
 
 	def get_meta_from_corpus_metadata(self):
-		return self.corpus._metad.get(self.id)
+		try:
+			return self.corpus._metad.get(self.id)
+		except AttributeError:
+			return {}
 
 	def get_metadata(self,from_metadata=True,from_files=True):
 		"""

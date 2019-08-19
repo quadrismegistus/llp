@@ -437,15 +437,18 @@ def readgen(fnfn,header=None,tsep='\t',keymap={},keymap_all=six.text_type,encodi
 		import time
 		now=time.time()
 
+		"""
 		if tsep=='\t' and toprint:
 			print('>> streaming as tsv:',fnfn)
 		elif tsep==',' and toprint:
 			print('>> streaming as csv:',fnfn)
+		"""
 
 		if progress:
 			num_lines = get_num_lines(fnfn)
 			from tqdm import tqdm
-			for dx in tqdm(readgen_csv(fnfn),total = num_lines): yield dx
+			_fn=os.path.basename(fnfn)
+			for dx in tqdm(readgen_csv(fnfn),total = num_lines, desc=f'>> reading csv ({_fn})'): yield dx
 		else:
 			for dx in readgen_csv(fnfn): yield dx
 
@@ -1415,8 +1418,9 @@ def download(url,save_to,overwrite=False):
 	#return download_wget(url,save_to)
 	#return download_tqdm(url,save_to)
 	if not overwrite and os.path.exists(save_to): return
-	return download_tqdm2(url,save_to)
+	#return download_tqdm2(url,save_to)
 	#return download_curl(url,save_to)
+	return download_pycurl(url,save_to)
 
 def download_curl(url,save_to):
 	save_to_dir,save_to_fn=os.path.split(save_to)
@@ -1442,9 +1446,90 @@ def copyfileobj(fsrc, fdst, total, length=16*1024):
 def download_tqdm2(url, save_to):
 	import requests
 	with requests.get(url, stream=True, verify=False) as r:
-		total=int(r.headers.get('Content-length'))
+		totalstr=r.headers.get('Content-length')
+		total=int(totalstr) if totalstr else None
 		with open(save_to, 'wb') as f:
 			copyfileobj(r.raw, f, total)
+
+
+
+def download_pycurl(url, save_to):
+	# from: https://gist.github.com/etheleon/882d6a9a64c064d4202ccd59f6c0b533
+
+	import os
+	import pycurl
+	from tqdm import tqdm
+	downloader = pycurl.Curl()
+	def sanitize(c):
+		c.setopt(pycurl.UNRESTRICTED_AUTH, False)
+		c.setopt(pycurl.HTTPAUTH, pycurl.HTTPAUTH_ANYSAFE)
+		c.setopt(pycurl.ACCEPT_ENCODING, b'')
+		c.setopt(pycurl.TRANSFER_ENCODING, True)
+		c.setopt(pycurl.SSL_VERIFYPEER, True)
+		c.setopt(pycurl.SSL_VERIFYHOST, 2)
+		c.setopt(pycurl.SSLVERSION, pycurl.SSLVERSION_TLSv1)
+		#c.setopt(pycurl.FOLLOWLOCATION, False)
+		c.setopt(pycurl.FOLLOWLOCATION, True)
+
+	def do_download(url, local, *, safe=True):
+		rv = False
+		with tqdm(desc=url, total=1, unit='b', unit_scale=True) as progress:
+			xfer = XferInfoDl(url, progress)
+			if safe:
+				local_tmp = local + '.tmp'
+			else:
+				local_tmp = local
+
+			c = downloader
+			c.reset()
+			sanitize(c)
+
+			c.setopt(pycurl.NOPROGRESS, False)
+			c.setopt(pycurl.XFERINFOFUNCTION, xfer)
+
+			c.setopt(pycurl.URL, url.encode('utf-8'))
+			with open(local_tmp, 'wb') as out:
+				c.setopt(pycurl.WRITEDATA, out)
+				try:
+					c.perform()
+				except pycurl.error:
+					os.unlink(local_tmp)
+					return False
+			if c.getinfo(pycurl.RESPONSE_CODE) >= 400:
+				os.unlink(local_tmp)
+			else:
+				if safe:
+					os.rename(local_tmp, local)
+				rv = True
+			progress.total = progress.n = progress.n - 1
+			progress.update(1)
+		return rv
+
+
+	class XferInfoDl:
+		def __init__(self, url, progress):
+			self._tqdm = progress
+
+		def __call__(self, dltotal, dlnow, ultotal, ulnow):
+			n = dlnow - self._tqdm.n
+			self._tqdm.total = dltotal or guess_size(dlnow)
+			if n:
+				self._tqdm.update(n)
+
+
+	def guess_size(now):
+		''' Return a number that is strictly greater than `now`,
+			but likely close to `approx`.
+		'''
+		return 1 << now.bit_length()
+
+
+	## main of function
+	do_download(url, save_to)
+
+
+
+
 
 
 
