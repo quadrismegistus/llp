@@ -1420,7 +1420,10 @@ def download(url,save_to,overwrite=False):
 	if not overwrite and os.path.exists(save_to): return
 	#return download_tqdm2(url,save_to)
 	#return download_curl(url,save_to)
-	return download_pycurl(url,save_to)
+	try:
+		return download_pycurl(url,save_to)
+	except ImportError:
+		return download_wget(url,save_to)
 
 def download_curl(url,save_to):
 	save_to_dir,save_to_fn=os.path.split(save_to)
@@ -1559,19 +1562,6 @@ def unzip(zipfn, dest='.', flatten=False, overwrite=False, replace_in_filenames=
 		for member in tqdm(iterable=namelist, total=len(namelist)):
 			# Extract each file to another directory
 			# If you want to extract to current working directory, don't specify path
-			"""if not flatten:
-				zip_file.extract(member=member, path=dest)
-			else:
-				# copy file (taken from zipfile's extract)
-				source = zip_file.open(member)
-				filename = os.path.basename(member)
-				if not filename: continue
-				if not os.path.splitext(filename)[1]: continue
-
-				with open(filename, "wb") as target:
-					with source, target:
-						shutil.copyfileobj(source, target)"""
-
 			filename = os.path.basename(member)
 			if not filename: continue
 			target_fnfn = os.path.join(dest,member) if not flatten else os.path.join(dest,filename)

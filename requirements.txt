@@ -4,3 +4,4 @@ wget
 smart_open
 bounter
 ujson
+pycurl
