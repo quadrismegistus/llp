@@ -77,7 +77,8 @@ class Chicago(Corpus):
 
 			# lowercase keys
 			keys=list(d.keys())
-			for k in list(d.keys()):
+			for k in keys:
+				if not k: continue
 				k2=k.lower()
 				if k2!=k:
 					d[k2]=d[k]
