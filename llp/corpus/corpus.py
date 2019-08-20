@@ -1860,7 +1860,7 @@ class CorpusMeta(Corpus):
 		self.path_freq_table={}
 		#self._metad={}
 		#self._meta=[]
-		for c in self.corpora:
+		for c in tqdm(self.corpora,desc='>> loading subcorpora'):
 			cname=c.name if hasattr(c,'name') else c.__class__.__name__
 			self.corpus2metad[cname]=c.metad
 			#for idx,dx in c.metad.items():

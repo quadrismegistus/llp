@@ -132,15 +132,11 @@ class ChadwyckPoetry(Corpus):
 	"""
 
 	TEXT_CLASS=TextChadwyckPoetry
-	PATH_TXT = 'chadwyck_poetry/_txt_chadwyck_poetry'
-	PATH_XML = '/Volumes/Present/DH/corpora/chadwyck_poetry/xml'
-	PATH_RAW = '/Volumes/Present/DH/corpora/chadwyck_poetry/raw'
-	PATH_METADATA = 'chadwyck_poetry/corpus-metadata.ChadwyckPoetry.txt'
 	EXT_XML='.xml'
 
-	def __init__(self):
-		super(ChadwyckPoetry,self).__init__('ChadwyckPoetry',path_txt=self.PATH_TXT,path_xml=self.PATH_XML,path_metadata=self.PATH_METADATA,ext_xml=self.EXT_XML)
-		self.path = os.path.dirname(__file__)
+	# def __init__(self):
+	# 	super(ChadwyckPoetry,self).__init__('ChadwyckPoetry',path_txt=self.PATH_TXT,path_xml=self.PATH_XML,path_metadata=self.PATH_METADATA,ext_xml=self.EXT_XML)
+	# 	self.path = os.path.dirname(__file__)
 
 	def gen_xml(self, split_start='<poem>', split_end='</poem>', id_split_start='<ID>', id_split_end='</ID>'):
 		"""

@@ -30,16 +30,16 @@ def lithist_load_corpus(name,medium={},genre={}):
 	elif name=='ChadwyckDrama':
 		c=load_corpus(name)
 		#c._texts = [t for t in c.texts() if t.meta['posthumous']=='False' and t.year>1500 and t.year<2000]
-	elif name=='ECCO-TCP_in_Sections':
+	elif name=='ECCO_TCP_in_Sections':
 		c=load_corpus('ECCO_TCP').sections
 		c._texts = [t for t in c.texts() if t.year>=1700 and t.year<1800]
-	elif name=='ECCO-TCP':
+	elif name=='ECCO_TCP':
 		c=load_corpus('ECCO_TCP')
 		c._texts = [t for t in c.texts() if t.year>=1700 and t.year<1800]
-	elif name=='EEBO-TCP_in_Sections':
+	elif name=='EEBO_TCP_in_Sections':
 		c=load_corpus('EEBO_TCP').sections
 		c._texts = [t for t in c.texts() if t.year>=1500 and t.year<1700]
-	elif name=='EEBO-TCP':
+	elif name=='EEBO_TCP':
 		c=load_corpus('EEBO_TCP')
 		c._texts = [t for t in c.texts() if t.year>=1500 and t.year<1700]
 	else:
@@ -56,8 +56,8 @@ def lithist_load_corpus(name,medium={},genre={}):
 class LitHist(CorpusMeta):
 	CORPORA=[
 		'Chadwyck','ChadwyckPoetry','ChadwyckDrama',
-		'ECCO-TCP','EEBO-TCP', #,'ECCO-TCP_in_Sections','EEBO-TCP_in_Sections' (too many files)
-		'Sellars',   # 'TedJDH' (replicated in Sellars + ECCO-TCP)
+		'ECCO_TCP','EEBO_TCP', #,'ECCO_TCP_in_Sections','EEBO_TCP_in_Sections' (too many files)
+		'Sellars',   # 'TedJDH' (replicated in Sellars + ECCO_TCP)
 		'DialNarr', #LitLab (too noisy),
 		'MarkMark','Chicago',
 		'COHA','CLMET','OldBailey','EnglishDialogues',
@@ -67,7 +67,7 @@ class LitHist(CorpusMeta):
 		if not corpora:
 			corpora=[lithist_load_corpus(c) for c in self.CORPORA]
 			corpora=[x for x in corpora if x is not None]
-			print(corpora)
+			#print(corpora)
 
 		super(LitHist,self).__init__(name=name_meta,corpora=corpora)
 		self.path=os.path.join(self.path,'lithist')
@@ -85,9 +85,9 @@ class LitHistProse(LitHist):
 	#CORPORA = [x for x in LitHist.CORPORA if not x in {'ChadwyckPoetry','ChadwyckDrama'}]
 	CORPORA=[
 		'Chadwyck',
-		#'ECCO-TCP','EEBO-TCP', #,
-		'ECCO-TCP_in_Sections','EEBO-TCP_in_Sections', # (too many files)
-		'Sellars',   # 'TedJDH' (replicated in Sellars + ECCO-TCP)
+		#'ECCO_TCP','EEBO_TCP', #,
+		'ECCO_TCP_in_Sections','EEBO_TCP_in_Sections', # (too many files)
+		'Sellars',   # 'TedJDH' (replicated in Sellars + ECCO_TCP)
 		'MarkMark','Chicago',
 		'COHA','Spectator']
 
@@ -96,14 +96,14 @@ class LitHistProse(LitHist):
 		if not corpora:
 			corpora=[lithist_load_corpus(c,medium='Prose') for c in self.CORPORA]
 			corpora=[x for x in corpora if x is not None] # and len(x.texts())>0]
-			print(corpora)
+			#print(corpora)
 
 		super(LitHist,self).__init__(name=name,corpora=corpora)
 
 		# filter for prose
-		print(len(self.texts()))
+		#print(len(self.texts()))
 		self._texts = [t for t in self.texts() if t.medium=='Prose']
-		print(len(self.texts()))
+		#print(len(self.texts()))
 		self.path=os.path.join(self.path,'lithist')
 
 
@@ -135,5 +135,5 @@ class LitHistHathi(CorpusMeta):
 		if not corpora:
 			corpora=[lithist_load_corpus(c) for c in self.CORPORA]
 			corpora=[x for x in corpora if x is not None]
-			print(corpora)
+			#print(corpora)
 		super().__init__(name=name_meta,corpora=corpora)
