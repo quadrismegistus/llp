@@ -115,7 +115,7 @@ class DTA(Corpus):
 		return ofnfn
 
 
-	def download(**attrs):
+	def download(self,**attrs):
 		"""
 		This function is used to download the corpus. Leave as-is to use built-in LLP download system.
 		Provide a
