@@ -130,6 +130,9 @@ def main():
 		groups[cmd].add_argument('-savedir',help='Directory to save to (if applicable)',default='')
 		groups[cmd].add_argument('-hours',help='Number of hours to run on Sherlock',default=2)
 
+	groups['download'].add_argument('part',help='Name of part of installation (metadata/txt/xml/freqs/mfw/dtm)',default='',nargs='?')
+	groups['download'].add_argument('-force',help='Force creation of already created data?',action='store_true',default=False)
+
 
 	parser.add_argument('-quiet',help='No interactive mode',action='store_true')
 	args = parser.parse_args()
@@ -178,9 +181,14 @@ def main():
 
 	elif args.cmd=='download' and args.corpus=='metadata':
 		import llp
-		for cname,corpus in llp.corpora(incl_meta_corpora=False,load=True):
-			if hasattr(corpus,'url_metadata'):
-				print(cname, corpus.url_metadata)
+		from tqdm import tqdm
+
+		corpora_to_download = [c for cname,c in llp.corpora(incl_meta_corpora=False,load=True) if not c.exists_metadata and hasattr(c,'url_metadata')]
+		print(corpora_to_download)
+
+		for c in tqdm(corpora_to_download):
+			c.download(part='metadata')
+
 
 	## COMMANDS ON CORPORA
 	elif args.cmd in {'compile','install','download'} and args.corpus:

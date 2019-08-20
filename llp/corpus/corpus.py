@@ -334,7 +334,7 @@ class Corpus(object):
 			self._text_ids=[self.get_id_from_metad(d) for d in self.meta]
 		else:
 			## Otherwise get the filenames from the main file directory
-			path,ext=self.path_ext_texts
+			path,ext=self.path_txt,self.ext_txt
 			#print '>> looking for text IDs using files...'
 			if not path or not ext:
 				self._text_ids=[]
@@ -457,7 +457,7 @@ class Corpus(object):
 		import pandas as pd
 
 		#meta_ld=tools.read_ld(self.path_metadata,keymap={'*':str})
-		self._metadf=meta_df=tools.read_csv_with_pandas(self.path_metadata)
+		self._metadf=meta_df=tools.read_csv_with_pandas(self.path_metadata,dtype=str)
 		self._meta=meta_ld=meta_df.to_dict('records')
 		self._text_ids=[self.get_id_from_metad(d) for d in meta_ld]
 		self._texts=[self.TEXT_CLASS(idx,self) for idx in self._text_ids]
@@ -742,14 +742,17 @@ class Corpus(object):
 		## THIS NEEDS TO BE OVERWRITTEN BY CHILD CLASS
 		return
 
-	def download(self, ask=True, urls=None, **attrs):
+	def download(self, ask=True, urls=None, part=None, **attrs):
 		self.mkdir_root()
 		self.chdir_root()
 
 		if not urls: urls=URLS=self.urls()
 
-		if ask:
-			url2ok=defaultdict(None)
+		url2ok=defaultdict(None)
+		if part:
+			for urltype,url in URLS: url2ok[urltype]=False
+			url2ok[part]=True
+		elif ask:
 			for urltype,url in URLS:
 				url2ok[urltype]=input('>> [%s] Download %s file(s)?: ' % (self.name, urltype)).strip().lower().startswith('y')
 		else:
