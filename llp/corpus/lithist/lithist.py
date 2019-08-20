@@ -124,3 +124,16 @@ class LitHistAuthors(CorpusMeta):
 
 		super(LitHistAuthors,self).__init__(name=name,corpora=corpora)
 		self.path=os.path.join(self.path,'lithist')
+
+
+
+
+class LitHistHathi(CorpusMeta):
+	CORPORA=LitHist.CORPORA + ['HathiEngLit']
+
+	def __init__(self, name_meta='LitHistHathi',corpora=None):
+		if not corpora:
+			corpora=[lithist_load_corpus(c) for c in self.CORPORA]
+			corpora=[x for x in corpora if x is not None]
+			print(corpora)
+		super().__init__(name=name_meta,corpora=corpora)

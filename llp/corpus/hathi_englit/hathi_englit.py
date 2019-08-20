@@ -293,7 +293,7 @@ class HathiEngLit(Corpus):
 		if not os.path.exists(self.path_raw): os.makedirs(self.path_raw)
 		for url in tqdm(CORPUS_DOWNLOAD_URLS,position=1):
 			ofnfn=os.path.join(self.path_raw,os.path.basename(url))
-			tools.download(url,ofnfn)
+			tools.download(url,ofnfn,overwrite=False)
 
 	def compile_metadata(self):
 		all_meta_ld=[]
@@ -342,13 +342,12 @@ class HathiEngLit(Corpus):
 		This is a custom installation function. By default, it will simply try to download itself,
 		unless a custom function is written here which either installs or provides installation instructions.
 		"""
-		#self.compile_download()
-		#self.compile_metadata()
+		self.compile_download()
+		self.compile_metadata()
 		self.compile_data(parallel=attrs.get('parallel'), sbatch=attrs.get('sbatch'))
-		#return self.download(**attrs)
 
 
-	def download(**attrs):
+	def download(self,**attrs):
 		"""
 		This function is used to download the corpus. Leave as-is to use built-in LLP download system.
 		Provide a

@@ -1721,7 +1721,7 @@ def valid_args_for(func_or_method):
 
 def read_csv_with_pandas(fnfn,return_ld=False,**attrs):
 	import pandas as pd
-	if fnfn.endswith('.gz'): fnfn=fnfn[:-3]
+	#if fnfn.endswith('.gz'): fnfn=fnfn[:-3]
 	ext=os.path.splitext(fnfn)[-1]
 	if ext=='.csv':
 		df=pd.read_csv(fnfn,sep=',',**attrs)

@@ -176,6 +176,12 @@ def main():
 	elif args.cmd=='import':
 		start_new_corpus_interactive(args,import_existing=True)
 
+	elif args.cmd=='download' and args.corpus=='metadata':
+		import llp
+		for cname,corpus in llp.corpora(incl_meta_corpora=False,load=True):
+			if hasattr(corpus,'url_metadata'):
+				print(cname, corpus.url_metadata)
+
 	## COMMANDS ON CORPORA
 	elif args.cmd in {'compile','install','download'} and args.corpus:
 		import llp

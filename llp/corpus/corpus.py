@@ -59,6 +59,7 @@ PATH_LLP_HOME = os.path.join(HOME,'llp')
 PATH_MANIFEST=os.path.join(PATH_TO_CORPUS_CODE,'manifest.txt')
 PATH_MANIFEST_USER = tools.config.get('PATH_TO_MANIFEST','')
 PATH_MANIFEST_USER_LAB = PATH_MANIFEST_USER.replace('.txt','_lab.txt')
+PATH_MANIFEST_USER_SHARE = PATH_MANIFEST_USER.replace('.txt','_share.txt')
 
 PATH_MANIFESTS = tools.remove_duplicates([
 	PATH_MANIFEST,
@@ -68,10 +69,13 @@ PATH_MANIFESTS = tools.remove_duplicates([
 	os.path.abspath(os.path.join(PATH_CORPUS,'manifest_local.txt')),
 	os.path.abspath(os.path.join(PATH_HERE,'..','..','config','llp_manifest.txt')),
 	os.path.join(PATH_TO_CORPUS_CODE,'manifest_lab.txt'),
+	os.path.join(PATH_LLP_HOME,'manifest_share.txt'),
 	os.path.join(PATH_LLP_HOME,'manifest_lab.txt'),
 	os.path.join(PATH_LLP_HOME,'manifest.txt'),
 	os.path.join(HOME,'llp_manifest.txt'),
-	PATH_MANIFEST_USER
+	PATH_MANIFEST_USER,
+	PATH_MANIFEST_USER_LAB,
+	PATH_MANIFEST_USER_SHARE
 ], remove_empty=True)
 #print(PATH_MANIFESTS)
 

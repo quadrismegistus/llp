@@ -57,6 +57,14 @@ class TextDTA(Text):
 		else:
 			meta['genre']='Other'
 			meta['medium']='Unknown'
+
+		try:
+			meta['year']=int(meta['date'])
+		except ValueError:
+			import numpy as np
+			meta['year']=np.nan
+
+		meta['author']=meta['creator']
 		return meta
 
 
