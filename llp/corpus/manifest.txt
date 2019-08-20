@@ -238,3 +238,14 @@ path_python = lithist/lithist.py
 class_name = LitHistProse
 path_metadata = corpus-metadata.LitHistProse.txt
 is_meta = True
+
+[LitHistHathi]
+name = LitHistHathi
+desc = Literary-historical texts, plus HathiEngLit
+sources = Chadwyck, ChadwyckPoetry, ChadwyckDrama, COHA, ECCO_TCP, EEBO_TCP, HathEngLit
+id = lithist_hathi
+path_root = lithist
+path_python = lithist/lithist.py
+class_name = LitHistHathi
+path_metadata = metadata.LitHistHathi.txt
+is_meta = True
