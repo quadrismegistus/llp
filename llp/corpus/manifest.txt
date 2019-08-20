@@ -80,6 +80,7 @@ id = ecco_tcp
 path_root = ecco
 path_python = ecco/ecco.py
 class_name = ECCO_TCP
+path_freqs=freqs_tcp
 path_txt = txt_tcp
 path_xml = xml_tcp
 path_header = headers_tcp
