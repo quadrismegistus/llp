@@ -404,7 +404,7 @@ class Corpus(object):
 	def save_freqs(self,force=False,slingshot=False,slingshot_n=None,slingshot_opts=''):
 		#print(slingshot,slingshot_n,slingshot_opts)
 		#slingshot_opts+=' -savedir _tmp_save_freqs -overwrite -savecsv %s' % self.get_path_freq_table()
-		slingshot_opts+=' -nosave'
+		#slingshot_opts+=' -nosave'
 		return self.slingshot_or_solo('save_freqs',force=force,slingshot=slingshot,slingshot_n=slingshot_n,slingshot_opts=slingshot_opts,force_slingshot=False)
 
 	def save_plain_text(self,force=False,slingshot=False,slingshot_n=None,slingshot_opts=''):
