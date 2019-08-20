@@ -144,7 +144,7 @@ def check_corpora(paths=['path_xml','path_txt','path_freqs','path_metadata'],inc
 			pathtype=path.replace('path_','')
 			pathval = getattr(corpus,path)
 			#pathval = corpus.get(path,'')
-			exists = '↓' if os.path.exists(pathval) else ' '
+			exists = '↓' if os.path.exists(pathval) and (not os.path.isdir(pathval) or bool(os.listdir(pathval))) else ' '
 
 			#exists_cloud = '↑' if f'{corpus.id}_{pathtype}.zip' in clist else ' '
 			exists_link = '↑' if hasattr(corpus,f'url_{pathtype}') else ' '
