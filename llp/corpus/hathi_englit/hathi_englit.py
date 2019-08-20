@@ -262,6 +262,7 @@ def freq_tsv2dict(freq_str):
 
 
 def untar_to_freqs_folder(args):
+	print(args)
 	fnfn,path_freqs,position=args
 	with gzip.GzipFile(fnfn) as f:
 		with tarfile.open(fileobj=f) as tf:
