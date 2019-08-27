@@ -12,6 +12,8 @@ from llp.text import Text
 from argparse import Namespace
 from pprint import pprint
 import inspect
+from tqdm import tqdm
+import random
 
 from os.path import expanduser
 HOME=expanduser("~")
@@ -383,7 +385,7 @@ class Corpus(object):
 
 	###########################################################################
 	## SLINGSHOT OR SOLO!!
-	def slingshot_or_solo(self,method_name,force=False,slingshot=False,slingshot_n=None,slingshot_opts='',cmd_args=[],cmd_kwargs={},force_slingshot=False):
+	def slingshot_or_solo(self,method_name,force=False,slingshot=False,slingshot_n=None,slingshot_opts='',cmd_args=[],cmd_kwargs={},force_slingshot=False,shuffle_texts=True):
 		print('>> %s.%s() ...' % (self.name, method_name))
 		## loop
 		if slingshot or force_slingshot:
@@ -395,8 +397,8 @@ class Corpus(object):
 			if cmd_kwargs: Scmd+=" -kwargs '%s'" % json.dumps(cmd_kwargs)
 			os.system(Scmd)
 		else:
-			from tqdm import tqdm
 			texts = self.texts()
+			if shuffle_texts: random.shuffle(texts)
 			for i,text in enumerate(tqdm(texts)):
 				f=getattr(text,method_name)
 				f(*cmd_args,**cmd_kwargs)
