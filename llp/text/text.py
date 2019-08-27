@@ -208,7 +208,7 @@ class Text(object):
 	def fast_counts(self):
 		return Counter(self.fast_tokens())
 
-	def html(self,word2fields={},bad_words={'[','Footnote'},bad_strs={'Kb'},fn_model_result=None,fn_model_coeffs=None,data={}):
+	def html(self,word2fields={},bad_words={'[','Footnote'},bad_strs={'Kb'},fn_model_result=None,fn_model_coeffs=None,data={},lim_words=None):
 
 		if False: #self.is_parsed_spacy:
 			html=self.html_spacy(word2fields=word2fields,bad_words=bad_words,bad_strs=bad_strs,fn_model_result=fn_model_result,fn_model_coeffs=fn_model_coeffs)
@@ -222,6 +222,7 @@ class Text(object):
 		#words=self.fast_tokens()
 		#fields=' '.join(['field_'+field.replace('.','_') for field in word2fields.get(w,[])])
 		for word in self.all_tokens():
+			if lim_words and len(tags)>=lim_words: break
 			word=word.replace('\n','<br/>')
 			w=word.lower()
 			if not w: continue
@@ -240,7 +241,9 @@ class Text(object):
 			else:
 				tags+=[word]
 
-		return '\n'.join(tags),field_counts
+		htmlx='\n'.join(tags)
+		htmlx=htmlx.replace('<br/><br/>','<br/>')
+		return htmlx,field_counts
 
 
 	def html_spacy(self,word2fields={},bad_words={'[','Footnote'},bad_strs={'Kb'},fn_model_result=None,fn_model_coeffs=None):
@@ -1092,7 +1095,7 @@ def tokenize_text(txt):
 ########################################################
 class PlainText(Text):
 	def __init__(self,txt=None,path_to_txt=None):
-		self.id=None
+		self._id=None
 		self.corpus=None
 		self._sections=[]
 		self._fnfn_xml=None

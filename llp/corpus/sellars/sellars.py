@@ -16,11 +16,3 @@ class TextSellars(Text):
 
 class Sellars(Corpus):
 	TEXT_CLASS=TextSellars
-	PATH_TXT = 'sellars/_txt_sellars'
-	PATH_XML = None
-	PATH_METADATA = 'sellars/corpus-metadata.Sellars.xls'
-
-	def __init__(self):
-		super(Sellars,self).__init__('Sellars',path_txt=self.PATH_TXT,path_xml=self.PATH_XML,path_metadata=self.PATH_METADATA)
-		self.path = os.path.dirname(__file__)
-		self.ext_txt='.txt.gz'

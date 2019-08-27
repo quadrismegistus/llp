@@ -29,9 +29,6 @@ class TextCLMET(Text):
 		return md
 
 
-	def text_plain(self, force_xml=False, text_only_within_medium=True):
-		return super(TextCLMET,self).text_plain(OK=['p'], BAD=['page'], body_tag='text', force_xml=force_xml)
-
 
 
 

@@ -46,6 +46,11 @@ name = COHA
 desc = Corpus of Historical American English
 id = coha
 
+[COCA]
+name = COCA
+desc = Corpus of Contemporary American English
+id = coca
+
 [DialNarr]
 name = DialNarr
 desc = Separated Dialogue and Narration Portions of Chadwyck-Healey Novels
@@ -188,7 +193,10 @@ url_txt = https://www.dropbox.com/s/q4bm4yf76zgumi6/txtlab_txt.zip?dl=1
 name = HathiEngLit
 id = hathi_englit
 
-
+[HathiBio]
+name = HathiBio
+id = hathi_bio
+path_metadata = metadata.csv
 
 
 

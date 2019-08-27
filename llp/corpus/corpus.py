@@ -1860,8 +1860,10 @@ class CorpusMeta(Corpus):
 		self.path_freq_table={}
 		#self._metad={}
 		#self._meta=[]
-		for c in tqdm(self.corpora,desc='>> loading subcorpora'):
+		looper = tqdm(self.corpora,desc='>> loading subcorpora')
+		for c in looper:
 			cname=c.name if hasattr(c,'name') else c.__class__.__name__
+			looper.set_description(f'>> loading {cname}')
 			self.corpus2metad[cname]=c.metad
 			#for idx,dx in c.metad.items():
 			#	dx['corpus']=c.name

@@ -129,7 +129,7 @@ class LitHistAuthors(CorpusMeta):
 
 
 class LitHistHathi(CorpusMeta):
-	CORPORA=LitHist.CORPORA + ['HathiEngLit']
+	CORPORA=LitHist.CORPORA + ['HathiEngLit','HathiBio']
 
 	def __init__(self, name_meta='LitHistHathi',corpora=None):
 		if not corpora:
