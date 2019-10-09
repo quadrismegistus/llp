@@ -60,7 +60,7 @@ class LitHist(CorpusMeta):
 		'Sellars',   # 'TedJDH' (replicated in Sellars + ECCO_TCP)
 		'DialNarr', #LitLab (too noisy),
 		'MarkMark','Chicago',
-		'COHA','CLMET','OldBailey','EnglishDialogues',
+		'COHA','COCA','CLMET','OldBailey','EnglishDialogues',
 		'Spectator']
 
 	def __init__(self, name_meta='LitHist',corpora=None):

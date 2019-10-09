@@ -43,13 +43,15 @@ ext_xml = .txt
 
 [COHA]
 name = COHA
-desc = Corpus of Historical American English
 id = coha
+desc = Corpus of Historical American English
+link = https://www.english-corpora.org/coca/
 
 [COCA]
 name = COCA
-desc = Corpus of Contemporary American English
 id = coca
+desc = Corpus of Contemporary American English
+link = https://www.english-corpora.org/coca/
 
 [DialNarr]
 name = DialNarr

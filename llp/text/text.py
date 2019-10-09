@@ -208,7 +208,7 @@ class Text(object):
 	def fast_counts(self):
 		return Counter(self.fast_tokens())
 
-	def html(self,word2fields={},bad_words={'[','Footnote'},bad_strs={'Kb'},fn_model_result=None,fn_model_coeffs=None,data={},lim_words=None):
+	def html(self,word2fields={},bad_words={'[','Footnote'},bad_strs={'Kb'},fn_model_result=None,fn_model_coeffs=None,data={},only_words=set(),lim_words=None):
 
 		if False: #self.is_parsed_spacy:
 			html=self.html_spacy(word2fields=word2fields,bad_words=bad_words,bad_strs=bad_strs,fn_model_result=fn_model_result,fn_model_coeffs=fn_model_coeffs)
@@ -226,12 +226,15 @@ class Text(object):
 			word=word.replace('\n','<br/>')
 			w=word.lower()
 			if not w: continue
+
 			if w[0].isalpha():
 				field_counts.update(word2fields.get(w,[]))
 				if w in word2fields:
 					field_counts['has_field']+=1
 				fields=' '.join(['field_'+field.replace('.','_') for field in word2fields.get(w,[])])
-				if fields:
+				if only_words and w not in only_words:
+					tag=word
+				elif fields:
 					tag=u'<span class="{fields} word">{word}</span>'.format(fields=fields, word=word)
 				else:
 					tag=word
@@ -406,20 +409,22 @@ class Text(object):
 	@property
 	def century(self): return int(self.year)/100*100
 
-	def get_author_dates(self,author):
-		return get_author_dates(self.author)
+	def get_author_dates(self,author=None):
+		if not author: author=self.author
+		return get_author_dates(author)
 
 	@property
 	def author_dates(self,keys=['author','author_dob','a1']):
-		if not hasattr(self,'_author_dates'):
-			for k in keys:
-				result = get_author_dates(self.meta[k])
-				if len(result)>1 and result[0]:
-					self._author_dates=result
-					return result
-		else:
-			return self._author_dates
+		if hasattr(self,'_author_dates'): return self._author_dates
+		dob=self.meta.get('author_dob')
+		dod=self.meta.get('author_dod')
 
+		if dob and dod: self._author_dates=(dob,dod)
+		elif dob: self._author_dates=(dob,0)
+		elif dod: self._author_dates=(0,dod)
+		else: self._author_dates=get_author_dates(self.author)
+
+		return self._author_dates
 
 	def get_meta_from_corpus_metadata(self):
 		try:
