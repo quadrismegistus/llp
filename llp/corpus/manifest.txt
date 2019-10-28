@@ -2,6 +2,11 @@
 # LLP CORPUS MANIFEST
 ####
 
+[ARTFL]
+name = ARTFL
+id = artfl
+desc = American and French Research on the Treasury of the French Language
+link = https://artfl-project.uchicago.edu
 
 [BPO]
 name = BPO
@@ -30,7 +35,7 @@ path_metadata = metadata.txt.gz
 
 [Chicago]
 name = Chicago
-desc = The University of Chicago Corpus of Twentieth Century Novels
+desc = U of Chicago Corpus of C20 Novels
 id = chicago
 
 
@@ -55,7 +60,7 @@ link = https://www.english-corpora.org/coca/
 
 [DialNarr]
 name = DialNarr
-desc = Separated Dialogue and Narration Portions of Chadwyck-Healey Novels
+desc = Dialogue/Narration in Chadwyck-Healey Novels
 id = dialnarr
 
 
@@ -73,7 +78,7 @@ id = ecco
 
 [ECCO_LitLang]
 name = ECCO_LitLang
-desc = Eighteenth Century Collections Online (Literature and Language section)
+desc = ECCO (Literature and Language section)
 id = ecco_litlang
 path_root = ecco
 path_python = ecco/ecco.py
@@ -82,7 +87,7 @@ class_name = ECCO_LitLang
 
 [ECCO_TCP]
 name = ECCO_TCP
-desc = Eighteenth Century Collections Online (curated by the Text Creation Partnership)
+desc = ECCO (curated by the Text Creation Partnership)
 id = ecco_tcp
 path_root = ecco
 path_python = ecco/ecco.py
@@ -153,6 +158,7 @@ desc = Raven & Garside's Bibliography of English Novels, 1770-1830
 id = ravengarside
 
 
+
 [Sellars]
 name = Sellars
 desc = 19th Century Texts compiled by Jordan Sellars
@@ -194,10 +200,12 @@ url_txt = https://www.dropbox.com/s/q4bm4yf76zgumi6/txtlab_txt.zip?dl=1
 [HathiEngLit]
 name = HathiEngLit
 id = hathi_englit
+desc = English Literature corpus from Hathi Trust
 
 [HathiBio]
 name = HathiBio
 id = hathi_bio
+desc = Biographies from Hathi Trust
 path_metadata = metadata.csv
 
 
@@ -210,6 +218,12 @@ link = http://www.deutschestextarchiv.de
 url_raw = http://media.dwds.de/dta/download/dta_komplett_2019-06-05.zip
 url_raw_metadata = http://media.dwds.de/dta/download/dta_metadaten_oai_dc_2018-09-12.zip
 path_xml_meta = xml_meta
+
+
+[SOTU]
+name = SOTU
+id = sotu
+desc = State of the Union Addresses
 
 
 

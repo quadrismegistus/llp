@@ -42,17 +42,17 @@ corpus = llp.load('ECCO_TCP')         # load the corpus by name or ID
 ...and play with convenient Corpus objects...
 
 ```python
-df = corpus.metadata                  # get corpus metadata as a pandas dataframe
-smpl=df.query('1740 < year < 1780')   # do a quick query on the metadata
+df = corpus.metadata                       # get corpus metadata as a pandas dataframe
+df_sample=df.query('1740 < year < 1780')   # do a quick query on the metadata
 
-texts = corpus.texts()                # get a convenient Text object for each text
-texts_smpl = corpus.texts(smpl.id)    # get Text objects for a specific list of IDs
+texts = corpus.texts()                     # get a convenient Text object for each text
+texts_sample = corpus.texts(df_sample.id)  # get Text objects for a specific list of IDs
 ```
 
 ...and Text objects:
 
 ```python
-for text in texts_smpl:               # loop over Text objects
+for text in texts_sample:             # loop over Text objects
     text_meta = text.meta             # get text metadata as dictionary
     author = text.author              # get common metadata as attributes    
 
@@ -63,7 +63,7 @@ for text in texts_smpl:               # loop over Text objects
     words  = text.words               # get list of words (excl punct)
     counts = text.word_counts         # get word counts as dictionary (from JSON if saved)
     ocracc = text.ocr_accuracy        # get estimate of ocr accuracy
-    
+
     spacy_obj = text.spacy            # get a spacy text object
     nltk_obj = text.nltk              # get an nltk text object
     blob_obj = text.blob              # get a textblob object
@@ -104,28 +104,3 @@ w2v_model.model()                     # run the modeling process
 w2v_model.save()                      # save the model somewhere
 gensim_model = w2v_model.gensim       # get the original gensim object
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

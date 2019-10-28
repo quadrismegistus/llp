@@ -107,12 +107,17 @@ def load_manifest(force=True,corpus_name=None):
 	for corpus in list(config.keys()):
 		if not corpus_name or corpus==corpus_name:
 			if corpus=='DEFAULT': continue
-			MANIFEST[corpus]=cd={}
+			cd={}
 			for k,v in MANIFEST_DEFAULTS.items(): cd[k]=v
 			for k,v in list(config[corpus].items()): cd[k]=v
 
 			## LAST MINUTE DEFAULTS!?
-			if not cd['path_python']: cd['path_python']=cd['id']+'.py'
+			try:
+				if not cd.get('path_python'): cd['path_python']=cd['id']+'.py'
+			except KeyError:
+				continue
+
+			MANIFEST[corpus]=cd
 
 	return MANIFEST if not corpus_name else MANIFEST.get(corpus_name,{})
 
@@ -122,7 +127,8 @@ def load_manifest(force=True,corpus_name=None):
 ####
 
 
-def download(name):
+def download(name,**attrs):
+	print(name,'?')
 	corpus=load_corpus(name)
 	corpus.download()
 
@@ -139,9 +145,10 @@ def corpora(load=True,incl_meta_corpora=True):
 def check_corpora(paths=['path_xml','path_txt','path_freqs','path_metadata'],incl_meta_corpora=False):
 	old=[]
 	#clist=tools.cloud_list()
+	print('{:25s} {:50s} {:12s} {:12s} {:12s} {:12s}'.format('[CORPUS]','[DESCRIPTION]',' [XML?]',' [TXT?]',' [FREQS?]',' [METADATA?]'))
 	for cname,corpus in corpora(load=True,incl_meta_corpora=incl_meta_corpora):
 		if corpus is None: continue
-		print('{:30s}'.format(cname),end="\t")
+		print('{:25s} {:50s}'.format(cname, corpus.desc[:45]),end=" ")
 		for path in paths:
 			pathtype=path.replace('path_','')
 			pathval = getattr(corpus,path)
@@ -153,7 +160,7 @@ def check_corpora(paths=['path_xml','path_txt','path_freqs','path_metadata'],inc
 			zip_fn=f'{corpus.id}_{pathtype}.zip'
 			#exists_zip = '←' if os.path.exists(os.path.join(PATH_CORPUS_ZIP,zip_fn)) else ' '
 			cell=' '.join([x for x in [exists,exists_link,pathtype] if x])
-			print('{:10s}'.format(cell),end='\t')
+			print('{:12s}'.format(cell),end=' ')
 
 		print()
 			#odx={'name':cname,'id':corpus.id,'path_type':path, 'path_value':pathval, 'exists':exists}
