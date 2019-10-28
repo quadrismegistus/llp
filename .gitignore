@@ -1,3 +1,5 @@
+llp/corpus/artfl/
+
 *.pyc
 backups/
 #corpus/*
@@ -21,6 +23,3 @@ build/
 dist/
 mpi_slingshot.egg-info/
 llp.egg-info/
-
-
-llp/corpus/artfl
