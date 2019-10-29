@@ -33,7 +33,8 @@ MANIFEST_DEFAULTS=dict(
 
 	path_model='',
 	path_header=None,
-	path_metadata='metadata.txt',
+	#path_metadata='metadata.txt',
+	path_metadata='metadata.csv',
 	paths_text_data=[],
 	paths_rel_data=[],
 	class_name='',
@@ -466,7 +467,7 @@ class Corpus(object):
 		import pandas as pd
 
 		#meta_ld=tools.read_ld(self.path_metadata,keymap={'*':str})
-		self._metadf=meta_df=tools.read_csv_with_pandas(self.path_metadata,dtype=str)
+		self._metadf=meta_df=tools.read_csv_with_pandas(self.path_metadata,dtype=None,low_memory=False,error_bad_lines=False).fillna('')
 		self._meta=meta_ld=meta_df.to_dict('records')
 		self._text_ids=[self.get_id_from_metad(d) for d in meta_ld]
 		self._texts=[self.TEXT_CLASS(idx,self) for idx in self._text_ids]
@@ -641,7 +642,7 @@ class Corpus(object):
 		return [t.meta for t in self.texts()]
 
 
-	def zip(self,savedir=None, ask=True, sbatch=False, sbatch_opts='', defaults=ZIP_PART_DEFAULTS):
+	def zip(self,savedir=None, ask=True, sbatch=False, sbatch_opts='', parts=ZIP_PART_DEFAULTS):
 		if not savedir: savedir=os.path.join(PATH_CORPUS,'llp_corpora')
 		if not os.path.exists(savedir): os.makedirs(savedir)
 
@@ -693,11 +694,11 @@ class Corpus(object):
 				os.system(cmd)
 
 
-		do_zip(self.path_txt, self.id+'_txt.zip','Zip txt files','txt' in defaults)
-		do_zip(self.path_freqs, self.id+'_freqs.zip','Zip freqs files','freqs' in defaults)
-		do_zip(self.path_metadata, self.id+'_metadata.zip','Zip metadata file','metadata' in defaults)
-		do_zip(self.path_xml, self.id+'_xml.zip','Zip xml files','xml' in defaults)
-		do_zip(self.path_data, self.id+'_data.zip','Zip data files (mfw/dtm)','xml' in defaults)
+		do_zip(self.path_txt, self.id+'_txt.zip','Zip txt files','txt' in parts)
+		do_zip(self.path_freqs, self.id+'_freqs.zip','Zip freqs files','freqs' in parts)
+		do_zip(self.path_metadata, self.id+'_metadata.zip','Zip metadata file','metadata' in parts)
+		do_zip(self.path_xml, self.id+'_xml.zip','Zip xml files','xml' in parts)
+		do_zip(self.path_data, self.id+'_data.zip','Zip data files (mfw/dtm)','xml' in parts)
 
 
 	def upload(self,ask=True,uploader='dbu upload',dest=DEST_LLP_CORPORA,zipdir=None,overwrite=False):

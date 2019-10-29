@@ -1,4 +1,5 @@
 llp/corpus/artfl/
+notebooks/dev/
 
 *.pyc
 backups/

@@ -31,7 +31,7 @@ name = ChadwyckPoetry
 desc = Chadwyck-Healey Poetry Collections
 link = http://collections.chadwyck.co.uk/marketing/list_of_all.jsp
 id = chadwyck_poetry
-path_metadata = metadata.txt.gz
+path_metadata = metadata.csv.gz
 
 [Chicago]
 name = Chicago
