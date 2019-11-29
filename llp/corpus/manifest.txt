@@ -8,11 +8,13 @@ id = artfl
 desc = American and French Research on the Treasury of the French Language
 link = https://artfl-project.uchicago.edu
 
+
 [BPO]
 name = BPO
 id = bpo
 desc = British Periodicals Online
 link = https://proquest.libguides.com/britishperiodicals
+
 
 [Chadwyck]
 name = Chadwyck
@@ -20,11 +22,13 @@ id = chadwyck
 desc = Chadwyck-Healey Fiction Collections
 link = http://collections.chadwyck.co.uk/marketing/list_of_all.jsp
 
+
 [ChadwyckDrama]
 name = ChadwyckDrama
 desc = Chadwyck-Healey Drama Collections
 link = http://collections.chadwyck.co.uk/marketing/list_of_all.jsp
 id = chadwyck_drama
+
 
 [ChadwyckPoetry]
 name = ChadwyckPoetry
@@ -32,6 +36,7 @@ desc = Chadwyck-Healey Poetry Collections
 link = http://collections.chadwyck.co.uk/marketing/list_of_all.jsp
 id = chadwyck_poetry
 path_metadata = metadata.csv.gz
+
 
 [Chicago]
 name = Chicago
@@ -46,17 +51,20 @@ link = https://perswww.kuleuven.be/~u0044428/clmet.htm
 id = clmet
 ext_xml = .txt
 
+
 [COHA]
 name = COHA
 id = coha
 desc = Corpus of Historical American English
 link = https://www.english-corpora.org/coca/
 
+
 [COCA]
 name = COCA
 id = coca
 desc = Corpus of Contemporary American English
 link = https://www.english-corpora.org/coca/
+
 
 [DialNarr]
 name = DialNarr
@@ -119,6 +127,7 @@ desc = English Short Title Catalogue
 id = estc
 path_txt = json
 
+
 [GaleAmericanFiction]
 name = GaleAmericanFiction
 id = gale_amfic
@@ -132,6 +141,7 @@ desc = U.S. Fiction of the Gilded Age
 id = gildedage
 url_metadata = https://www.dropbox.com/s/fg605k0cnebf70i/gildedage_metadata.zip?dl=1
 url_txt = https://www.dropbox.com/s/qnwbx488ftepuno/gildedage_txt.zip?dl=1
+
 
 [LitLab]
 name = LitLab
@@ -158,7 +168,6 @@ desc = Raven & Garside's Bibliography of English Novels, 1770-1830
 id = ravengarside
 
 
-
 [Sellars]
 name = Sellars
 desc = 19th Century Texts compiled by Jordan Sellars
@@ -175,6 +184,7 @@ id = spectator
 name = TedJDH
 desc = Corpus used by Ted Underwood in the 2012 Journal of Digital Humanities piece
 id = tedjdh
+
 
 [InternetArchive]
 name = InternetArchive
@@ -201,6 +211,7 @@ url_txt = https://www.dropbox.com/s/q4bm4yf76zgumi6/txtlab_txt.zip?dl=1
 name = HathiEngLit
 id = hathi_englit
 desc = English Literature corpus from Hathi Trust
+
 
 [HathiBio]
 name = HathiBio
