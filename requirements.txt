@@ -3,5 +3,6 @@ xopen
 wget
 smart_open
 bounter
-ujson
 pycurl
+bleach
+internetarchive
