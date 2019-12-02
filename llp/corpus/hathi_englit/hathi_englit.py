@@ -3,7 +3,11 @@ from llp.text import Text
 from llp.corpus import Corpus
 from tqdm import tqdm
 from llp import tools
-import gzip,tarfile,ujson as json,sys
+import gzip,tarfile,sys
+try:
+	import ujson as json
+except ImportError:
+	import json
 
 CORPUS_URL="https://wiki.htrc.illinois.edu/display/COM/Word+Frequencies+in+English-Language+Literature%2C+1700-1922"
 
@@ -310,7 +314,7 @@ class HathiEngLit(Corpus):
 		df[first_cols + other_cols].to_csv(self.path_metadata,sep='\t')
 
 	def compile_data(self,parallel=1,sbatch=False,sbatch_hours=1):
-		import tarfile,gzip,ujson as json
+		import tarfile,gzip
 		import multiprocessing as mp
 		import time
 

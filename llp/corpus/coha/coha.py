@@ -8,7 +8,10 @@ import os
 
 
 class TextCOHA(Text):
-	pass
+	def text_plain(self):
+		txt=self.text_plain_from_txt()
+		txt = txt.replace('@ @ @ @ @ @ @ @ @ @','\n\n')
+		return txt
 
 
 

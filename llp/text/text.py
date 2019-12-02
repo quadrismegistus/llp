@@ -11,7 +11,10 @@ from six.moves import zip
 nlp=None
 from smart_open import open
 from collections import Counter
-import ujson as json
+try:
+	import ujson as json
+except ImportError:
+	import json
 
 ENGLISH=None
 
