@@ -178,7 +178,7 @@ class Text(object):
 
 				yield dict(list(zip(header,dat)))
 
-	def all_tokens(self):
+	def all_tokens(self,modernize_spelling=False):
 		"""words=[]
 		for ln in self.txt.split('\n'):
 			for w in ln.split(' '):
@@ -192,8 +192,16 @@ class Text(object):
 		#return list(self.fast_tokens())
 		import re
 		txt=self.txt.replace('\n','\\')
+		txt=txt.replace('&hyphen;','-')
 		words=re.findall(r"[\w]+|[^\s\w]", txt)
 		words=[w if w!='\\' else '\n' for w in words]
+
+		try:
+			if modernize_spelling:
+				words=[self.corpus.modernize_spelling(w) for w in words]
+		except AttributeError:
+			pass
+
 		return words
 
 
@@ -211,7 +219,7 @@ class Text(object):
 	def fast_counts(self):
 		return Counter(self.fast_tokens())
 
-	def html(self,word2fields={},bad_words={'[','Footnote'},bad_strs={'Kb'},fn_model_result=None,fn_model_coeffs=None,data={},only_words=set(),lim_words=None):
+	def html(self,word2fields={},bad_words={'[','Footnote'},bad_strs={'Kb'},fn_model_result=None,fn_model_coeffs=None,data={},only_words=set(),lim_words=None,modernize_spelling=False):
 
 		if False: #self.is_parsed_spacy:
 			html=self.html_spacy(word2fields=word2fields,bad_words=bad_words,bad_strs=bad_strs,fn_model_result=fn_model_result,fn_model_coeffs=fn_model_coeffs)
@@ -224,7 +232,7 @@ class Text(object):
 		tags=[]
 		#words=self.fast_tokens()
 		#fields=' '.join(['field_'+field.replace('.','_') for field in word2fields.get(w,[])])
-		for word in self.all_tokens():
+		for word in self.all_tokens(modernize_spelling=modernize_spelling):
 			if lim_words and len(tags)>=lim_words: break
 			word=word.replace('\n','<br/>')
 			w=word.lower()
@@ -248,7 +256,7 @@ class Text(object):
 				tags+=[word]
 
 		htmlx='\n'.join(tags)
-		htmlx=htmlx.replace('<br/><br/>','<br/>')
+		#htmlx=htmlx.replace('<br/><br/>','<br/>')
 		return htmlx,field_counts
 
 

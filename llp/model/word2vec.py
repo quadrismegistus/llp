@@ -1601,3 +1601,45 @@ def model_words(path_model):
 	df2=df.join(dfz,rsuffix='_z')
 	df2['word']=df2.index
 	return df2.to_dict('records')
+
+
+
+
+
+
+
+
+#### RANKS
+
+
+def do_model_rank(model,words,topn=50,special=None):
+	old=[]
+	model_words = [w for w in model.vocab]
+
+	for word1 in words:
+		try:
+			top = model.most_similar(word1,topn=topn)
+			for ii,(word2,cosine) in enumerate(top):
+				try:
+					dx={'word1':word1, 'word2':word2}
+					dx['word1_rank']=model_words.index(word1)
+					dx['word2_rank']=model_words.index(word2)
+					dx['closeness_cosine']=cosine
+					dx['closeness_rank']=ii+1
+				except KeyError:
+					continue
+				old+=[dx]
+		except KeyError:
+			continue
+	return old
+
+def model_ranks(model_fns,words,topn=50,special=None):
+	for mfn in model_fns:
+		print('>>',mfn,'...')
+		model = gensim.models.KeyedVectors.load_word2vec_format(mfn)
+		for dx in do_model_rank(model,words,topn=topn,special=special):
+			dx['model']=os.path.basename(mfn.replace('.txt.gz','').replace('.txt',''))
+			for i,x in enumerate(dx['model'].split('.')):
+				if x in {'model','txt','gz'}: continue
+				dx['model_name_'+str(i+1)]=x
+			yield dx

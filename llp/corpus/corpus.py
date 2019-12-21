@@ -2,7 +2,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 import os,codecs,gzip,random,time
 from pprint import pprint
-import tools
+from llp.tools import tools
 import six
 from six.moves import range
 from six.moves import zip
@@ -18,9 +18,11 @@ import random
 from os.path import expanduser
 HOME=expanduser("~")
 
+config = tools.config
+
 ZIP_PART_DEFAULTS={'txt','freqs','metadata','xml','data'}
 INSTALL_CMDS=['metadata','txt','freqs','mfw','dtm']
-DEST_LLP_CORPORA=tools.config.get('CLOUD_DEST','/Share/llp_corpora')
+DEST_LLP_CORPORA=config.get('CLOUD_DEST','/Share/llp_corpora')
 
 MANIFEST_REQUIRED_DATA=['name','id']
 
@@ -54,13 +56,13 @@ MANIFEST_DEFAULTS=dict(
 	is_meta = '')
 
 PATH_HERE=os.path.abspath(os.path.dirname(__file__))
-PATH_CORPUS = tools.config.get('PATH_TO_CORPORA', PATH_HERE )
-PATH_TO_CORPUS_CODE = tools.config.get('PATH_TO_CORPUS_CODE', PATH_HERE )
+PATH_CORPUS = config.get('PATH_TO_CORPORA', os.path.expanduser('~/llp/corpora') )
+PATH_TO_CORPUS_CODE = config.get('PATH_TO_CORPUS_CODE', PATH_HERE )
 PATH_CORPUS_ZIP = os.path.join(PATH_CORPUS, 'llp_corpora')
 PATH_LLP_HOME = os.path.join(HOME,'llp')
 
 PATH_MANIFEST=os.path.join(PATH_TO_CORPUS_CODE,'manifest.txt')
-PATH_MANIFEST_USER = tools.config.get('PATH_TO_MANIFEST','')
+PATH_MANIFEST_USER = config.get('PATH_TO_MANIFEST','')
 PATH_MANIFEST_USER_LAB = PATH_MANIFEST_USER.replace('.txt','_lab.txt')
 PATH_MANIFEST_USER_SHARE = PATH_MANIFEST_USER.replace('.txt','_share.txt')
 
