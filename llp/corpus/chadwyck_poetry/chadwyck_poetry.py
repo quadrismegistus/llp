@@ -106,10 +106,10 @@ class TextChadwyckPoetry(Text):
 
 		return ''
 
-	@property
-	def path_txt(self):
-		# @HACK!!!
-		return self.path_xml
+	#@property
+	#def path_txt(self):
+	#	# @HACK!!!
+	#	return self.path_xml
 
 
 

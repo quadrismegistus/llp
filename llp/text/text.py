@@ -753,8 +753,8 @@ class Text(object):
 		return d
 
 	def get_meta_from_file(self):
-		#return {} #self.meta_from_file
-		return self.meta_from_file
+		return {} #self.meta_from_file
+		#return self.meta_from_file
 
 	def save_freqs_json(self,ofolder=None,force=False):
 		if not self.id: return {}

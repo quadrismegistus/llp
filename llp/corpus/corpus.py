@@ -464,6 +464,17 @@ class Corpus(object):
 
 	## METADATA
 
+	def pathlist(self,path_attr='path'):
+		for t in self.texts():
+			x=getattr(t,path_attr)
+			print(path_attr,x)
+			if x: yield x
+
+	def save_pathlist(self,fn=None,path_attr='path'):
+		if not fn: fn='paths.%s.txt' % self.name
+		with open(fn,'w') as f:
+			f.write('\n'.join(self.pathlist(path_attr=path_attr)))
+
 	def load_metadata(self,combine_matches=False,load_text_data=True,load_rel_data=False,minimal=False,maximal=False,fix_ids=True):
 		from llp import tools
 		import pandas as pd
