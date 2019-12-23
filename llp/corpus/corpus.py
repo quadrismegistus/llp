@@ -718,6 +718,7 @@ class Corpus(object):
 		#if not overwrite: uploader+=' -s'
 		if not zipdir: zipdir=os.path.join(PATH_CORPUS,'llp_corpora')
 		os.chdir(zipdir)
+		print('?',zipdir,os.listdir('.'))
 		for fn in os.listdir('.'):
 			if not fn.endswith('.zip'): continue
 			if not fn.startswith(self.id): continue
