@@ -467,7 +467,7 @@ class Corpus(object):
 	def pathlist(self,path_attr='path'):
 		for t in self.texts():
 			x=getattr(t,path_attr)
-			print(path_attr,x)
+			#print(path_attr,x)
 			if x: yield x
 
 	def save_pathlist(self,fn=None,path_attr='path'):
