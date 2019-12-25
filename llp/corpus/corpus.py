@@ -659,6 +659,13 @@ class Corpus(object):
 		if not savedir: savedir=os.path.join(PATH_CORPUS,'llp_corpora')
 		if not os.path.exists(savedir): os.makedirs(savedir)
 
+		## ask which parts
+		part2ok=defaultdict(None)
+		for part in sorted(parts):
+			path_part=getattr(self,f'path_{part}')
+			if not path_part or not os.path.exists(path_part): continue
+			part2ok[part]=input('>> [%s] Zip %s file(s)?: ' % (self.name, part)).strip().lower().startswith('y') if ask else True
+
 		def _paths(path):
 			for root, dirs, files in os.walk(path):
 				for file in files:
@@ -674,7 +681,7 @@ class Corpus(object):
 
 		def do_zip(path,fname,msg='Zipping files',default=False):
 			if not os.path.exists(path): return
-			if ask and input('>> {msg}? [{path}]\n'.format(msg=msg,path=path)).strip()!='y': return
+			#if ask and input('>> {msg}? [{path}]\n'.format(msg=msg,path=path)).strip()!='y': return
 			if not default: return
 
 			if not fname.endswith('.zip'): fname+='.zip'
@@ -706,27 +713,33 @@ class Corpus(object):
 				print(cmd)
 				os.system(cmd)
 
-
-		do_zip(self.path_txt, self.id+'_txt.zip','Zip txt files','txt' in parts)
-		do_zip(self.path_freqs, self.id+'_freqs.zip','Zip freqs files','freqs' in parts)
-		do_zip(self.path_metadata, self.id+'_metadata.zip','Zip metadata file','metadata' in parts)
-		do_zip(self.path_xml, self.id+'_xml.zip','Zip xml files','xml' in parts)
-		do_zip(self.path_data, self.id+'_data.zip','Zip data files (mfw/dtm)','xml' in parts)
+		for part in part2ok:
+			if not part2ok[part]: continue
+			do_zip(getattr(self,f'path_{part}'), f'{self.id}_{part}.zip', f'Zip {part} files',part in parts)
+		# do_zip(self.path_txt, self.id+'_txt.zip','Zip txt files','txt' in parts)
+		# do_zip(self.path_freqs, self.id+'_freqs.zip','Zip freqs files','freqs' in parts)
+		# do_zip(self.path_metadata, self.id+'_metadata.zip','Zip metadata file','metadata' in parts)
+		# do_zip(self.path_xml, self.id+'_xml.zip','Zip xml files','xml' in parts)
+		# do_zip(self.path_data, self.id+'_data.zip','Zip data files (mfw/dtm)','xml' in parts)
 
 
 	def upload(self,ask=True,uploader='dbu upload',dest=DEST_LLP_CORPORA,zipdir=None,overwrite=False):
 		#if not overwrite: uploader+=' -s'
 		if not zipdir: zipdir=os.path.join(PATH_CORPUS,'llp_corpora')
 		os.chdir(zipdir)
-		print('?',zipdir,os.listdir('.'))
+		#print('?',zipdir,os.listdir('.'))
+
+		cmds=[]
 		for fn in os.listdir('.'):
 			if not fn.endswith('.zip'): continue
 			if not fn.startswith(self.id): continue
+			if ask and not input(f'>> [{self.name}] Upload {fn}? ').strip().lower().startswith('y'): continue
 			cmd='{upload} {file} {dest}'.format(upload=uploader,file=fn,dest=dest)
+			cmds.append(cmd)
+
+		for cmd in cmds:
 			print('>>',cmd)
-			if not ask or input('>> ok? ').strip().lower().startswith('y'):
-				#print('>>',cmd)
-				os.system(cmd)
+			os.system(cmd)
 
 	def share(self,cmd_share='dbu share',dest=DEST_LLP_CORPORA):
 		ol=[]

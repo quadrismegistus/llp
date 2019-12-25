@@ -147,7 +147,6 @@ url_txt = https://www.dropbox.com/s/qnwbx488ftepuno/gildedage_txt.zip?dl=1
 name = LitLab
 desc = Literary Lab Corpus of 18th and 19th Century Novels
 id = litlab
-path_xml = txt
 
 
 [MarkMark]

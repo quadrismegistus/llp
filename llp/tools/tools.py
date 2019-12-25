@@ -315,7 +315,7 @@ def worddf():
 	if not WORDDB_PATH.startswith(os.path.sep): WORDDB_PATH=os.path.join(LIT_ROOT,WORDDB_PATH)
 
 	import pandas as pd
-	return pd.read_csv(WORDDB_PATH,sep='\t')
+	return pd.read_csv(WORDDB_PATH,sep='\t',error_bad_lines=False)
 
 def worddb(abs_key = 'Complex Substance (Locke) <> Mixed Modes (Locke)_max',conc_key='Complex Substance (Locke) <> Mixed Modes (Locke)_min',cutoff_abs=0.1,cutoff_conc=-0.1,allow_names=False,only_content_words=True):
 	WORDDB_PATH = config.get('PATH_TO_WORDDB')
@@ -1724,9 +1724,9 @@ def read_csv_with_pandas(fnfn,return_ld=False,**attrs):
 	#if fnfn.endswith('.gz'): fnfn=fnfn[:-3]
 	ext=os.path.splitext(fnfn[:-3] if fnfn.endswith('.gz') else fnfn)[-1]
 	if ext=='.csv':
-		df=pd.read_csv(fnfn,sep=',',encoding='utf-8',**attrs)
+		df=pd.read_csv(fnfn,sep=',',encoding='utf-8',error_bad_lines=False,**attrs)
 	elif ext in {'.txt','.tsv'}:
-		df=pd.read_csv(fnfn,sep='\t',encoding='utf-8',**attrs)
+		df=pd.read_csv(fnfn,sep='\t',encoding='utf-8',error_bad_lines=False,**attrs)
 	elif ext in {'.xls','.xlsx'}:
 		df=pd.read_excel(fnfn,**attrs)
 	else:

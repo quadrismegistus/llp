@@ -52,6 +52,10 @@ def usage():
 
 
 def main():
+	if len(sys.argv)==1:
+		os.system('python -i -c "import llp"')
+		exit()
+
 	import llp
 	#from llp.lib.tab_completer import tabCompleter
 	#import readline
