@@ -6,3 +6,7 @@ bounter
 pycurl
 bleach
 internetarchive
+bs4
+lxml
+nbimporter
+nbformat
