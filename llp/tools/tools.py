@@ -1725,9 +1725,16 @@ def read_csv_with_pandas(fnfn,return_ld=False,encoding='utf-8',**attrs):
 	attrs['error_bad_lines']=False
 	ext=os.path.splitext(fnfn[:-3] if fnfn.endswith('.gz') else fnfn)[-1]
 	if ext=='.csv':
-		df=pd.read_csv(fnfn,sep=',',**attrs)
+		try:
+			df=pd.read_csv(fnfn,sep=',',encoding='utf-8',**attrs)
+		except UnicodeDecodeError:
+			df=pd.read_csv(fnfn,sep=',',encoding='ISO-8859-1',**attrs)
+
 	elif ext in {'.txt','.tsv'}:
-		df=pd.read_csv(fnfn,sep='\t',**attrs)
+		try:
+			df=pd.read_csv(fnfn,sep='\t',encoding='utf-8',**attrs)
+		except UnicodeDecodeError:
+			df=pd.read_csv(fnfn,sep='\t',encoding='ISO-8859-1',**attrs)
 	elif ext in {'.xls','.xlsx'}:
 		df=pd.read_excel(fnfn,**attrs)
 	else:
