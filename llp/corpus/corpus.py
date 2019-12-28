@@ -900,7 +900,8 @@ class Corpus(object):
 		if not hasattr(self,'_addr2meta'):
 			self._addr2meta=a2m={}
 			for t in self.texts():
-				a2m[t.addr]=t.meta
+				meta=t.meta
+				a2m[t.addr]=meta
 		return self._addr2meta
 
 	@property
