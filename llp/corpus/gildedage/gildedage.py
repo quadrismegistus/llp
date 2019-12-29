@@ -10,7 +10,7 @@ from llp.text import Text
 class GildedAge(Corpus):
 	PATH_TXT = 'gildedage/_txt_gildedage'
 	PATH_METADATA='gildedage/corpus-metadata.GildedAge.xlsx'
-	EXT_TXT = '.txt.gz'
+	EXT_TXT = '.txt'
 	TEXT_CLASS=Text
 
 	def __init__(self):

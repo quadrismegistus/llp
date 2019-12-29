@@ -38,7 +38,5 @@ class EEBO_TCP(TCP):
 
 	TEXT_CLASS=TextEEBO_TCP
 	EXT_XML = '.headed.xml.gz'
-	EXT_TXT='.txt.gz'
+	EXT_TXT='.txt'
 	TEXT_SECTION_CLASS=TextSectionTCP
-
-	

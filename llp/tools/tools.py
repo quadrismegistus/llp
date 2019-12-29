@@ -467,7 +467,7 @@ def header(fnfn,tsep='\t',encoding='utf-8'):
 
 	for line in of:
 		line = line[:-1]  # remove line end character
-		line=line #.decode(encoding=encoding)
+		line=line.decode(encoding=encoding)
 		header=line.split(tsep)
 		break
 	of.close()
@@ -505,7 +505,7 @@ def read(fnfn):
 		if fnfn.endswith('.gz'):
 			import gzip
 			with gzip.open(fnfn,'rb') as f:
-				return str(f.read()) #.decode('utf-8')
+				return f.read().decode('utf-8')
 		else:
 			with open(fnfn) as f:
 				return f.read()
@@ -927,7 +927,7 @@ def strmake(x,uni=True):
 	if uni and type(x) in [six.text_type]:
 		return x
 	elif uni and type(x) in [str]:
-		return x #decode('utf-8',errors='replace')
+		return x.decode('utf-8',errors='replace')
 	elif uni:
 		return six.text_type(x)
 	elif not uni and type(x) in [str]:
