@@ -59,7 +59,7 @@ class LitHist(CorpusMeta):
 		'ECCO_TCP','EEBO_TCP', #,'ECCO_TCP_in_Sections','EEBO_TCP_in_Sections' (too many files)
 		'Sellars',   # 'TedJDH' (replicated in Sellars + ECCO_TCP)
 		'DialNarr', #LitLab (too noisy),
-		'MarkMark','Chicago',
+		'MarkMark','Chicago','GildedAge',
 		'COHA','COCA','CLMET','OldBailey','EnglishDialogues',
 		'Spectator']
 
