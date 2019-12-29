@@ -505,7 +505,7 @@ def read(fnfn):
 		if fnfn.endswith('.gz'):
 			import gzip
 			with gzip.open(fnfn,'rb') as f:
-				return f.read() #.decode('utf-8')
+				return str(f.read()) #.decode('utf-8')
 		else:
 			with open(fnfn) as f:
 				return f.read()
