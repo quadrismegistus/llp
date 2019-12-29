@@ -505,10 +505,10 @@ def read(fnfn):
 		if fnfn.endswith('.gz'):
 			import gzip
 			with gzip.open(fnfn,'rb') as f:
-				return f.read().decode('utf-8')
+				return f.read().decode('utf-8',errors='ignore')
 		else:
 			with open(fnfn) as f:
-				return f.read()
+				return f.read().decode('utf-8',errors='ignore')
 	except IOError as e:
 		print("!! error:",e, end=' ')
 		print("!! opening:",fnfn)
