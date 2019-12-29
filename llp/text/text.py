@@ -386,12 +386,16 @@ class Text(object):
 
 	@property
 	def year(self):
+		if type(self.meta['year']) in {int,float}:
+			return int(self.meta['year'])
+
 		try:
-			yearstr=''.join([x for x in self.meta['year'] if x.isdigit()])[:4]
+			yearstr=''.join([x for x in str(self.meta['year']) if x.isdigit()])[:4]
 			while len(yearstr)<4:
 				yearstr+='0'
 			return int(float(yearstr))
 		except (ValueError,TypeError,KeyError) as e:
+			#except AttributeError:
 			return 0
 
 	@property
