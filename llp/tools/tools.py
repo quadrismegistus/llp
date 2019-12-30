@@ -508,7 +508,7 @@ def read(fnfn):
 				return f.read().decode('utf-8',errors='ignore')
 		else:
 			with open(fnfn) as f:
-				return f.read().decode('utf-8',errors='ignore')
+				return f.read() #.decode('utf-8',errors='ignore')
 	except IOError as e:
 		print("!! error:",e, end=' ')
 		print("!! opening:",fnfn)

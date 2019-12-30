@@ -3,6 +3,8 @@ from __future__ import absolute_import
 import codecs
 from llp.text import Text
 from llp.corpus.tcp import TextTCP
+import tools
+spelling_d={}
 
 class TextEEBO_TCP(TextTCP):
 	@property
@@ -20,6 +22,20 @@ class TextEEBO_TCP(TextTCP):
 			del md['notes']
 			self._meta=md
 		return self._meta
+
+	def text_plain_from_xml(self, xml=None, OK=['p','l'], BAD=[], body_tag='text', force_xml=False, text_only_within_medium=True,modernize_spelling=True):
+		global spelling_d
+
+		txt=super().text_plain_from_xml(xml=xml, OK=OK, BAD=BAD, body_tag=body_tag, force_xml=force_xml, text_only_within_medium=text_only_within_medium)
+
+		if modernize_spelling:
+			if not spelling_d: spelling_d=tools.get_spelling_modernizer()
+			txt = tools.modernize_spelling_in_txt(txt,spelling_d)
+
+		return txt
+
+
+
 
 import os
 from llp.corpus.tcp import TCP,TextSectionTCP
