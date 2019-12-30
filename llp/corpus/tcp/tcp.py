@@ -39,7 +39,7 @@ class TextTCP(Text):
 		return super(TextTCP,self).sections_xml(divider_tag=divider_tag,text_section_class=self.corpus.TEXT_SECTION_CLASS)
 
 	def text_plain_from_xml(self, xml=None, OK=['p','l'], BAD=[], body_tag='text', force_xml=False, text_only_within_medium=True):
-		print('>> text_plain from stored XML file...')
+		#print('>> text_plain from stored XML file...')
 		import bs4
 
 		## get dom
