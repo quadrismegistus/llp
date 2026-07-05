@@ -1,3 +1,5 @@
+> ⚠️ **Deprecated — superseded by [lltk](https://github.com/quadrismegistus/lltk).** Kept for reference; archived and read-only.
+
 # llp
 
 Literary Language Processing (LLP): corpora, models, and tools for the digital humanities.
